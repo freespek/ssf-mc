@@ -10,7 +10,7 @@ We maintain the following convention: if `t` is the Python type, we label the co
 
 We will be using the [Lists](https://github.com/konnov/tlaki/blob/main/src/Lists.tla) module, in lieu of `Sequences`, to better match the 0-indexing convention of Python. To that end, we introduce the type notation:
 ```
-List(t^) := { es: List(t^) }
+List(t^) := { es: Seq(t^) }
 ```
 that is, the instantiation of the `$list` alias defined in `Lists.tla` with the concrete type `t^`.
 
