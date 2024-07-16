@@ -159,17 +159,6 @@ A set extension is translated to a combination of union and singleton-set constr
 pset_add(a,b) === pset_merge(a, pset_get_singleton(b))
 ```
 
-### Element choice
-https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L58-L60
-
-
-```
-    a: t
-  =========   pset_get_singleton(a) 
-    e: t^
-=====================================
-         { e } : Set(t^)
-```
 
 
 
