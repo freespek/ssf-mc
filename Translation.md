@@ -323,7 +323,7 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
   ===================   =========   ==========   pmap_set(a, b, c) 
      e: t1^ -> t2^        f: t1^      g: t2^
 ===================================================================
-                [e EXCEPT [f] = g] : t1^ -> t2^
+                [e EXCEPT ![f] = g] : t1^ -> t2^
 ```
 
 Function update is translated to the TLA+ native `EXCEPT`.
