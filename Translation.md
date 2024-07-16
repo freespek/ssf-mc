@@ -182,7 +182,7 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
   ===========================   ==============   pset_filter(a, b) 
          e: t^ -> bool            f: Set(t^)
 ====================================================================
-                      { x \in f: e(x) }: Set(t^)
+                      { x \in f: e[x] }: Set(t^)
 ```
 
 Set filtering is translated to the TLA+ native filter operation.
@@ -196,7 +196,8 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
             ==============   =======================   pset_max(a, b) 
               e: Set(t^)           f: t^ -> T^            
 ====================================================================================
-  ApaFoldSet( LET Max(x,y) == MaxT(f(x), f(y)) IN Max, f(CHOOSE x \in e: TRUE), e)
+  LET Max(x,y) == MaxT(f(x), f(y)) IN 
+  ApaFoldSet(Max, f(CHOOSE x \in e: TRUE), e)
 ```
 
 Here, the translation depends on the type `T` (resp. type `T^`), since there is no built-in notion of ordering in TLA+. If `T^` is an integer type, then 
@@ -226,7 +227,8 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
           ================   pset_sum(a) 
             e: Set(int)
 ===========================================================
-  ApaFoldSet( LET Plus(x,y) == x + y IN Plus, 0, e ): int
+  LET Plus(x,y) == x + y IN 
+  ApaFoldSet(Plus, 0, e ): int
 ```
 
 We translate a set sum with an aggregator fold.
@@ -268,7 +270,7 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
   =========================   ==============   pset_map(a, b) 
         e: t1^ -> t2^           f: Set(t1^)
 ===============================================================
-                { e(x): x \in f}: Set(t2^)
+                { e[x]: x \in f}: Set(t2^)
 ```
 
 Set mapping is translated to the TLA+ native map operation.
@@ -296,7 +298,7 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
   ===================   =========   pmap_get(a, b) 
      e: t1^ -> t2^        f: t1^
 ===================================================
-                  e(f): t2^
+                  e[f]: t2^
 ```
 
 Function application is translated to the TLA+ native function application. We cannot account for the dynamic domain-membership requirement. Instead, in that scenario, the value of this expression is some unspecified element of the correct type.
