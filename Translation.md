@@ -144,7 +144,7 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
   ================   ===========  pset_add(a, b) 
     e: Set[T(t)]       f: T(t)
 ==================================================
-             e \cap { f } : Set[T(t)] 
+             e \cup { f } : Set[T(t)] 
 ```
 
 A set extension is translated to a combination of union and singleton-set construction. Semantically, this is the equivalence
