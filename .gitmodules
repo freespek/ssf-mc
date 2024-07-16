@@ -1,0 +1,4 @@
+[submodule "ssf"]
+	path = ssf
+	url = https://github.com/saltiniroberto/ssf.git
+	branch = separate_bft
