@@ -96,6 +96,7 @@ is_validator(node, validatorBalances) ==
  *)
 validator_set_weight(validators, validatorBalances) ==
     LET queried_validator_ids == validators \intersect (DOMAIN validatorBalances) IN
+    \* TODO(#7): Clarify: the following drops weights that occur multiple times
     LET queried_validator_balances == { validatorBalances[v] : v \in queried_validator_ids } IN
     ApaFoldSet(+, 0, queried_validator_balances)
 
