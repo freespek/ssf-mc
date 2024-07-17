@@ -139,7 +139,10 @@ get_blockchain(block, node_state) ==
 
 \* @type: ($block, $commonNodeState) => Bool;
 is_complete_chain(block, node_state) ==
-    Last(TLC_get_blockchain(block, node_state)) = node_state.configuration.genesis
+    \* We could also do this without constructing the entire list / blockchain,
+    \* with a fold similar to above, but reducing to a boolean flag indicating
+    \* if it has seen the genesis block. Choosing this version now for brevity.
+    Last(get_blockchain(block, node_state)) = node_state.configuration.genesis
 
 (*
  * Determine if there is an ancestor-descendant relationship between two blocks.
