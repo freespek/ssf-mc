@@ -97,8 +97,7 @@ is_validator(node, validatorBalances) ==
 validator_set_weight(validators, validatorBalances) ==
     LET queried_validator_ids == validators \intersect (DOMAIN validatorBalances) IN
     LET queried_validator_balances == { validatorBalances[v] : v \in queried_validator_ids } IN
-    LET Plus(x, y) == x + y IN 
-    ApaFoldSet(Plus, 0, queried_validator_balances)
+    ApaFoldSet(+, 0, queried_validator_balances)
 
 (*
  * Construct a blockchain from a given block back to the genesis block.
