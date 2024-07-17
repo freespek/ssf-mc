@@ -95,7 +95,7 @@ is_validator(node, validatorBalances) ==
  * @type: (Set($nodeIdentity), $validatorBalances) => Int;
  *)
 validator_set_weight(validators, validatorBalances) ==
-    LET queried_validator_ids == validators \cap (DOMAIN validatorBalances) IN
+    LET queried_validator_ids == validators \intersect (DOMAIN validatorBalances) IN
     LET queried_validator_balances == { validatorBalances[v] : v \in queried_validator_ids } IN
     LET Plus(x, y) == x + y IN 
     ApaFoldSet(Plus, 0, queried_validator_balances)
@@ -210,11 +210,11 @@ have_common_ancestor(chain1, chain2, node_state) ==
                 last_block_and_chain_upto_slot
             ELSE
                 LET parent == get_parent(last_block, node_state) IN
-                << parent, chain_upto_slot \cup { parent } >>
+                << parent, chain_upto_slot \union { parent } >>
         IN
         ApaFoldSet( ChainWithParent, <<block, { block } >>, 0..node_state.current_slot )[2]
     IN
-    get_blockchain_set(chain1) \cap get_blockchain_set(chain2) # {}
+    get_blockchain_set(chain1) \intersect get_blockchain_set(chain2) # {}
 
 (*
  * Check if two blocks are conflicting.
