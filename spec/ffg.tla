@@ -1,14 +1,14 @@
 ----------------------------- MODULE ffg -----------------------------
 
-EXTENDS typedefs, Apalache, Integers
+EXTENDS typedefs, Apalache, Integers, helpers
 
-VARIABLES
-    \* @type: $commonNodeState;
-    node_state
-
-\* Start in some arbitrary state
-\* @type: () => Bool;
-Init == node_state = Gen(10)
+CONSTANTS
+    (*
+     * Checks whther the vote signature is valid.
+     *
+     * @type: ($signedVoteMessage) => Bool;
+     *)
+    VERIFY_VOTE_SIGNATURE(_)
 
 \* ========  HELPER METHODS ========
 
@@ -33,16 +33,11 @@ PairCompare(pa1, pa2) ==
 
 \* =================================
 
-\* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/stubs.pyi#L9
-\* stub, so we don't have access to the definition
-\* @type: ($signedVoteMessage) => Bool;
-verify_vote_signature(vote) == TRUE
-
 \* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/ffg.py#L208
 \* @type: ($signedVoteMessage, $signedVoteMessage) => Bool;
 are_equivocating_votes(vote1, vote2) == 
-    /\ verify_vote_signature(vote1)
-    /\ verify_vote_signature(vote2)
+    /\ VERIFY_VOTE_SIGNATURE(vote1)
+    /\ VERIFY_VOTE_SIGNATURE(vote2)
     /\ vote1.sender = vote2.sender
     /\ vote1 /= vote2
     /\ vote1.message.ffg_target.chkp_slot = vote2.message.ffg_target.chkp_slot
@@ -50,8 +45,8 @@ are_equivocating_votes(vote1, vote2) ==
 \* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/ffg.py#L218
 \* @type: ($signedVoteMessage, $signedVoteMessage) => Bool;
 does_first_vote_surround_second_vote(vote1, vote2) == 
-    /\ verify_vote_signature(vote1)
-    /\ verify_vote_signature(vote2)
+    /\ VERIFY_VOTE_SIGNATURE(vote1)
+    /\ VERIFY_VOTE_SIGNATURE(vote2)
     /\ vote1.sender = vote2.sender
     /\ LET 
         \* @type: () => <<Int, Int>>;
@@ -91,11 +86,5 @@ get_slashable_nodes_unoptimized(vote_view) ==
             IN ~(S = {})
         IN { vote \in vote_view: lambda1(vote)}
     IN { vote.sender : vote \in filtered}
-
-Next == UNCHANGED node_state
-
-NoSlashableInv == get_slashable_nodes(node_state.view_votes) = {}
-
-Inv == NoSlashableInv
 
 =============================================================================

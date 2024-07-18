@@ -196,7 +196,7 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
             ==============   =======================   pset_max(a, b) 
               e: Set(t^)           f: t^ -> T^            
 ====================================================================================
-  LET Max(x,y) == MaxT(f(x), f(y)) IN ApaFoldSet(Max, f(CHOOSE x \in e: TRUE), e)
+  LET Max(x,y) == MaxT(f(x), f(y)) IN ApaFoldSet(Max, CHOOSE x \in e: TRUE, e)
 ```
 
 Here, the translation depends on the type `T` (resp. type `T^`), since there is no built-in notion of ordering in TLA+. If `T^` is an integer type, then 
