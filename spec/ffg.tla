@@ -3,28 +3,12 @@
 EXTENDS typedefs, Apalache, Integers
 
 VARIABLES
-    \* @type: $configuration;
-    configuration,
-    \* @type: $nodeIdentity;
-    identity,
-    \* @type: Int;
-    current_slot,
-    \* @type: $hash -> $block;
-    view_blocks,
-    \* @type: Set($signedVoteMessage);
-    view_votes,
-    \* @type: $block;
-    chava
+    \* @type: $commonNodeState;
+    node_state
 
 \* Start in some arbitrary state
 \* @type: () => Bool;
-Init == 
-    /\ configuration = Gen(4)
-    /\ identity = Gen(4)
-    /\ current_slot = Gen(4)
-    /\ view_blocks = Gen(4)
-    /\ view_votes = Gen(4)
-    /\ chava = Gen(4)
+Init == node_state = Gen(10)
 
 \* ========  HELPER METHODS ========
 
@@ -99,24 +83,15 @@ get_slashable_nodes(vote_view) ==
 \* but more verbose and computationally expensive for Apalache.
 \* @type: (Set($signedVoteMessage)) => Set($nodeIdentity);
 get_slashable_nodes_unoptimized(vote_view) == 
-    LET filtered ==
-        LET lambda1(vote1) == 
-            LET S == 
-                LET lambda2(vote2) == is_slashable_offence(vote1, vote2)
-                IN { vote \in vote_view : lambda2(vote) }
+    LET filtered == { 
+        vote \in vote_view: LAMBDA vote1:
+            LET S == { vote \in vote_view : LAMBDA vote2: is_slashable_offence(vote1, vote2) }
             IN ~(S = {})
-        IN { vote \in vote_view: lambda1(vote)}
+        }
     IN { vote.sender : vote \in filtered}
 
-NextForceExistsSlashable == 
-    /\ configuration' = Gen(4)
-    /\ identity' = Gen(4)
-    /\ current_slot' = Gen(4)
-    /\ view_blocks' = Gen(4)
-    /\ view_votes' = Gen(4)
-    /\ get_slashabe_nodes(view_votes') /= {}
-    /\ chava' = Gen(4) 
+Next == UNCHANGED node_state
 
-Next == NextForceExistsSlashable
+Inv == get_slashable_nodes(node_state.view_votes)
 
 =============================================================================
