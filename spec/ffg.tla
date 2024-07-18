@@ -86,7 +86,7 @@ is_slashable_offence(vote1, vote2) ==
 
 \* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/ffg.py#L243
 \* @type: (Set($signedVoteMessage)) => Set($nodeIdentity);
-get_slashabe_nodes(vote_view) ==
+get_slashable_nodes(vote_view) ==
     LET filtered ==
         {
             vote1 \in vote_view : \E vote2 \in vote_view: is_slashable_offence(vote1, vote2)
@@ -98,7 +98,7 @@ get_slashabe_nodes(vote_view) ==
 \* the below implementation, which is semantically equivalent to the above, 
 \* but more verbose and computationally expensive for Apalache.
 \* @type: (Set($signedVoteMessage)) => Set($nodeIdentity);
-get_slashabe_nodes_unoptimized(vote_view) == 
+get_slashable_nodes_unoptimized(vote_view) == 
     LET filtered ==
         LET lambda1(vote1) == 
             LET S == 
