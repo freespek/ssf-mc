@@ -75,7 +75,7 @@ get_slashable_nodes(vote_view) ==
         {
             vote1 \in vote_view : \E vote2 \in vote_view: is_slashable_offence(vote1, vote2)
         }
-    IN { vote.sender : vote \in filtered}
+    IN { vote.sender : vote \in filtered }
 
 \* #mechanical
 \* If we were to blindly follow translation rules, without applying human judgement, we would end up with 
@@ -83,15 +83,19 @@ get_slashable_nodes(vote_view) ==
 \* but more verbose and computationally expensive for Apalache.
 \* @type: (Set($signedVoteMessage)) => Set($nodeIdentity);
 get_slashable_nodes_unoptimized(vote_view) == 
-    LET filtered == { 
-        vote \in vote_view: LAMBDA vote1:
-            LET S == { vote \in vote_view : LAMBDA vote2: is_slashable_offence(vote1, vote2) }
+    LET filtered ==
+        LET lambda1(vote1) == 
+            LET S == 
+                LET lambda2(vote2) == is_slashable_offence(vote1, vote2)
+                IN { vote \in vote_view : lambda2(vote) }
             IN ~(S = {})
-        }
+        IN { vote \in vote_view: lambda1(vote)}
     IN { vote.sender : vote \in filtered}
 
 Next == UNCHANGED node_state
 
-Inv == get_slashable_nodes(node_state.view_votes)
+NoSlashableInv == get_slashable_nodes(node_state.view_votes) = {}
+
+Inv == NoSlashableInv
 
 =============================================================================
