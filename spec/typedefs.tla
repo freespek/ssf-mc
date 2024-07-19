@@ -23,7 +23,7 @@ EXTENDS Lists
         signature: $signature,
         sender: $nodeIdentity
     };
-    @typeAlias: blockBody = BLOCK_BODY;
+    @typeAlias: blockBody = Str;
     @typeAlias: block = {
         parent_hash: $hash,
         slot: Int,

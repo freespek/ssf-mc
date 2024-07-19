@@ -192,28 +192,26 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
 
 
 ```
-              a: PSet[t]       b: Callable[[t], T]        
-            ==============   =======================   pset_max(a, b) 
-              e: Set(t^)           f: t^ -> T^            
-====================================================================================
-  LET Max(x,y) == MaxT(f(x), f(y)) IN ApaFoldSet(Max, f(CHOOSE x \in e: TRUE), e)
+    a: PSet[t]       b: Callable[[t], T]        
+  ==============   =======================   pset_max(a, b) 
+    e: Set(t^)           f: t^ -> T^            
+=============================================================
+      CHOOSE max \in e: \A x \in e: Le(f[x], f[max])
 ```
 
 Here, the translation depends on the type `T` (resp. type `T^`), since there is no built-in notion of ordering in TLA+. If `T^` is an integer type, then 
 ```
-MaxT(x,y) == IF x > y THEN x ELSE y
+Le(x,y) == x <= y
 ```
 However, if `T^` is a tuple type `<<int, int>>`, it is instead 
 
 ```
-MaxT(x,y) == 
-  IF x._1 > y._1
-  THEN x
-  ELSE IF x._1 < y._1 
-       THEN y
-       ELSE IF x._2 > y._2 
-            THEN x
-            ELSE y
+Le(x,y) == 
+  IF x[1] > y[1]
+  THEN FALSE
+  ELSE IF x[1] < y[1]
+       THEN TRUE
+       ELSE x[2] <= y[2]
 ```
 
 
