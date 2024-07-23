@@ -15,6 +15,10 @@ BLOCK_HASH(b) == b.body
 VERIFY_VOTE_SIGNATURE(vote) == TRUE
 
 
+\* Stake associated with each validator in a given slot.
+\*
+\* Assume uniform voting power for model checking.
+\*
 \* @type: ($block, Int, $commonNodeState) => $validatorBalances;
 GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
 

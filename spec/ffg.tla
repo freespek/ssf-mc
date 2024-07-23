@@ -282,15 +282,15 @@ get_set_FFG_targets(votes) ==
 get_finalized_checkpoints(node_state) ==
     LET ffgTargets == get_set_FFG_targets(node_state.view_votes)
     IN LET filtered == filter_out_non_finalized_checkpoint(ffgTargets, node_state)
-    IN filtered \cup {genesis_checkpoint(node_state)}
+    IN filtered \union {genesis_checkpoint(node_state)}
 
 
 \* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/ffg.py#L198
 \* It returns the greatest finalized checkpoint from a `node_state`.
 \* @type: ($commonNodeState) => $checkpoint;
 get_greatest_finalized_checkpoint(node_state) == 
-    LET e == get_finalized_checkpoints(node_state)
-    IN CHOOSE max \in e: \A x \in e: (x.chkp_slot <= max.chkp_slot)
+    LET finCheckpoints == get_finalized_checkpoints(node_state)
+    IN CHOOSE maxFinCheckpoint \in finCheckpoints: \A finCheckpoint \in finCheckpoints: (finCheckpoint.chkp_slot <= maxFinCheckpoint.chkp_slot)
 
 
 =============================================================================
