@@ -1,6 +1,6 @@
 ----------------------------- MODULE MC_ffg -----------------------------
 
-Nodes == { "A", "B", "C", "D", "E", "F", "G"}
+Nodes == { "A", "B", "C", "D"}
 MAX_SLOT == 5
 
 \* ========== Dummy implementations of stubs ==========
@@ -75,12 +75,8 @@ IsValidBlock(block, node_state) ==
     /\ block.slot >= 0
     /\ block.slot <= MAX_SLOT
     /\ \A voteMsg \in block.votes: IsValidSigedVoteMessage(voteMsg, node_state)
-    /\  LET parent == get_block_from_hash(block.parent_hash, node_state)
-        IN
-        \* Parent has lower slot #
-        /\ parent.slot < block.slot
-        \* The set of messages increases monotonically
-        /\ parent.votes \subseteq block.votes
+    /\ LET parent == get_block_from_hash(block.parent_hash, node_state)
+       IN parent.slot < block.slot \* Parent has lower slot #
 
 \* @type: ($proposeMessage, $commonNodeState) => Bool;
 IsValidProposeMessage(msg, node_state) ==
@@ -133,7 +129,10 @@ Next == UNCHANGED single_node_state
 
 NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
 
-EbbAndFLowInv == 
+\* The ebb-and-flow protocol property stipulates that at every step, two chains are maintained,
+\* the finalized chain, which is safe, and the available chain, which is live, s.t. the finalized
+\* chain is a prefix of the available chain.
+FinalizedChainIsPrefixOfAvailableChain == 
     LET lastFinBLock == get_block_from_hash(get_greatest_finalized_checkpoint(single_node_state).block_hash, single_node_state)
     IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava)
 
