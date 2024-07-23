@@ -30,7 +30,6 @@ EXTENDS Lists
         votes: Set($signedVoteMessage),
         body: $blockBody
     };
-    TODO(#7): should this just be a `Set($signedVoteMessage)`?
     @typeAlias: listOfSignedVoteMessage = { es: Seq($signedVoteMessage) };
     @typeAlias: proposeMessage = {
         block: $block,
