@@ -371,6 +371,159 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
 We translate this by mapping the function over its `DOMAIN`.
 
 
+## Meta-rules
+
+In order to facilitate translation to a fragment supported by Apalache, we need to introduce a set of TLA-to-TLA rules, which allow us to formulate translations from Python to TLA+ first in the intuitive way, potentially introducing constructs like recursion, which we then pair with a TLA-to-TLA rule, ending in a supported fragment. 
+
+### Bounded primitive recursion rule
+
+Assume we are given a `RECURSIVE` operator `Op` of arity `1`, s.t.
+```
+RECURSIVE Op(_)
+\* @type (a) => a;
+Op(x) ==
+  IF P(x)
+  THEN e
+  ELSE G(x, Op(b(x))
+```
+
+If, for every `x`, there exists a sequence `x = v_1, ..., v_n`, such that
+  - `n + 1` is bounded by some constant `N` (for any particular choice of `x` the constant may be different)
+  - `P(v_n)` holds
+  - `v_{i+1} = b(v_i)`
+
+we can define:
+```
+\* @type (a, Int) => Seq(a);
+Chain(x, N) ==
+  LET 
+    \* @type: (Seq(a), Int) => Seq(a);
+    step(seq, i) == 
+      IF i > Len(seq) \/ P(seq[1])
+      THEN seq
+      ELSE <<b(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
+  IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+```
+We know the above assumptions hold, if `P(Chain(x)[1])` holds, as it returns the sequence `<<v_n, ..., x>>` under those circumstances.
+
+Using `Chain` we can define a fold-based non-recursive operator `Op^`, such that `Op^(x) = Op(x)` under the above assumptions:
+
+```
+\* @type (a, Int) => a;
+NonrecursiveOp(x, N) ==
+LET chain == Chain(x, N) IN
+LET step(cumul, v) == G(v, cumul) IN
+ApaFoldSeqLeft( step, e, Tail(chain) )
+```
+
+Then, `Op^(x) = NonrecursiveOp(x, N)`. Alternatively
+
+```
+\* @type (a, Int) => a;
+NonrecursiveOp(x, N) ==
+LET chain == Chain(x, N) IN
+LET step(cumul, v) == G(v, cumul) IN
+IF ~P(chain[1])
+THEN CHOOSE x \in {}: TRUE
+ELSE ApaFoldSeqLeft( step, e, Tail(chain) )
+```
+
+In the special case where `G` is associative, that is, `G(a, G(b, c)) = G(G(a, b), c)` for all `a,b,c`, we can make the entire translation more optimized, and single-pass. Since `NonrecursiveOp(x,N)`, for sufficiently large `N`, computes 
+```
+G(v_1, G(v_2, ... (G(v_{n-2}, G(v_{n-1}, e)))))
+```
+and `G` is associative by assumption, then computing
+```
+G(G(G(G(v_1, v_2), ...), v_{n-1}), e)
+```
+should give us the same value. However, this computation can be done in a single pass:
+```
+NonrecursiveOpForAssociative(x, N) ==
+  IF P(x)
+  THEN e
+  ELSE
+    LET 
+      \* @type: (<<a, a>>, Int) => <<a, a>>;
+      step(pair, i) == \* we don't use the index `i`
+        LET partialAppChain == pair[1]
+            lastElemInSeq == pair[2]
+        IN
+          IF P(lastElemInSeq)
+          THEN pair
+          ELSE
+            LET nextElemInSeq == b(lastElemInSeq)
+            IN << G(partialAppChain, IF P(nextElemInSeq) e ELSE nextElemInSeq), nextElemInSeq >>
+    IN ApaFoldSeqLeft( step, <<x, x>>, MkSeq(N, LAMBDA i: i) )[1]
+```
+
+Example:
+```
+RECURSIVE Op(_)
+\* @type (Int) => Int;
+Op(x) ==
+  IF x <= 0
+  THEN 0
+  ELSE x + Op(x-1)
+```
+where `P(x) = x <= 0`, `G(a,b) = a + b`, and `b(x) = x - 1`. For this operator, we know that `Op(4) = 10`. By the above definitions:
+```
+\* @type (Int, Int) => Seq(Int);
+Chain(x, N) ==
+  LET 
+    \* @type: (Seq(Int), Int) => Seq(Int);
+    step(seq, i) == 
+      IF i > Len(seq) \/ seq[1] <= 0
+      THEN seq
+      ELSE <<seq[1] - 1>> \o seq
+  IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+```
+
+Since we can easily tell that for `x = 4`, the recursion-depth bound is `4`, we can compute the above with two different constants `N`, 2 and 100, and observe that `Chain(4, 2) = <<2, 3, 4>` and `Chain(4, 100) = <<0, 1, 2, 3, 4>>`. Clearly, for our `P(x) = x <= 0`, we see `~P(Chain(4, 2)[1]) <=> ~P(2) <=> 2 > 0`, and `P(Chain(4, 100)[1]) <=> P(0) <=> 0 <= 0`. Continuing with the next operator:
+
+```
+\* @type (Int, Int) => Int;
+NonrecursiveOp(x, N) ==
+LET chain == Chain(x, N)
+IN ApaFoldSeqLeft( +, 0, Tail(chain) )
+```
+we see that `NonrecursiveOp(4, 2) = 7 /= 10 = Op(4)`, but `NonrecursiveOp(4, 100) = 10 = Op(4)`. While `+` is associative, we omit the optimized translation for brevity.
+
+
+## Mutual recursion cycles
+
+Assume we are given a collection of `n` operators `Op_1, ..., Op_n` (using the convention `Op_{n+1} = Op_1`), with types `Op_i: (a_i) => a_{i+1}` s.t. `a_{n+1} = a_1`, in the following pattern:
+
+```
+RECURSIVE Op_i(_)
+\* @type (a_i) => a_{i+1};
+Op_i(x) == F_i(x, Op_{i+1}(b_i(x)))
+```
+
+Then, we can inline any one of these operators, w.l.o.g. `Op_1`, s.t. we obtain a primitive-recursive operator:
+```
+RECURISVE Op(_)
+\* @type: (a_1) => a_1;
+Op(x) ==
+  F_1(
+    x, 
+    F_2( 
+      b_1(x),
+      F_3(
+        b_2(b_1(x)),
+        F_4(
+          ...
+          F_n( 
+            b_{n-1}(b_{n-2}(...(b_1(x)))),
+            Op(b_n(b_{n-1}(...(b_1(x)))))
+            )
+          )
+        )
+      )
+    )
+```
+for which `Op(x) = Op_1(x)` for all `x`, and `Op` terminates iff `Op_1` terminates.
+
+
 
 
 
