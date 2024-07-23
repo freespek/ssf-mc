@@ -1,5 +1,8 @@
 ----------------------------- MODULE MC_ffg -----------------------------
 
+Nodes == { "A", "B", "C", "D"}
+MAX_SLOT == 5
+
 \* ========== Dummy implementations of stubs ==========
 
 \* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/stubs.pyi#L6
@@ -11,15 +14,21 @@ BLOCK_HASH(b) == b.body
 \* @type: ($signedVoteMessage) => Bool;
 VERIFY_VOTE_SIGNATURE(vote) == TRUE
 
-\* ====================================================
 
-Nodes == { "A", "B", "C", "D", "E", "F", "G"}
-MAX_SLOT == 5
+\* Stake associated with each validator in a given slot.
+\*
+\* Assume uniform voting power for model checking.
+\*
+\* @type: ($block, Int, $commonNodeState) => $validatorBalances;
+GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
+
+\* ====================================================
 
 INSTANCE ffg WITH
     BLOCK_HASH <- BLOCK_HASH,
     VERIFY_VOTE_SIGNATURE <- VERIFY_VOTE_SIGNATURE,
-    MAX_SLOT <- MAX_SLOT
+    MAX_SLOT <- MAX_SLOT,
+    GET_VALIDATOR_SET_FOR_SLOT <- GET_VALIDATOR_SET_FOR_SLOT
 
 VARIABLES
     \* @type: $commonNodeState;
@@ -66,8 +75,8 @@ IsValidBlock(block, node_state) ==
     /\ block.slot >= 0
     /\ block.slot <= MAX_SLOT
     /\ \A voteMsg \in block.votes: IsValidSigedVoteMessage(voteMsg, node_state)
-    \* The set of messages increases monotonically
-    /\ get_block_from_hash(block.parent_hash, node_state).votes \subseteq block.votes
+    /\ LET parent == get_block_from_hash(block.parent_hash, node_state)
+       IN parent.slot < block.slot \* Parent has lower slot #
 
 \* @type: ($proposeMessage, $commonNodeState) => Bool;
 IsValidProposeMessage(msg, node_state) ==
@@ -92,7 +101,7 @@ GenesisBlock == [
 IsValidConfiguration(cfg, node_state) ==
     /\ cfg.delta >= 0
     /\ cfg.genesis = GenesisBlock
-    /\ cfg.eta >= 0
+    /\ cfg.eta >= 1
     /\ cfg.k >= 0
 
 \* @type: ($commonNodeState) => Bool;
@@ -119,6 +128,13 @@ Init ==
 Next == UNCHANGED single_node_state
 
 NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
+
+\* The ebb-and-flow protocol property stipulates that at every step, two chains are maintained,
+\* the finalized chain, which is safe, and the available chain, which is live, s.t. the finalized
+\* chain is a prefix of the available chain.
+FinalizedChainIsPrefixOfAvailableChain == 
+    LET lastFinBLock == get_block_from_hash(get_greatest_finalized_checkpoint(single_node_state).block_hash, single_node_state)
+    IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava)
 
 Inv == NoSlashableInv
 
