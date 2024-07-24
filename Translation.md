@@ -373,7 +373,10 @@ We translate this by mapping the function over its `DOMAIN`.
 
 ## Meta-rules
 
-In order to facilitate translation to a fragment supported by Apalache, we need to introduce a set of TLA-to-TLA rules, which allow us to formulate translations from Python to TLA+ first in the intuitive way, potentially introducing constructs like recursion, which we then pair with a TLA-to-TLA rule, ending in a supported fragment. 
+In order to facilitate translation to the TLA+ fragment supported by Apalache, we introduce a set of TLA-to-TLA rules, which allow us to
+
+1. formulate translations from Python to TLA+ in the intuitive way, potentially introducing constructs like recursion, and then
+2. pair them with a TLA-to-TLA rule, ending in a supported fragment. 
 
 ### Bounded primitive recursion rule
 
@@ -416,7 +419,7 @@ LET step(cumul, v) == G(v, cumul) IN
 ApaFoldSeqLeft( step, e, Tail(chain) )
 ```
 
-Then, `Op^(x) = NonrecursiveOp(x, N)`. Alternatively
+Then, `Op^(x) = NonrecursiveOp(x, N)`. Alternatively,
 
 ```
 \* @type (a, Int) => a;
@@ -427,6 +430,7 @@ IF ~P(chain[1])
 THEN CHOOSE x \in {}: TRUE
 ELSE ApaFoldSeqLeft( step, e, Tail(chain) )
 ```
+#### Optimization for associative `G`
 
 In the special case where `G` is associative, that is, `G(a, G(b, c)) = G(G(a, b), c)` for all `a,b,c`, we can make the entire translation more optimized, and single-pass. Since `NonrecursiveOp(x,N)`, for sufficiently large `N`, computes 
 ```
@@ -436,7 +440,7 @@ and `G` is associative by assumption, then computing
 ```
 G(G(G(G(v_1, v_2), ...), v_{n-1}), e)
 ```
-should give us the same value. However, this computation can be done in a single pass:
+gives us the same value. This computation can be done in a single pass:
 ```
 NonrecursiveOpForAssociative(x, N) ==
   IF P(x)
@@ -489,7 +493,7 @@ IN ApaFoldSeqLeft( +, 0, Tail(chain) )
 we see that `NonrecursiveOp(4, 2) = 7 /= 10 = Op(4)`, but `NonrecursiveOp(4, 100) = 10 = Op(4)`. While `+` is associative, we omit the optimized translation for brevity.
 
 
-## Mutual recursion cycles
+### Mutual recursion cycles
 
 Assume we are given a collection of `n` operators `Op_1, ..., Op_n` (using the convention `Op_{n+1} = Op_1`), with types `Op_i: (a_i) => a_{i+1}` s.t. `a_{n+1} = a_1`, in the following pattern:
 
@@ -501,7 +505,7 @@ Op_i(x) == F_i(x, Op_{i+1}(b_i(x)))
 
 Then, we can inline any one of these operators, w.l.o.g. `Op_1`, s.t. we obtain a primitive-recursive operator:
 ```
-RECURISVE Op(_)
+RECURSIVE Op(_)
 \* @type: (a_1) => a_1;
 Op(x) ==
   F_1(
