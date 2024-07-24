@@ -371,6 +371,173 @@ https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e
 We translate this by mapping the function over its `DOMAIN`.
 
 
+## Meta-rules
+
+In order to facilitate translation to the TLA+ fragment supported by Apalache, we introduce a set of TLA-to-TLA rules, which allow us to
+
+1. formulate translations from Python to TLA+ in the intuitive way, potentially introducing constructs like recursion, and then
+2. pair them with a TLA-to-TLA rule, ending in a supported fragment. 
+
+### Bounded recursion rule
+
+Assume we are given a `RECURSIVE` operator `Op`. W.l.o.g. we can take the arity to be `1`, since any operator of higher arity can be expressed as an arity `1` operator over tuples or records.
+```tla
+RECURSIVE Op(_)
+\* @type (a) => a;
+Op(x) ==
+  IF P(x)
+  THEN e
+  ELSE G(x, Op(b(x))
+```
+
+The following needs to hold true, to ensure recursion termination: for every `x`, there exists a sequence `x = v_1, ..., v_n`, such that
+  - `P(v_n)` holds
+  - `v_{i+1} = b(v_i)` for all `1 <= i < n`
+  - `P(v_i)` does not hold for any `1 <= i < n` (i.o.w., this is the shortest sequence with the above two properties)
+
+We will attempt to express the recursive operator `Op` with a non-recursive operator `NonrecursiveOp` of arity `2`, which takes an additional parameter: a constant `N`. The non-recursive operator will have the property that, for any particular choice of `x`, `NonrecursiveOp(x, N)` will evaluate to `Op(x)` if `n < N` (i.e. if the recursion stack of `Op` has height of at most `N`).
+
+To that end, we first define:
+```tla
+\* @type (a, Int) => Seq(a);
+Chain(x, N) ==
+  LET 
+    \* @type: (Seq(a), Int) => Seq(a);
+    step(seq, i) == 
+      IF P(seq[1])
+      THEN seq
+      ELSE <<b(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
+  IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+```
+We can see that `Chain(x,N)` returns the sequence `<<v_n, ..., x>>` if `N` is sufficiently large. We can verify whether or not that is the case, by evaluating `P(Chain(x, N)[1])`. If it does not hold, the `N` chosen is not large enough, and needs to be increased.
+
+Using `Chain` we can define a fold-based non-recursive operator `Op^`, such that `Op^(x) = Op(x)` under the above assumptions:
+
+```tla
+\* @type (a, Int) => a;
+NonrecursiveOp(x, N) ==
+LET chain == Chain(x, N) IN
+LET step(cumul, v) == G(v, cumul) IN
+ApaFoldSeqLeft( step, e, Tail(chain) )
+```
+
+Then, `Op^(x) = NonrecursiveOp(x, N)`. Alternatively,
+
+```tla
+\* @type (a, Int) => a;
+NonrecursiveOp(x, N) ==
+LET chain == Chain(x, N) IN
+LET step(cumul, v) == G(v, cumul) IN
+IF ~P(chain[1])
+THEN CHOOSE x \in {}: TRUE 
+ELSE ApaFoldSeqLeft( step, e, Tail(chain) )
+```
+
+In this form, we return `CHOOSE x \in {}: TRUE`, which is an idiom meaning "any value" (of the correct type), in the case where the `N` chosen was not large enough. Tools can use this idiom to detect that `NonrecursiveOp(x,N)` did not evaluate to the expected value of `Op(x)`. 
+
+Example:
+```tla
+RECURSIVE Op(_)
+\* @type (Int) => Int;
+Op(x) ==
+  IF x <= 0
+  THEN 0
+  ELSE x + Op(x-1)
+```
+where `P(x) = x <= 0`, `G(a,b) = a + b`, and `b(x) = x - 1`. For this operator, we know that `Op(4) = 10`. By the above definitions:
+```tla
+\* @type (Int, Int) => Seq(Int);
+Chain(x, N) ==
+  LET 
+    \* @type: (Seq(Int), Int) => Seq(Int);
+    step(seq, i) == 
+      IF i > Len(seq) \/ seq[1] <= 0
+      THEN seq
+      ELSE <<seq[1] - 1>> \o seq
+  IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+```
+
+We can compute the above `Chain` with two different constants `N`, 2 and 100 and observe that `Chain(4, 2) = <<2, 3, 4>` and `Chain(4, 100) = <<0, 1, 2, 3, 4>>`. 
+We are able to tell whether we have chosen sufficiently large values for N after the fact, by evaluating `P(Chain(x,N)[1])`. 
+For our `P(x) = x <= 0`, we see `~P(Chain(4, 2)[1])`, and `P(Chain(4, 100)[1])`, so we can conclude that we should not pick `N=2`, but `N=100` suffices. 
+Of course it is relatively easy to see, in this toy example, that the recursion depth is exactly 4, but we could use this post-evaluation in cases where the recursion depth is harder to evaluate from the specification, to determine whether we need to increase the value of `N`.
+
+Continuing with the next operator:
+
+```tla
+\* @type (Int, Int) => Int;
+NonrecursiveOp(x, N) ==
+LET chain == Chain(x, N)
+IN ApaFoldSeqLeft( +, 0, Tail(chain) )
+```
+we see that `NonrecursiveOp(4, 2) = 7 /= 10 = Op(4)`, but `NonrecursiveOp(4, 100) = 10 = Op(4)`.
+As expected, choosing an insufficiently large value of `N` will give us an incorrect result, but, as stated above, we know how to detect whether we have chosen an appropriate `N`.
+
+#### Optimization for associative `G`
+
+In the special case where `G` is associative, that is, `G(a, G(b, c)) = G(G(a, b), c)` for all `a,b,c`, we can make the entire translation more optimized, and single-pass. Since `NonrecursiveOp(x,N)`, for sufficiently large `N`, computes 
+```
+G(v_1, G(v_2, ... (G(v_{n-2}, G(v_{n-1}, e)))))
+```
+and `G` is associative by assumption, then computing
+```
+G(G(G(G(v_1, v_2), ...), v_{n-1}), e)
+```
+gives us the same value. This computation can be done in a single pass:
+```tla
+NonrecursiveOpForAssociative(x, N) ==
+  IF P(x)
+  THEN e
+  ELSE
+    LET 
+      \* @type: (<<a, a>>, Int) => <<a, a>>;
+      step(pair, i) == \* we don't use the index `i`
+        LET partialAppChain == pair[1]
+            currentElemInSeq == pair[2]
+        IN
+          IF P(currentElemInSeq)
+          THEN pair
+          ELSE
+            LET nextElemInSeq == b(currentElemInSeq)
+            IN << G(partialAppChain, IF P(nextElemInSeq) e ELSE nextElemInSeq), nextElemInSeq >>
+    IN ApaFoldSeqLeft( step, <<x, x>>, MkSeq(N, LAMBDA i: i) )[1]
+```
+
+### Mutual recursion cycles
+
+Assume we are given a collection of `n` operators `Op_1, ..., Op_n` (using the convention `Op_{n+1} = Op_1`), with types `Op_i: (a_i) => a_{i+1}` s.t. `a_{n+1} = a_1`, in the following pattern:
+
+```tla
+RECURSIVE Op_i(_)
+\* @type (a_i) => a_{i+1};
+Op_i(x) == G_i(x, Op_{i+1}(b_i(x)))
+```
+
+Then, we can inline any one of these operators, w.l.o.g. `Op_1`, s.t. we obtain a primitive-recursive operator:
+```tla
+RECURSIVE Op(_)
+\* @type: (a_1) => a_1;
+Op(x) ==
+  G_1(
+    x, 
+    G_2( 
+      b_1(x),
+      G_3(
+        b_2(b_1(x)),
+        G_4(
+          ...
+          G_n( 
+            b_{n-1}(b_{n-2}(...(b_1(x)))),
+            Op(b_n(b_{n-1}(...(b_1(x)))))
+            )
+          )
+        )
+      )
+    )
+```
+for which `Op(x) = Op_1(x)` for all `x`, and `Op` terminates iff `Op_1` terminates.
+
+
 
 
 
