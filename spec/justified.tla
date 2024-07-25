@@ -33,7 +33,7 @@ IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
         node_state
         )
 
-\* With the predicate, we can filter out the checkpoints that are relevant in one step
+\* With the predicate, we can filter out the votes that are relevant in one step
 \* @type: ($checkpoint, $commonNodeState) => Set($signedVoteMessage);
 VotesRelevantForOneStepIteration(checkpoint, node_state) == 
     { vote \in node_state.view_votes: IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state)}
@@ -52,7 +52,7 @@ VotesRelevantForOneStepIteration(checkpoint, node_state) ==
 \*   2. IsVoteInSupportAssumingJustifiedSource requires `vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot`
 \* Therefore, for any checkpoint C, all votes in VotesRelevantForOneStepIteration(C, ..)
 \* have sources with a strictly lower slot number. 
-\* If we take N_i to be the maximal slot number of any sorce of a vote in the codomain of M_i, then
+\* If we take N_i to be the maximal slot number of any sorce of a vote in a set in the codomain of M_i, then
 \* we can easily see that N_i > N_{i+1}.
 \* Since the checkpoint with the lowest slot number is the genesis checkpoint C_G, and 
 \* VotesRelevantForOneStepIteration(C_G, ...) = {}, eventually S_m will be empty.
@@ -67,9 +67,6 @@ VotesRelevantForOneStepIteration(checkpoint, node_state) ==
 
 \* Using the above knowledge, we can construct a Chain operator, to compute the sequence <<M_n, ..., M_1>>,
 \* as required by the recursion rule.
-
-\* Our base-case for recursion is whenever C is the genesis block. In the language of vote strata, this means 
-\* whenever the stratum is empty
 
 \* @typeAlias: targetMap = $checkpoint -> Set($signedVoteMessage);
 \* @type: ($targetMap, Int, $commonNodeState) => Seq($targetMap);
