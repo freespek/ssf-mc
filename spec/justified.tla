@@ -38,17 +38,35 @@ IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
 VotesInSupportAssumingJustifiedSource(checkpoint, node_state) == 
     { vote \in node_state.view_votes: IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state)}
 
-\* Using VotesRelevantForOneStepIteration, we recursively define, for every initial checkpoint C, 
-\* a sequence of sets CheckpointsPendingJustification_i.
-\*
-\* Let CheckpointsPendingJustification_1 = { C }, and
-\* let CheckpointsPendingJustification_{i+1} contain all source checkpoints `s`, of votes in
-\* potential support of the checkpoints in CheckpointsPendingJustification_i, themselves pending justification
-\* (potential support due to omission of recursive justification of the source checkpoints in `IsVoteInSupportAssumingJustifiedSource`).
-\*
+\* In the recursive implementation, computing is_justified_checkpoint(C) for a given checkpoint C
+\* requires us to look at the set of all votes in VotesInSupportAssumingJustifiedSource(C, ...)
+\* which additionally have source checkpoints satisfying is_justified_checkpoint recursively.        
+\* This naturally defines, for our choice of C, a set of (other) checkpoints, 
+\* for which we need to be able to tell whether or not they are justified.
+\* For certain checkpoints, such as for example the genesis checkpoint C_G, as well as 
+\* any checkpoints which do not have any votes in support, this set is empty.
+
+\* Each such checkpoint c_i pending justification requires us to look at VotesInSupportAssumingJustifiedSource(c_i, ...),
+\* which in turn gives us another (possibly empty) set of (other) checkpoints that need to be evaluated.
+\* We will show below that this construction necessarily terminates, but for now we note that:
+\*   - in each step, we have a set of relevant checkpoints
+\*   - for each of these checkpoints, we need to keep track of a set of votes potentially justifying it, 
+\*     which will be used to define the checkpoints in the next step
+
+\* Due to the above, we observe that we can define a (finite) sequence of _maps_ s.t.:
+\*   - The domain of the i-th map is exactly the set of checkpoints pending justification in the i-th step
+\*   - Each checkpoint in this domain maps to the set of votes used to potentially justify it
+
+\* Let CheckpointsPendingJustification_i denote the set of checkpoints we need to be able to justify in the i-th step
+\* Initially, CheckpointsPendingJustification_1 = { C }, i.e. the original checkpoint C
+\* To formalize the construction described above, CheckpointsPendingJustification_{i+1} will contain the sources of 
+\* all checkpoints, used by votes in support of any of the checkpoints in CheckpointsPendingJustification_i:
+\* CheckpointsPendingJustification_{i+1} ==
+\*     UNION { Sources(VotesInSupportAssumingJustifiedSource(c_j, ...)) : c_j \in CheckpointsPendingJustification_i }
+
 \* Finally, we extend this notion to a sequence of maps M_i,
 \* where the domain of M_i is CheckpointsPendingJustification_i, and
-\* M_i[c] is the set of votes (pending justification of their sources) potentially in support of c.
+\* M_i[c] is the set `VotesInSupportAssumingJustifiedSource(c, ...)`.
 \*
 \* Thus, the first map M_1 for C is simply [ c \in {C} |-> VotesInSupportAssumingJustifiedSource(C, ...) ].
 \* Each subsequent map M_{i+1} is defined in the following way:
@@ -56,21 +74,31 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \*     LET CheckpointsPendingJustification == UNION { Sources(M_i[previousStepCheckpoint]): previousStepCheckpoint \in DOMAIN M_i } 
 \*     IN [ checkpoint \in CheckpointsPendingJustification |-> VotesInSupportAssumingJustifiedSource(checkpoint, ...) ]
  
-\* This construction is guaranteed to be finite, i.e., there exists some n, s.t. M_k is empty for all k >= n and nonempty
+\* This construction is guaranteed to be finite, i.e., there exists some n, 
+\* s.t. CheckpointsPendingJustification_k is empty for all k >= n and nonempty
 \* for all 1 < i < n. We convince ourselves by first observing that:
 \*   1. valid_FFG_vote(vote) requires `vote.message.ffg_source.chkp_slot < vote.message.ffg_target.chkp_slot`
 \*   2. IsVoteInSupportAssumingJustifiedSource requires `vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot`
 \* Therefore, for any checkpoint C, all votes in VotesInSupportAssumingJustifiedSource(C, ..)
 \* have sources with a strictly lower slot number. 
-\* If we take N_i to be the maximal slot number of any source of a vote in a set in the codomain of M_i, then
-\* we can easily see that N_i > N_{i+1}.
-\* Since the checkpoint with the lowest slot number is the genesis checkpoint C_G, and 
-\* VotesRelevantForOneStepIteration(C_G, ...) = {}, eventually S_m will be empty.
+
+\* If we define N_i to be
+\* sup( 
+\*     UNION {
+\*         {vote.message.slot: vote \in VotesInSupportAssumingJustifiedSource(c, ...)} : 
+\*             c \in CheckpointsPendingJustification_i
+\*     } 
+\* )
+\* i.e. the largest slot belonging to any vote message potentially justifying any checkpoint in CheckpointsPendingJustification_i 
+\* (or negative infinity, if every element in the UNION is empty), 
+\* we can easily see that N_i > N_{i+1} because of the reasoning above. 
+\* Assuming slot numbers are nonnegative, this construction terminates in at most N_1 steps.
 
 \* This satisfies our termination requirement from the recursion rule.
 
 \* ============IMPORTANT============
-\* TODO: Instead of computing is_justified_checkpoint for a single checkpoint
+\* TODO: #19
+\* Instead of computing is_justified_checkpoint for a single checkpoint
 \* we should directly define the set of _ALL_ justified checkpoints for a given state
 \* (which can be justified by all the votes in that state)
 \* =================================
@@ -121,7 +149,8 @@ AllJustifiedCheckpoints(initialTargetMap, N, node_state) ==
                                 node_state
                             )
                     IN  LET 
-                        \* TODO: Since GET_VALIDATOR_SET_FOR_SLOT is a constant operator, we could
+                        \* TODO: #20
+                        \* Since GET_VALIDATOR_SET_FOR_SLOT is a constant operator, we could
                         \* directly substitute it here
                         validatorBalances == 
                             GET_VALIDATOR_SET_FOR_SLOT(
@@ -142,11 +171,12 @@ AllJustifiedCheckpoints(initialTargetMap, N, node_state) ==
                                 },
                                 validatorBalances
                             )
-                        \* TODO: This value does not depend on any checkpoint or set of votes, so it is 
-                        \* constant throughout the iteration, assuming validatorBalances is constant as decribed above
+                        \* TODO: #20
+                        \* Since GET_VALIDATOR_SET_FOR_SLOT is a constant operator, 
+                        \* validatorBalances is constant as well, we could compute it outside the iteration
                         tot_validator_set_weight == 
                             validator_set_weight(DOMAIN validatorBalances, validatorBalances)
-                    IN FFG_support_weight * 3 >= tot_validator_set_weight * 2
+                    IN hasBlockHash /\ isCompleteChain /\ FFG_support_weight * 3 >= tot_validator_set_weight * 2
             IN justifiedCheckpoints \union { target \in targets : isOneCheckpointJustified(target) }
     IN LET step(cumul, v) == G(v, cumul) 
     IN ApaFoldSeqLeft( step, {genesis_checkpoint(node_state)}, Tail(chain) )
