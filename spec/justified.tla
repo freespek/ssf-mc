@@ -4,18 +4,18 @@ EXTENDS ffg, Sequences
 
 \* Given a set of votes, returns all of the checkpoints, which appear as sources.
 \* @type: (Set($signedVoteMessage)) => Set($checkpoint);
-Sources(votes) == { vote.message.ffg_source : vote \in votes} 
+Sources(votes) == { vote.message.ffg_source : vote \in votes }
 
 \* The recursion in is_justified_checkpoint is set up as follows:
 \* To justify checkpoint C, we must look at all votes C1 -> C2, s.t.
 \* C lies between C1 and C2 (definition below), AND C1 is justified.
 \* We define the following operator, which precisely captures this condition, 
-\* save for the recursive justificaiton.
+\* save for the recursive justification.
 \* @type: ($signedVoteMessage, $checkpoint, $commonNodeState) => Bool;
 IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
     \* TODO: If we end up always doing 1-state model checking, a lot of sub-checks in 
-    \* valid_FFG_vote are already a part of the state validity predicate, and couldbe omitted here 
-    \* to simplify computation
+    \* valid_FFG_vote are already a part of the state validity predicate, and
+    \* could be omitted here to simplify computation.
     /\ valid_FFG_vote(vote, node_state) 
     /\ vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot
     \* TODO: If we end up always doing 1-state model checking, we could 
@@ -47,12 +47,12 @@ VotesRelevantForOneStepIteration(checkpoint, node_state) ==
 \*     IN [ target \in newTargets |-> VotesRelevantForOneStepIteration(target, ...) ]
  
 \* This construction is guaranteed to be finite, i.e., there exists some n, s.t. M_k is empty for all k >= n and nonempty
-\* for all 1 < i < n. The reason is as follows:
+\* for all 1 < i < n. We convince ourselves by first observing that:
 \*   1. valid_FFG_vote(vote) requires `vote.message.ffg_source.chkp_slot < vote.message.ffg_target.chkp_slot`
 \*   2. IsVoteInSupportAssumingJustifiedSource requires `vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot`
 \* Therefore, for any checkpoint C, all votes in VotesRelevantForOneStepIteration(C, ..)
 \* have sources with a strictly lower slot number. 
-\* If we take N_i to be the maximal slot number of any sorce of a vote in a set in the codomain of M_i, then
+\* If we take N_i to be the maximal slot number of any source of a vote in a set in the codomain of M_i, then
 \* we can easily see that N_i > N_{i+1}.
 \* Since the checkpoint with the lowest slot number is the genesis checkpoint C_G, and 
 \* VotesRelevantForOneStepIteration(C_G, ...) = {}, eventually S_m will be empty.
