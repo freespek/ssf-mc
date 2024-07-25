@@ -35,22 +35,32 @@ IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
 
 \* With the predicate, we can filter out the votes that are relevant in one step
 \* @type: ($checkpoint, $commonNodeState) => Set($signedVoteMessage);
-VotesRelevantForOneStepIteration(checkpoint, node_state) == 
+VotesInSupportAssumingJustifiedSource(checkpoint, node_state) == 
     { vote \in node_state.view_votes: IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state)}
 
-\* Using VotesRelevantForOneStepIteration, we can define, for every initial checkpoint C, 
-\* a sequence of maps M_i. We will refer to the domain elements of M_i as "targets" for step i.
-\* The first map M_1 for C is simply [ c \in {C} |-> VotesRelevantForOneStepIteration(C, ...) ].
+\* Using VotesRelevantForOneStepIteration, we recursively define, for every initial checkpoint C, 
+\* a sequence of sets CheckpointsPendingJustification_i.
+\*
+\* Let CheckpointsPendingJustification_1 = { C }, and
+\* let CheckpointsPendingJustification_{i+1} contain all source checkpoints `s`, of votes in
+\* potential support of the checkpoints in CheckpointsPendingJustification_i, themselves pending justification
+\* (potential support due to omission of recursive justification of the source checkpoints in `IsVoteInSupportAssumingJustifiedSource`).
+\*
+\* Finally, we extend this notion to a sequence of maps M_i,
+\* where the domain of M_i is CheckpointsPendingJustification_i, and
+\* M_i[c] is the set of votes (pending justification of their sources) potentially in support of c.
+\*
+\* Thus, the first map M_1 for C is simply [ c \in {C} |-> VotesInSupportAssumingJustifiedSource(C, ...) ].
 \* Each subsequent map M_{i+1} is defined in the following way:
 \* M_{i+1} ==
-\*     LET newTargets == UNION { Sources(M_i[target]): target \in DOMAIN M_i } 
-\*     IN [ target \in newTargets |-> VotesRelevantForOneStepIteration(target, ...) ]
+\*     LET CheckpointsPendingJustification == UNION { Sources(M_i[previousStepCheckpoint]): previousStepCheckpoint \in DOMAIN M_i } 
+\*     IN [ checkpoint \in CheckpointsPendingJustification |-> VotesInSupportAssumingJustifiedSource(checkpoint, ...) ]
  
 \* This construction is guaranteed to be finite, i.e., there exists some n, s.t. M_k is empty for all k >= n and nonempty
 \* for all 1 < i < n. We convince ourselves by first observing that:
 \*   1. valid_FFG_vote(vote) requires `vote.message.ffg_source.chkp_slot < vote.message.ffg_target.chkp_slot`
 \*   2. IsVoteInSupportAssumingJustifiedSource requires `vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot`
-\* Therefore, for any checkpoint C, all votes in VotesRelevantForOneStepIteration(C, ..)
+\* Therefore, for any checkpoint C, all votes in VotesInSupportAssumingJustifiedSource(C, ..)
 \* have sources with a strictly lower slot number. 
 \* If we take N_i to be the maximal slot number of any source of a vote in a set in the codomain of M_i, then
 \* we can easily see that N_i > N_{i+1}.
