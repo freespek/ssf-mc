@@ -77,6 +77,7 @@ IsValidBlock(block, node_state) ==
     /\ \A voteMsg \in block.votes: IsValidSigedVoteMessage(voteMsg, node_state)
     /\ LET parent == get_block_from_hash(block.parent_hash, node_state)
        IN parent.slot < block.slot \* Parent has lower slot #
+    /\ block.body /= ""
 
 \* @type: ($proposeMessage, $commonNodeState) => Bool;
 IsValidProposeMessage(msg, node_state) ==
@@ -93,7 +94,7 @@ GenesisBlock == [
         parent_hash |-> "",
         slot        |-> 0,
         votes       |-> {},
-        body        |-> ""
+        body        |-> "genesis"
     ]
     
 \* QUESTION TO REVIEWERS: strict > ?
@@ -110,6 +111,7 @@ IsValidNodeState(node_state) ==
     /\ node_state.identity \in Nodes
     /\ node_state.current_slot >= 0
     /\ node_state.current_slot <= MAX_SLOT
+    /\ "" \notin DOMAIN node_state.view_blocks
     \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
     /\ \A hash1,hash2 \in DOMAIN node_state.view_blocks: 
         hash1 = hash2 <=> node_state.view_blocks[hash1] = node_state.view_blocks[hash2]

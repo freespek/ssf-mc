@@ -383,7 +383,7 @@ In order to facilitate translation to the TLA+ fragment supported by Apalache, w
 Assume we are given a `RECURSIVE` operator `Op`. W.l.o.g. we can take the arity to be `1`, since any operator of higher arity can be expressed as an arity `1` operator over tuples or records.
 ```tla
 RECURSIVE Op(_)
-\* @type (a) => a;
+\* @type (a) => b;
 Op(x) ==
   IF P(x)
   THEN e
@@ -414,7 +414,7 @@ We can see that `Chain(x,N)` returns the sequence `<<v_n, ..., x>>` if `N` is su
 Using `Chain` we can define a fold-based non-recursive operator `Op^`, such that `Op^(x) = Op(x)` under the above assumptions:
 
 ```tla
-\* @type (a, Int) => a;
+\* @type (a, Int) => b;
 NonrecursiveOp(x, N) ==
 LET chain == Chain(x, N) IN
 LET step(cumul, v) == G(v, cumul) IN
@@ -424,7 +424,7 @@ ApaFoldSeqLeft( step, e, Tail(chain) )
 Then, `Op^(x) = NonrecursiveOp(x, N)`. Alternatively,
 
 ```tla
-\* @type (a, Int) => a;
+\* @type (a, Int) => b;
 NonrecursiveOp(x, N) ==
 LET chain == Chain(x, N) IN
 LET step(cumul, v) == G(v, cumul) IN
