@@ -47,22 +47,22 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \* any checkpoints which do not have any votes in support, this set is empty.
 
 \* Each such checkpoint c pending justification requires us to look at VotesInSupportAssumingJustifiedSource(c, ...),
-\* which in turn gives us another (possibly empty) set of (other) checkpoints that need to be evaluated.
+\* which in turn gives us another (possibly empty) set of (other) checkpoints, the justification of which needs to be evaluated.
 \* We will show below that this construction necessarily terminates, but for now we note that:
 \*   - in each step, we have a set of relevant checkpoints
 \*   - for each of these checkpoints, we need to keep track of a set of votes potentially justifying it, 
-\*     which will be used to define the checkpoints in the next step
+\*     the sources of which define the checkpoints in the next step
 
 \* Due to the above, we observe that we can define a (finite) sequence of _maps_ s.t.:
 \*   - The domain of the i-th map is exactly the set of checkpoints pending justification in the i-th step
 \*   - Each checkpoint in this domain maps to the set of votes used to potentially justify it
 
-\* Let CheckpointsPendingJustification_i denote the set of checkpoints we need to be able to justify in the i-th step
+\* Let CheckpointsPendingJustification_i denote the set of checkpoints for which we need to be able to evaluate justification in the i-th step
 \* Initially, CheckpointsPendingJustification_1 = { C }, i.e. the original checkpoint C
 \* To formalize the construction described above, CheckpointsPendingJustification_{i+1} will contain the sources of 
 \* all checkpoints, used by votes in support of any of the checkpoints in CheckpointsPendingJustification_i:
 \* CheckpointsPendingJustification_{i+1} ==
-\*     UNION { Sources(VotesInSupportAssumingJustifiedSource(c_j, ...)) : c_j \in CheckpointsPendingJustification_i }
+\*     UNION { Sources(VotesInSupportAssumingJustifiedSource(c, ...)) : c \in CheckpointsPendingJustification_i }
 
 \* Finally, we extend this notion to a sequence of maps M_i,
 \* where the domain of M_i is CheckpointsPendingJustification_i, and
