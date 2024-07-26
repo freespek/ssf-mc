@@ -116,7 +116,7 @@ Chain(x, N, node_state) ==
         \* @type: ($targetMap) => $targetMap;
         b(map) ==
             LET newTargets == UNION { Sources(map[target]): target \in DOMAIN map } 
-            IN [ target \in newTargets |-> VotesRelevantForOneStepIteration(target, node_state) ]
+            IN [ target \in newTargets |-> VotesInSupportAssumingJustifiedSource(target, node_state) ]
     IN  LET 
             \* @type: (Seq($targetMap), Int) => Seq($targetMap);
             step(seq, i) == 
@@ -184,7 +184,7 @@ AllJustifiedCheckpoints(initialTargetMap, N, node_state) ==
 
 \* @type: ($checkpoint, Int, $commonNodeState) => Bool;
 NonrecursiveIsJustifiedCheckpoint(checkpoint, N, node_state) ==
-    LET initialTargetMap == [ c \in {checkpoint} |-> VotesRelevantForOneStepIteration(c, node_state) ]
+    LET initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, node_state) ]
     IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, N, node_state)
 
 
