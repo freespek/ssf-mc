@@ -46,7 +46,7 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \* For certain checkpoints, such as for example the genesis checkpoint C_G, as well as 
 \* any checkpoints which do not have any votes in support, this set is empty.
 
-\* Each such checkpoint c_i pending justification requires us to look at VotesInSupportAssumingJustifiedSource(c_i, ...),
+\* Each such checkpoint c pending justification requires us to look at VotesInSupportAssumingJustifiedSource(c, ...),
 \* which in turn gives us another (possibly empty) set of (other) checkpoints that need to be evaluated.
 \* We will show below that this construction necessarily terminates, but for now we note that:
 \*   - in each step, we have a set of relevant checkpoints
@@ -115,7 +115,7 @@ Chain(x, N, node_state) ==
         \* if x = M_i, then b(x) defines M_{i+1}
         \* @type: ($targetMap) => $targetMap;
         b(map) ==
-            LET newTargets == UNION { Sources(x[target]): target \in DOMAIN map } 
+            LET newTargets == UNION { Sources(map[target]): target \in DOMAIN map } 
             IN [ target \in newTargets |-> VotesRelevantForOneStepIteration(target, node_state) ]
     IN  LET 
             \* @type: (Seq($targetMap), Int) => Seq($targetMap);
