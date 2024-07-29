@@ -1,4 +1,11 @@
 ----------------------------- MODULE MC_ffg -----------------------------
+(*
+ * Main TLA+ module for model-checking with Apalache
+ *
+ * Jure Kukovec, 2024.
+ *
+ * Subject to Apache 2.0. See `LICENSE.md`.
+ *)
 
 Nodes == { "A", "B", "C", "D" }
 

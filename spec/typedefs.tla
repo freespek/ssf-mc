@@ -1,4 +1,14 @@
 ----------------------------- MODULE typedefs -----------------------------
+(*
+ * Translation of the `data_structures.py` Python module to TLA+.
+ *
+ * In particular, we translate the class definitions to types in Apalache's Type System 1.2:
+ * https://apalache.informal.systems/docs/adr/002adr-types.html#ts12
+ *
+ * Thomas Pani, 2024.
+ *
+ * Subject to Apache 2.0. See `LICENSE.md`.
+ *)
 
 EXTENDS Lists
 

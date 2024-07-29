@@ -1,4 +1,17 @@
 ---- MODULE helpers ----
+(*
+ * Translation of the `helpers.py` Python module to TLA+.
+ *
+ * Recursive functions are translated to Apalache folds, see
+ *   - [the translation rules](../Translation.md#bounded-recursion-rule)
+ *   - [the Apalache manual on folds](https://apalache.informal.systems/docs/apalache/principles/folds.html)
+ *
+ * For a naive translation to recursive TLA+ operators (not supported by Apalache), see `./helpers_recursive.tla`.
+ *
+ * Thomas Pani, Jure Kukovec. 2024.
+ *
+ * Subject to Apache 2.0. See `LICENSE.md`.
+ *)
 
 EXTENDS typedefs, Apalache, Integers, Tuples
 

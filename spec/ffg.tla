@@ -1,4 +1,11 @@
 ----------------------------- MODULE ffg -----------------------------
+(*
+ * Translation of the `ffg.py` Python module to TLA+.
+ *
+ * Jure Kukovec, 2024.
+ *
+ * Subject to Apache 2.0. See `LICENSE.md`.
+ *)
 
 EXTENDS typedefs, Apalache, Integers, helpers
 
