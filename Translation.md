@@ -555,6 +555,8 @@ mapOp(map) ==
   ELSE mapG(map, mapOp(b(map)))
 ``` 
 
+TODO #22: Justify why `Op(x) = mapOp([ v \in {x} |-> V(x) ])[x]`
+
 We can see that `mapOp` matches the shape required by our translation rule, so we can evaluate it with folds, using `b` and `mapG` as defined above. To prove termination, we need to show that there exists a sequence of maps
 `[ v \in {x} |-> V(x) ] = v_1, ..., v_n`, such that
   - `\A v \in DOMAIN v_n: P(v)`
