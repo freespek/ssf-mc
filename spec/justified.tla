@@ -121,8 +121,8 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \* as required by the recursion rule.
 
 \* @typeAlias: targetMap = $checkpoint -> Set($signedVoteMessage);
-\* @type: ($targetMap, Int, $commonNodeState) => Seq($targetMap);
-Chain(x, N, node_state) ==
+\* @type: ($targetMap, $commonNodeState, Int) => Seq($targetMap);
+Chain(x, node_state, N) ==
     LET 
         \* @type: ($targetMap) => Bool;
         P(map) == DOMAIN map = {}
@@ -140,9 +140,9 @@ Chain(x, N, node_state) ==
         IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
         
 
-\* @type: ($targetMap, Int, $commonNodeState) => Set($checkpoint);
-AllJustifiedCheckpoints(initialTargetMap, N, node_state) ==
-    LET chain == Chain(initialTargetMap, N, node_state) IN
+\* @type: ($targetMap, $commonNodeState, Int) => Set($checkpoint);
+AllJustifiedCheckpoints(initialTargetMap, node_state, N) ==
+    LET chain == Chain(initialTargetMap, node_state, N) IN
     LET 
         \* @type: ($targetMap, Set($checkpoint)) => Set($checkpoint);
         G(currentTargetMap, justifiedCheckpoints) ==
@@ -196,10 +196,10 @@ AllJustifiedCheckpoints(initialTargetMap, N, node_state) ==
     IN ApaFoldSeqLeft( step, {genesis_checkpoint(node_state)}, Tail(chain) )
 
 
-\* @type: ($checkpoint, Int, $commonNodeState) => Bool;
-NonrecursiveIsJustifiedCheckpoint(checkpoint, N, node_state) ==
+\* @type: ($checkpoint, $commonNodeState, Int) => Bool;
+is_justified_checkpoint(checkpoint, node_state, N) ==
     LET initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, node_state) ]
-    IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, N, node_state)
+    IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state, N)
 
 
 \* =========================================
