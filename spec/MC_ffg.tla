@@ -136,7 +136,7 @@ NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
 \* chain is a prefix of the available chain.
 FinalizedChainIsPrefixOfAvailableChain == 
     LET lastFinBLock == get_block_from_hash(get_greatest_finalized_checkpoint(single_node_state).block_hash, single_node_state)
-    IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava)
+    IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava, single_node_state)
 
 Inv == NoSlashableInv
 
