@@ -86,15 +86,17 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \*   2. IsVoteInSupportAssumingJustifiedSource requires `vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot`
 \* Therefore, for any checkpoint c, all votes in VotesInSupportAssumingJustifiedSource(c, ..)
 \* have sources with a strictly lower slot number. If we define
+\*
 \* N_i := sup( { c.chkp_slot : c \in CheckpointsPendingJustification_i } )
+\*
 \* (which, as a reminder, evaluates to negative infinity if the set is empty)
-\* we can easily show that CheckpointsPendingJustification_i /= {} implies N_i > N_{i+1}.
+\* we can easily show that CheckpointsPendingJustification_i /= {} implies N_{i+1} < N_i.
 \* Thus, assume CheckpointsPendingJustification_i is nonempty. Then, N_i >= 0, since it is the slot number of some 
 \* checkpoint, and slot numbers are nonnegative.
 \* As the sets CheckpointsPendingJustification_i are finite for all i, N_{i+1} is either:
 \*   - negative infinity if CheckpointsPendingJustification_{i+1} is empty, which is trivially less than N_i, or 
 \*   - the maximum of checkpoint slots in CheckpointsPendingJustification_{i+1}. 
-\* Suppose the second case holds, and c0 is one such checkpoint, for which c0.chckp_slot = N_{i+1} (may not be unique).
+\* Suppose the second case holds, and c0 is one such checkpoint, for which c0.chkp_slot = N_{i+1} (may not be unique).
 \* By definition, since c0 belongs to CheckpointsPendingJustification_{i+1}, there exists some c1 in CheckpointsPendingJustification_i, s.t. 
 \* c0 is the source of some vote in VotesInSupportAssumingJustifiedSource(c1, ...).
 \* All votes in VotesInSupportAssumingJustifiedSource(c1, ..) have sources with a strictly lower slot number than c1.
@@ -103,8 +105,8 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \* We now have a sequence of values N_i, where the values strictly decrease, as long as they remain nonnegative.
 \* We can therefore conclude, that there exists some index n (possibly 1), s.t. 
 \* N_k >= 0 for all k < n, and N_k = -inf for all k >= n.
-\* However, observe that N_i = -inf <=> CheckpointsPendingJustification_i = {}, 
-\* so this is the same index n we originally sought out to find.
+\* However, observe that N_j = -inf <=> CheckpointsPendingJustification_j = {} for all j,
+\* so this is the same index n we originally set out to find.
 
 \* This satisfies our termination requirement from the recursion rule.
 
