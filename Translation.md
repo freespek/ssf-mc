@@ -503,6 +503,66 @@ NonrecursiveOpForAssociative(x, N) ==
     IN ApaFoldSeqLeft( step, <<x, x>>, MkSeq(N, LAMBDA i: i) )[1]
 ```
 
+### One-to-many recursion
+
+Suppose we are given, for each value `x: a`, a set `V(x): Set(c)`, and an arbitrary operator `h: Set(c) => Set(a)`,
+s.t. computing `Op(x)` requires us to recursively compute `Op(v)` for each `v \in h(V(x))`.
+
+Let `Op` have the following shape:
+
+```tla
+RECURSIVE Op(_)
+\* @type (a) => b;
+Op(x) ==
+  IF P(x)
+  THEN e
+  ELSE G(x, F(h(V(x)), Op))
+```
+
+where `F(S, T(_)) == {s \in S: T(s)}` or `F(S, T(_)) == {T(s): s \in S}` (i.e. a map or a filter).
+
+We can translate this type of recursion, to the one above, by introducing a map-base recursive operator `mapOp`, for which we will ensure
+```tla
+Op(x) = mapOp([ v \in {x} |-> V(x) ])[x]
+``` 
+We define the operators below:
+```tla
+\* @type: (a -> Set(c)) => a -> Set(c);
+b(map) ==
+  LET newDomain == UNION {h(map[v]): v \in DOMAIN map}
+  IN [ newDomainElem \in newDomain |-> V(newDomainElem) ]
+
+\* @type: (a -> Set(c), a -> b) => a -> b;
+mapG(currentRecursionStepMap, partialValueMap) ==
+  LET domainExtension == DOMAIN currentRecursionStepMap IN
+  LET 
+    \* @type: (a) => b;
+    evalOneKey(k) ==
+      LET OpSubstitute(x) == partialValueMap[x] 
+      IN G(k, F(currentRecursionStepMap[k], OpSubstitute))
+  IN [
+    x \in (domainExtension \union DOMAIN partialValueMap) |->
+      IF x \in domainExtension
+      THEN evalOneKey(x)
+      ELSE partialValueMap[x]
+  ]
+
+RECURSIVE mapOp(_)
+\* @type (a -> Set(c)) => a -> b;
+mapOp(map) ==
+  IF \A x \in DOMAIN map: P(x)
+  THEN [ x \in DOMAIN map |-> e ]
+  ELSE mapG(map, mapOp(b(map)))
+``` 
+
+We can see that `mapOp` matches the shape required by our translation rule, so we can evaluate it with folds, using `b` and `mapG` as defined above. To prove termination, we need to show that there exists a sequence of maps
+`[ v \in {x} |-> V(x) ] = v_1, ..., v_n`, such that
+  - `\A v \in DOMAIN v_n: P(v)`
+  - `v_{i+1} = b(v_i)` for all `1 <= i < n`
+  - `\E v \in DOMAIN v_i: ~P(v)` `1 <= i < n` (i.o.w., this is the shortest sequence with the above two properties)
+
+The termination proof must be made on a case-by-case basis, as it depends on `h(_)` and `V(_)`.
+
 ### Mutual recursion cycles
 
 Assume we are given a collection of `n` operators `Op_1, ..., Op_n` (using the convention `Op_{n+1} = Op_1`), with types `Op_i: (a_i) => a_{i+1}` s.t. `a_{n+1} = a_1`, in the following pattern:
