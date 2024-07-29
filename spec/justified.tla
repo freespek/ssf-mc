@@ -57,6 +57,10 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \*   - The domain of the i-th map is exactly the set of checkpoints pending justification in the i-th step
 \*   - Each checkpoint in this domain maps to the set of votes used to potentially justify it
 
+\* We assume that
+\*  1. all structures appearing in the above and below sections are finite (e.g. VotesInSupportAssumingJustifiedSource always returns a finite set)
+\*  2. all slot numbers appearing in blocks/checkpoints/votes are nonnegative.
+
 \* Let CheckpointsPendingJustification_i denote the set of checkpoints for which we need to be able to evaluate justification in the i-th step
 \* Initially, CheckpointsPendingJustification_1 = { C }, i.e. the original checkpoint C
 \* To formalize the construction described above, CheckpointsPendingJustification_{i+1} will contain the sources of 
@@ -74,25 +78,35 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \*     LET CheckpointsPendingJustification == UNION { Sources(M_i[previousStepCheckpoint]): previousStepCheckpoint \in DOMAIN M_i } 
 \*     IN [ checkpoint \in CheckpointsPendingJustification |-> VotesInSupportAssumingJustifiedSource(checkpoint, ...) ]
  
-\* This construction is guaranteed to be finite, i.e., there exists some n, 
-\* s.t. CheckpointsPendingJustification_k is empty for all k >= n and nonempty
-\* for all 1 < i < n. We convince ourselves by first observing that:
+\* This construction is guaranteed to be finite, if we can show that there exists some n, 
+\* s.t. CheckpointsPendingJustification_k is empty for all k >= n and nonempty for all k < n.
+
+\* To do this, we first make the following observation:
 \*   1. valid_FFG_vote(vote) requires `vote.message.ffg_source.chkp_slot < vote.message.ffg_target.chkp_slot`
 \*   2. IsVoteInSupportAssumingJustifiedSource requires `vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot`
-\* Therefore, for any checkpoint C, all votes in VotesInSupportAssumingJustifiedSource(C, ..)
-\* have sources with a strictly lower slot number. 
+\* Therefore, for any checkpoint c, all votes in VotesInSupportAssumingJustifiedSource(c, ..)
+\* have sources with a strictly lower slot number. If we define
+\*
+\* N_i := sup( { c.chkp_slot : c \in CheckpointsPendingJustification_i } )
+\*
+\* (which, as a reminder, evaluates to negative infinity if the set is empty)
+\* we can easily show that CheckpointsPendingJustification_i /= {} implies N_{i+1} < N_i.
+\* Thus, assume CheckpointsPendingJustification_i is nonempty. Then, N_i >= 0, since it is the slot number of some 
+\* checkpoint, and slot numbers are nonnegative.
+\* As the sets CheckpointsPendingJustification_i are finite for all i, N_{i+1} is either:
+\*   - negative infinity if CheckpointsPendingJustification_{i+1} is empty, which is trivially less than N_i, or 
+\*   - the maximum of checkpoint slots in CheckpointsPendingJustification_{i+1}. 
+\* Suppose the second case holds, and c0 is one such checkpoint, for which c0.chkp_slot = N_{i+1} (may not be unique).
+\* By definition, since c0 belongs to CheckpointsPendingJustification_{i+1}, there exists some c1 in CheckpointsPendingJustification_i, s.t. 
+\* c0 is the source of some vote in VotesInSupportAssumingJustifiedSource(c1, ...).
+\* All votes in VotesInSupportAssumingJustifiedSource(c1, ..) have sources with a strictly lower slot number than c1.
+\* It follows that N_{i+1} = c0.chkp_slot < c1.chkp_slot <= N_i.
 
-\* If we define N_i to be
-\* sup( 
-\*     UNION {
-\*         {vote.message.slot: vote \in VotesInSupportAssumingJustifiedSource(c, ...)} : 
-\*             c \in CheckpointsPendingJustification_i
-\*     } 
-\* )
-\* i.e. the largest slot belonging to any vote message potentially justifying any checkpoint in CheckpointsPendingJustification_i 
-\* (or negative infinity, if every element in the UNION is empty), 
-\* we can easily see that N_i > N_{i+1} because of the reasoning above. 
-\* Assuming slot numbers are nonnegative, this construction terminates in at most N_1 steps.
+\* We now have a sequence of values N_i, where the values strictly decrease, as long as they remain nonnegative.
+\* We can therefore conclude, that there exists some index n (possibly 1), s.t. 
+\* N_k >= 0 for all k < n, and N_k = -inf for all k >= n.
+\* However, observe that N_j = -inf <=> CheckpointsPendingJustification_j = {} for all j,
+\* so this is the same index n we originally set out to find.
 
 \* This satisfies our termination requirement from the recursion rule.
 
