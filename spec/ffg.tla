@@ -135,7 +135,16 @@ valid_FFG_vote(vote, node_state) ==
     /\ has_block_hash(vote.message.ffg_target.block_hash, node_state)
     /\ get_block_from_hash(vote.message.ffg_target.block_hash, node_state).slot = vote.message.ffg_target.block_slot
 
-\* ----------------------------
+\* -----------------------------------------------------------------------------
+\* ffg.py contains a chain of mutually recursive functions, via
+\* is_justified_checkpoint -> get_validators_in_FFG_support_of_checkpoint_justification -> filter_out_FFG_votes_not_in_FFG_support_of_checkpoint_justification -> is_FFG_vote_in_support_of_checkpoint_justification -> is_justified_checkpoint
+\*
+\* Below, we translate this chain of recursion to an Apalache fold application, see
+\*   - [the translation rules](../Translation.md#mutual-recursion-cycles)
+\*   - [the Apalache manual on folds](https://apalache.informal.systems/docs/apalache/principles/folds.html)
+\*
+\* For a naive translation to recursive TLA+ operators (not supported by Apalache), see `./ffg_recursive.tla`.
+\* -----------------------------------------------------------------------------
 
 \* Given a set of votes, returns all of the checkpoints, which appear as sources.
 \* @type: (Set($signedVoteMessage)) => Set($checkpoint);

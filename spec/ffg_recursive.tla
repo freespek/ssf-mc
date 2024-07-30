@@ -1,4 +1,14 @@
 ---- MODULE ffg_recursive ----
+(*
+ * Naive translation of recursive functions from the `ffg.py` Python module to recursive TLA+ operators.
+ *
+ * Recursive operators are [not supported by Apalache](https://apalache.informal.systems/docs/apalache/principles/folds.html).
+ * Therefore, these operators have been replaced with equivalent fold-based computation in `helpers.tla`.
+ *
+ * Jure Kukovec, 2024.
+ *
+ * Subject to Apache 2.0. See `LICENSE.md`.
+ *)
 
 EXTENDS ffg
 
