@@ -1,23 +1,38 @@
 ----------------------------- MODULE MC_ffg -----------------------------
+(*
+ * Main TLA+ module for model-checking with Apalache
+ *
+ * Jure Kukovec, 2024.
+ *
+ * Subject to Apache 2.0. See `LICENSE.md`.
+ *)
 
-Nodes == { "A", "B", "C", "D"}
+Nodes == { "A", "B", "C", "D" }
+
+\* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
 MAX_SLOT == 5
 
 \* ========== Dummy implementations of stubs ==========
 
 \* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/stubs.pyi#L6
-\* We assume the block_body type is the string (hash) already.
+\*
+\* Model-checking: We assume the block_body type is the string (hash) already.
+\*
 \* @type: ($block) => $hash;
 BLOCK_HASH(b) == b.body
 
 \* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/stubs.pyi#L9
+\*
+\* Model-checking: We assume that all vote signatures are valid.
+\*
 \* @type: ($signedVoteMessage) => Bool;
 VERIFY_VOTE_SIGNATURE(vote) == TRUE
 
-
+\* SRC: https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/stubs.pyi#L18
+\*
 \* Stake associated with each validator in a given slot.
 \*
-\* Assume uniform voting power for model checking.
+\* Model-checking: We assume uniform voting power.
 \*
 \* @type: ($block, Int, $commonNodeState) => $validatorBalances;
 GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
@@ -25,9 +40,9 @@ GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
 \* ====================================================
 
 INSTANCE ffg WITH
+    MAX_SLOT <- MAX_SLOT,
     BLOCK_HASH <- BLOCK_HASH,
     VERIFY_VOTE_SIGNATURE <- VERIFY_VOTE_SIGNATURE,
-    MAX_SLOT <- MAX_SLOT,
     GET_VALIDATOR_SET_FOR_SLOT <- GET_VALIDATOR_SET_FOR_SLOT
 
 VARIABLES
@@ -136,7 +151,7 @@ NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
 \* chain is a prefix of the available chain.
 FinalizedChainIsPrefixOfAvailableChain == 
     LET lastFinBLock == get_block_from_hash(get_greatest_finalized_checkpoint(single_node_state).block_hash, single_node_state)
-    IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava)
+    IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava, single_node_state)
 
 Inv == NoSlashableInv
 
