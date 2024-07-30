@@ -1,0 +1,25 @@
+// A dev container for model-checking the Python spec.
+// For format details, see https://aka.ms/devcontainer.json.
+{
+	"name": "SSF-MC",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"features": {
+		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"alygin.vscode-tlaplus-nightly",
+				"informal.itf-trace-viewer",
+				"ms-python.python",
+				"vscodevim.vim"
+			],
+			"settings": {
+				"extensions.ignoreRecommendations": true, // don't show recommendations for extensions
+				"terminal.integrated.copyOnSelection": true
+			}
+		}
+	}
+}
