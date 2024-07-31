@@ -7,6 +7,8 @@
  * Subject to Apache 2.0. See `LICENSE.md`.
  *)
 
+EXTENDS FiniteSets
+
 Nodes == { "A", "B", "C", "D" }
 
 \* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
