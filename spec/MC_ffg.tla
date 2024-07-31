@@ -40,15 +40,24 @@ GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
 
 \* ====================================================
 
+VARIABLES
+    \* @type: $commonNodeState;
+    single_node_state,
+    \* @typeAlias: ancestorDescendantMap = <<$hash, $hash>> -> Bool;
+    \* @type: $ancestorDescendantMap;
+    ancestor_descendant_map,
+    \* @typeAlias: votesInSupportAssumingJustifiedSourceMap = $checkpoint -> Set($signedVoteMessage);
+    \* @type: $votesInSupportAssumingJustifiedSourceMap;
+    votes_in_support_assuming_justified_source_map,
+    \* @typeAlias: isCompleteChainMap = $hash -> Bool;
+    \* @type: $isCompleteChainMap;
+    is_complete_chain_map
+
 INSTANCE ffg WITH
     MAX_SLOT <- MAX_SLOT,
     BLOCK_HASH <- BLOCK_HASH,
     VERIFY_VOTE_SIGNATURE <- VERIFY_VOTE_SIGNATURE,
     GET_VALIDATOR_SET_FOR_SLOT <- GET_VALIDATOR_SET_FOR_SLOT
-
-VARIABLES
-    \* @type: $commonNodeState;
-    single_node_state
 
 \* ========== Shape-requirements for state-variable fields ==========
 
@@ -117,8 +126,18 @@ IsValidNodeState(node_state) ==
 \* Start in some arbitrary state
 \* @type: () => Bool;
 Init == 
-    /\ single_node_state = Gen(5)
+    /\ single_node_state = Gen(MAX_SLOT)
     /\ IsValidNodeState(single_node_state)
+    /\ ancestor_descendant_map = [ ancestor_and_descendant \in BLOCKS \X BLOCKS |-> is_ancestor_descendant_relationship(
+            get_block_from_hash(ancestor_and_descendant[1], single_node_state),
+            get_block_from_hash(ancestor_and_descendant[2], single_node_state),
+            single_node_state
+        ) ]
+    /\ votes_in_support_assuming_justified_source_map = [ ffg_source \in Sources(single_node_state.view_votes) |-> VotesInSupportAssumingJustifiedSource(ffg_source, single_node_state) ]
+    /\ is_complete_chain_map = [ block_hash \in BLOCKS |-> is_complete_chain(get_block_from_hash(block_hash, single_node_state), single_node_state) ]
+
+Next == UNCHANGED <<single_node_state, ancestor_descendant_map, votes_in_support_assuming_justified_source_map, is_complete_chain_map>>
+
 \* -------------------------------------------------------------------------
 \* Falsy invariants to check reachability of certain states
 
@@ -156,7 +175,6 @@ Conflicting_Example ==
         block1 == single_node_state.view_blocks["HASH1"]
         block2 == single_node_state.view_blocks["HASH2"]
     IN have_common_ancestor(block1, block2, single_node_state) => ~are_conflicting(block1, block2, single_node_state)
-Next == UNCHANGED single_node_state
 
 \* Find a slashable node (i.e., an equivocating or surround-voting node)
 SlashableNode_Example == get_slashable_nodes(single_node_state.view_votes) = {}

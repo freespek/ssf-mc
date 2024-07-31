@@ -25,6 +25,17 @@ CONSTANTS
      *)
     GET_VALIDATOR_SET_FOR_SLOT(_,_,_)
 
+VARIABLES
+    \* @typeAlias: ancestorDescendantMap = <<$hash, $hash>> -> Bool;
+    \* @type: $ancestorDescendantMap;
+    ancestor_descendant_map,
+    \* @typeAlias: votesInSupportAssumingJustifiedSourceMap = $checkpoint -> Set($signedVoteMessage);
+    \* @type: $votesInSupportAssumingJustifiedSourceMap;
+    votes_in_support_assuming_justified_source_map,
+    \* @typeAlias: isCompleteChainMap = $hash -> Bool;
+    \* @type: $isCompleteChainMap;
+    is_complete_chain_map
+
 \* ========  HELPER METHODS ========
 
 \* Lexicographically compares (a,b) to (c,d).
@@ -124,11 +135,12 @@ valid_FFG_vote(vote, node_state) ==
                 node_state
             )
         )
-    /\ is_ancestor_descendant_relationship(
-            get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
-            get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
-            node_state
-        )
+    /\ ancestor_descendant_map[ <<vote.message.ffg_source.block_hash, vote.message.ffg_target.block_hash>> ]
+    \* /\ is_ancestor_descendant_relationship(
+    \*         get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
+    \*         get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
+    \*         node_state
+    \*     )
     /\ vote.message.ffg_source.chkp_slot < vote.message.ffg_target.chkp_slot
     /\ has_block_hash(vote.message.ffg_source.block_hash, node_state)
     /\ get_block_from_hash(vote.message.ffg_source.block_hash, node_state).slot = vote.message.ffg_source.block_slot
@@ -166,16 +178,18 @@ IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
     \* precompute the relation is_ancestor_descendant_relationship(a,b), for all blocks
     \* ahead of time as a _function_, s.t. this lookup here becomes a simple access, instead of each of them being
     \* another pseudo-recursive computation
-    /\ is_ancestor_descendant_relationship(
-        get_block_from_hash(checkpoint.block_hash, node_state),
-        get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
-        node_state
-        )
-    /\ is_ancestor_descendant_relationship(
-        get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
-        get_block_from_hash(checkpoint.block_hash, node_state),
-        node_state
-        )
+    /\ ancestor_descendant_map[ <<checkpoint.block_hash, vote.message.ffg_target.block_hash>> ]
+    \* /\ is_ancestor_descendant_relationship(
+    \*     get_block_from_hash(checkpoint.block_hash, node_state),
+    \*     get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
+    \*     node_state
+    \*     )
+    /\ ancestor_descendant_map[ <<vote.message.ffg_source.block_hash, checkpoint.block_hash>> ]
+    \* /\ is_ancestor_descendant_relationship(
+    \*     get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
+    \*     get_block_from_hash(checkpoint.block_hash, node_state),
+    \*     node_state
+    \*     )
 
 \* With the predicate, we can filter out the votes that are relevant in one step
 \* @type: ($checkpoint, $commonNodeState) => Set($signedVoteMessage);
@@ -265,27 +279,22 @@ VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
 \* as required by the recursion rule.
 
 \* @typeAlias: targetMap = $checkpoint -> Set($signedVoteMessage);
-\* @type: ($targetMap, $commonNodeState, Int) => Seq($targetMap);
-Chain(x, node_state, N) ==
+\* @type: ($targetMap, $commonNodeState) => Seq($targetMap);
+Chain(x, node_state) ==
     LET
-        \* @type: ($targetMap) => Bool;
-        P(map) == DOMAIN map = {}
-        \* if x = M_i, then b(x) defines M_{i+1}
-        \* @type: ($targetMap) => $targetMap;
-        b(map) ==
-            LET newTargets == UNION { Sources(map[target]): target \in DOMAIN map }
-            IN [ target \in newTargets |-> VotesInSupportAssumingJustifiedSource(target, node_state) ]
-    IN  LET
-            \* @type: (Seq($targetMap), Int) => Seq($targetMap);
-            step(seq, i) ==
-                IF P(seq[1])
-                THEN seq
-                ELSE <<b(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
-        IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+        \* @type: (Seq($targetMap), Int) => Seq($targetMap);
+        step(seq, i) ==
+            LET head == seq[1] IN
+            IF DOMAIN head = {} THEN seq
+            ELSE LET
+                CheckpointsPendingJustification == UNION { Sources(head[previousStepCheckpoint]): previousStepCheckpoint \in DOMAIN head }
+                newMap == [ checkpoint \in CheckpointsPendingJustification |-> votes_in_support_assuming_justified_source_map[checkpoint] ]
+            IN <<newMap>> \o seq \* Alternatively, we can append here and reverse the list at the end
+    IN ApaFoldSet(step, <<x>>, 0..MAX_SLOT)
 
-\* @type: ($targetMap, $commonNodeState, Int) => Set($checkpoint);
-AllJustifiedCheckpoints(initialTargetMap, node_state, N) ==
-    LET chain == Chain(initialTargetMap, node_state, N) IN
+\* @type: ($targetMap, $commonNodeState) => Set($checkpoint);
+AllJustifiedCheckpoints(initialTargetMap, node_state) ==
+    LET chain == Chain(initialTargetMap, node_state) IN
     LET
         \* @type: ($targetMap, Set($checkpoint)) => Set($checkpoint);
         G(currentTargetMap, justifiedCheckpoints) ==
@@ -344,8 +353,8 @@ AllJustifiedCheckpoints(initialTargetMap, node_state, N) ==
 \* `FFG_support_weight * 3 >= tot_validator_set_weight * 2`.
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 is_justified_checkpoint(checkpoint, node_state) ==
-    LET initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, node_state) ]
-    IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state, checkpoint.chkp_slot)
+    LET initialTargetMap == [ c \in {checkpoint} |-> votes_in_support_assuming_justified_source_map[c] ]
+    IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state)
 
 \* For comparison, we include the unrolled version of is_justified_checkpoint
 RECURSIVE is_justified_checkpoint_unrolled(_, _)
