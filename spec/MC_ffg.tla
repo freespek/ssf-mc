@@ -10,6 +10,7 @@
 Nodes == { "A", "B", "C", "D" }
 
 \* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
+BLOCKS == { "genesis", "HASH1", "HASH2", "HASH3", "HASH4" }
 MAX_SLOT == 5
 
 \* ========== Dummy implementations of stubs ==========
@@ -79,30 +80,10 @@ IsValidVoteMessage(msg, node_state) ==
         )
 
 \* @type: ($signedVoteMessage, $commonNodeState) => Bool;
-IsValidSigedVoteMessage(msg, node_state) ==
+IsValidSignedVoteMessage(msg, node_state) ==
     /\ IsValidVoteMessage(msg.message, node_state)
     /\ VERIFY_VOTE_SIGNATURE(msg)
     /\ msg.sender \in Nodes
-
-\* @type: ($block, $commonNodeState) => Bool;
-IsValidBlock(block, node_state) == 
-    /\ block.parent_hash \in (DOMAIN node_state.view_blocks \union {""}) \* Parent of genesis = ""
-    /\ block.slot >= 0
-    /\ block.slot <= MAX_SLOT
-    /\ \A voteMsg \in block.votes: IsValidSigedVoteMessage(voteMsg, node_state)
-    /\ LET parent == get_block_from_hash(block.parent_hash, node_state)
-       IN parent.slot < block.slot \* Parent has lower slot #
-    /\ block.body /= ""
-
-\* @type: ($proposeMessage, $commonNodeState) => Bool;
-IsValidProposeMessage(msg, node_state) ==
-    /\ IsValidBlock(msg.block, node_state)
-    /\ \A i \in Indices(msg.proposer_view): IsValidSigedVoteMessage(At(msg.proposer_view, i), node_state)
-
-\* @type: ($signedProposeMessage, $commonNodeState) => Bool;
-IsValidSignedProposeMessage(msg, node_state) ==
-    /\ IsValidProposeMessage(msg.message, node_state)
-    \* there's no equivalent to verify_vote_signature for propose messages
 
 \* @type: $block;
 GenesisBlock == [
@@ -111,27 +92,24 @@ GenesisBlock == [
         votes       |-> {},
         body        |-> "genesis"
     ]
-    
-\* QUESTION TO REVIEWERS: strict > ?
-\* @type: ($configuration, $commonNodeState) => Bool;
-IsValidConfiguration(cfg, node_state) ==
-    /\ cfg.delta >= 0
-    /\ cfg.genesis = GenesisBlock
-    /\ cfg.eta >= 1
-    /\ cfg.k >= 0
 
 \* @type: ($commonNodeState) => Bool;
 IsValidNodeState(node_state) ==
-    /\ IsValidConfiguration(node_state.configuration, node_state)
+    /\ node_state.configuration.genesis = GenesisBlock
     /\ node_state.identity \in Nodes
-    /\ node_state.current_slot >= 0
-    /\ node_state.current_slot <= MAX_SLOT
-    /\ "" \notin DOMAIN node_state.view_blocks
+    \* `.current_slot` is unused
+    /\ node_state.view_blocks["genesis"] = GenesisBlock
+    /\ DOMAIN node_state.view_blocks = BLOCKS
+    /\ \A hash \in DOMAIN node_state.view_blocks:
+        \* we don't consider votes in `view_blocks` (only in `view_votes`)
+        /\ node_state.view_blocks[hash].votes = {}
+        \* a block's hash is its body (cf. `BLOCK_HASH` above)
+        /\ node_state.view_blocks[hash].body = hash
     \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
     /\ \A hash1,hash2 \in DOMAIN node_state.view_blocks: 
         hash1 = hash2 <=> node_state.view_blocks[hash1] = node_state.view_blocks[hash2]
-    /\ \A msg \in node_state.view_votes: IsValidSigedVoteMessage(msg, node_state)
-    /\ IsValidBlock(node_state.chava, node_state)
+    /\ \A msg \in node_state.view_votes: IsValidSignedVoteMessage(msg, node_state)
+    \* `.chava` is unused
 
 \* ==================================================================
 
