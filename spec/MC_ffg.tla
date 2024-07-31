@@ -141,10 +141,85 @@ IsValidNodeState(node_state) ==
 Init == 
     /\ single_node_state = Gen(5)
     /\ IsValidNodeState(single_node_state)
+\* -------------------------------------------------------------------------
+\* Falsy invariants to check reachability of certain states
 
+\* Find a complete chain HASH1 ->* genesis
+CompleteChain_Example ==
+    LET block == single_node_state.view_blocks["HASH1"]
+    IN ~is_complete_chain(block, single_node_state)
+
+\* Find a complete chain HASH1 ->* genesis of length >= 4
+CompleteChainLong_Example ==
+    LET block == single_node_state.view_blocks["HASH1"]
+    IN is_complete_chain(block, single_node_state) => Size(get_blockchain(block, single_node_state)) < 4
+
+\* Find a chain such that `ancestor` and `descendant` are in an ancestor-descendant relationship, with at least 1 other block inbetween
+AncestorDescendant_Example ==
+    LET
+        ancestor == single_node_state.view_blocks["HASH1"]
+        descendant == single_node_state.view_blocks["HASH3"]
+    IN descendant.parent_hash /= "HASH1" => ~is_ancestor_descendant_relationship(ancestor, descendant, single_node_state)
+
+\* Find a common ancestor of 2 blocks, which are not in an ancestor-descendant relationship, that is not their immediate parent
+CommonAncestor_Example ==
+    LET
+        block1 == single_node_state.view_blocks["HASH1"]
+        block2 == single_node_state.view_blocks["HASH2"]
+        setup ==
+            /\ ~is_ancestor_descendant_relationship(block1, block2, single_node_state)
+            /\ ~is_ancestor_descendant_relationship(block2, block1, single_node_state)
+            /\ block1.parent_hash /= block2.parent_hash
+    IN setup => ~have_common_ancestor(block1, block2, single_node_state)
+
+\* Find a common ancestor of 2 blocks, which are not in an ancestor-descendant relationship, that is not their immediate parent
+Conflicting_Example ==
+    LET
+        block1 == single_node_state.view_blocks["HASH1"]
+        block2 == single_node_state.view_blocks["HASH2"]
+    IN have_common_ancestor(block1, block2, single_node_state) => ~are_conflicting(block1, block2, single_node_state)
 Next == UNCHANGED single_node_state
 
-NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
+\* Find a slashable node (i.e., an equivocating or surround-voting node)
+SlashableNode_Example == get_slashable_nodes(single_node_state.view_votes) = {}
+
+\* Find a (slashable) node that was not surround-voting (i.e., it was equivocating)
+Equivocation_Example ==
+    LET no_surrounding_votes ==
+        \forall vote1, vote2 \in single_node_state.view_votes :
+            /\ ~does_first_vote_surround_second_vote(vote1, vote2)
+            /\ ~does_first_vote_surround_second_vote(vote2, vote1)
+    IN no_surrounding_votes => SlashableNode_Example
+
+\* Find a (slashable) node that was not equivocating (i.e., it was surround-voting)
+SurroundVoting_Example ==
+    LET no_equivocating_votes ==
+        \forall vote1, vote2 \in single_node_state.view_votes : ~are_equivocating_votes(vote1, vote2)
+    IN no_equivocating_votes => SlashableNode_Example
+
+\* Find a validator linking to a checkpoint in the next slot (i.e., one that cast a valid FFG vote for checkpoint slots 3->4)
+ValidatorsLinkingNextSlot_Example ==
+    LET source_checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
+    IN get_validators_in_FFG_votes_linking_to_a_checkpoint_in_next_slot(source_checkpoint, single_node_state) = {}
+
+\* Find at least 3 justifying votes for checkpoint
+VotesInSupport_Example ==
+    LET checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
+    IN Cardinality(VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state)) < 3
+
+Chain_Example ==
+    LET
+        checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
+        checkpoint_has_support == VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) /= {}
+        initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, single_node_state) ]
+    IN checkpoint_has_support => Chain(initialTargetMap, single_node_state) = <<>>
+
+Justified_Example ==
+    LET
+        checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
+        checkpoint_has_support == VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) /= {}
+        initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, single_node_state) ]
+    IN checkpoint_has_support => ~is_justified_checkpoint(checkpoint, single_node_state)
 
 \* The ebb-and-flow protocol property stipulates that at every step, two chains are maintained,
 \* the finalized chain, which is safe, and the available chain, which is live, s.t. the finalized
@@ -152,8 +227,5 @@ NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
 FinalizedChainIsPrefixOfAvailableChain == 
     LET lastFinBLock == get_block_from_hash(get_greatest_finalized_checkpoint(single_node_state).block_hash, single_node_state)
     IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava, single_node_state)
-
-Inv == NoSlashableInv
-
 
 =============================================================================
