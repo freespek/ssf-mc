@@ -53,7 +53,11 @@ VARIABLES
     votes_in_support_assuming_justified_source_map,
     \* @typeAlias: isCompleteChainMap = $hash -> Bool;
     \* @type: $isCompleteChainMap;
-    is_complete_chain_map
+    is_complete_chain_map,
+    \* @type: Seq($targetMap);
+    chn,
+    \* @type: Set($checkpoint);
+    alljust
 
 INSTANCE ffg WITH
     MAX_SLOT <- MAX_SLOT,
@@ -137,8 +141,14 @@ Init ==
         ) ]
     /\ votes_in_support_assuming_justified_source_map = [ ffg_source \in Sources(single_node_state.view_votes) |-> VotesInSupportAssumingJustifiedSource(ffg_source, single_node_state) ]
     /\ is_complete_chain_map = [ block_hash \in BLOCKS |-> is_complete_chain(get_block_from_hash(block_hash, single_node_state), single_node_state) ]
+    /\ LET
+        checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
+        initialTargetMap == [ c \in {checkpoint} |-> votes_in_support_assuming_justified_source_map[c] ]
+       IN
+        /\ chn = Chain(initialTargetMap, single_node_state)
+        /\ alljust = AllJustifiedCheckpoints(initialTargetMap, single_node_state)
 
-Next == UNCHANGED <<single_node_state, ancestor_descendant_map, votes_in_support_assuming_justified_source_map, is_complete_chain_map>>
+Next == UNCHANGED <<single_node_state, ancestor_descendant_map, votes_in_support_assuming_justified_source_map, is_complete_chain_map, chn, alljust>>
 
 \* -------------------------------------------------------------------------
 \* Falsy invariants to check reachability of certain states
@@ -205,19 +215,14 @@ VotesInSupport_Example ==
     LET checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
     IN Cardinality(VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state)) < 3
 
-Chain_Example ==
-    LET
-        checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
-        checkpoint_has_support == VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) /= {}
-        initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, single_node_state) ]
-    IN checkpoint_has_support => Chain(initialTargetMap, single_node_state) = <<>>
+JustifiedCheckpoint_Example ==
+    LET checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
+    IN checkpoint \notin alljust
 
-Justified_Example ==
-    LET
-        checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
-        checkpoint_has_support == VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) /= {}
-        initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, single_node_state) ]
-    IN checkpoint_has_support => ~is_justified_checkpoint(checkpoint, single_node_state)
+\* Find a finalized checkpoint
+FinalizedCheckpoint_Example ==
+    LET checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
+    IN ~is_finalized_checkpoint(checkpoint, single_node_state)
 
 \* The ebb-and-flow protocol property stipulates that at every step, two chains are maintained,
 \* the finalized chain, which is safe, and the available chain, which is live, s.t. the finalized
