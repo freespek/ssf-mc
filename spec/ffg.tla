@@ -115,6 +115,12 @@ get_slashable_nodes_unoptimized(vote_view) ==
 
 \* ================================
 
+\* @type: ($hash, $hash) => Bool;
+is_ancestor_descendant_relationship_PRECOMPUTED(anc, desc) ==
+    LET \* @type: <<$hash, $hash>>;
+        key == <<anc, desc>>
+    IN key \in DOMAIN ancestor_descendant_map /\ ancestor_descendant_map[key]
+
 \* SRC: https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py#L20
 \* A FFG vote is valid if:
 \*     - the sender is a validator;
@@ -135,7 +141,7 @@ valid_FFG_vote(vote, node_state) ==
                 node_state
             )
         )
-    /\ ancestor_descendant_map[ <<vote.message.ffg_source.block_hash, vote.message.ffg_target.block_hash>> ]
+    /\ is_ancestor_descendant_relationship_PRECOMPUTED(vote.message.ffg_source.block_hash, vote.message.ffg_target.block_hash)
     \* /\ is_ancestor_descendant_relationship(
     \*         get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
     \*         get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
@@ -178,13 +184,13 @@ IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
     \* precompute the relation is_ancestor_descendant_relationship(a,b), for all blocks
     \* ahead of time as a _function_, s.t. this lookup here becomes a simple access, instead of each of them being
     \* another pseudo-recursive computation
-    /\ ancestor_descendant_map[ <<checkpoint.block_hash, vote.message.ffg_target.block_hash>> ]
+    /\ is_ancestor_descendant_relationship_PRECOMPUTED(checkpoint.block_hash, vote.message.ffg_target.block_hash)
     \* /\ is_ancestor_descendant_relationship(
     \*     get_block_from_hash(checkpoint.block_hash, node_state),
     \*     get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
     \*     node_state
     \*     )
-    /\ ancestor_descendant_map[ <<vote.message.ffg_source.block_hash, checkpoint.block_hash>> ]
+    /\ is_ancestor_descendant_relationship_PRECOMPUTED(vote.message.ffg_source.block_hash, checkpoint.block_hash)
     \* /\ is_ancestor_descendant_relationship(
     \*     get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
     \*     get_block_from_hash(checkpoint.block_hash, node_state),
@@ -195,6 +201,12 @@ IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
 \* @type: ($checkpoint, $commonNodeState) => Set($signedVoteMessage);
 VotesInSupportAssumingJustifiedSource(checkpoint, node_state) ==
     { vote \in node_state.view_votes: IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state)}
+
+\* @type: ($checkpoint) => Set($signedVoteMessage);
+VotesInSupportAssumingJustifiedSource_PRECOMPUTED(checkpoint) ==
+    IF checkpoint \in DOMAIN votes_in_support_assuming_justified_source_map
+    THEN votes_in_support_assuming_justified_source_map[checkpoint]
+    ELSE {}
 
 \* In the recursive implementation, computing is_justified_checkpoint(C) for a given checkpoint C
 \* requires us to look at the set of all votes in VotesInSupportAssumingJustifiedSource(C, ...)
@@ -288,7 +300,7 @@ Chain(x, node_state) ==
             IF DOMAIN head = {} THEN seq
             ELSE LET
                 CheckpointsPendingJustification == UNION { Sources(head[previousStepCheckpoint]): previousStepCheckpoint \in DOMAIN head }
-                newMap == [ checkpoint \in CheckpointsPendingJustification |-> votes_in_support_assuming_justified_source_map[checkpoint] ]
+                newMap == [ checkpoint \in CheckpointsPendingJustification |-> VotesInSupportAssumingJustifiedSource_PRECOMPUTED(checkpoint) ]
             IN <<newMap>> \o seq \* Alternatively, we can append here and reverse the list at the end
     IN ApaFoldSet(step, <<x>>, 0..MAX_SLOT)
 
@@ -353,7 +365,7 @@ AllJustifiedCheckpoints(initialTargetMap, node_state) ==
 \* `FFG_support_weight * 3 >= tot_validator_set_weight * 2`.
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 is_justified_checkpoint(checkpoint, node_state) ==
-    LET initialTargetMap == [ c \in {checkpoint} |-> votes_in_support_assuming_justified_source_map[c] ]
+    LET initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource_PRECOMPUTED(c) ]
     IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state)
 
 \* For comparison, we include the unrolled version of is_justified_checkpoint
