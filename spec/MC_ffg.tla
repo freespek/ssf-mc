@@ -132,7 +132,7 @@ IsValidConfiguration(cfg, node_state) ==
 \* @type: ($hash -> $block, $commonNodeState) => Bool;
 IsValidBlockView(view_blocks, node_state) ==
     \* Assign readable names to block hashes introduced as fresh constants by Apalache
-    /\ DOMAIN single_node_state.view_blocks \subseteq BlockHashes \union { GenesisBlock.body }
+    /\ DOMAIN node_state.view_blocks \subseteq BlockHashes \union { GenesisBlock.body }
     \* The genesis block is always in the block view, it's parent hash never
     /\ view_blocks[GenesisBlock.body] = GenesisBlock
     /\ GenesisBlock.parent_hash \notin DOMAIN view_blocks
