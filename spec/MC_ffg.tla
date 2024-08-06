@@ -7,11 +7,15 @@
  * Subject to Apache 2.0. See `LICENSE.md`.
  *)
 
+EXTENDS FiniteSets
+
 Nodes == { "A", "B", "C", "D" }
 
 \* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
 \* Let `genesis <- b1 <- ... <- bn` be the longest chain from genesis in `view_votes`. Then `MAX_SLOT` MUST be at least `n`.
 MAX_SLOT == 4
+\* Readable names for block hashes (introduced as fresh constants by Apalache). `BlockHashes` must satisfy |BlockHashes| >= MAX_SLOT
+BlockHashes == { "BLOCK1", "BLOCK2", "BLOCK3", "BLOCK4", "BLOCK5", "BLOCK6", "BLOCK7", "BLOCK8", "BLOCK9", "BLOCK10" }
 
 \* Model-checking: Maximum number of votes in `view_votes`.
 MAX_VOTES == 6
@@ -127,6 +131,8 @@ IsValidConfiguration(cfg, node_state) ==
 
 \* @type: ($hash -> $block, $commonNodeState) => Bool;
 IsValidBlockView(view_blocks, node_state) ==
+    \* Assign readable names to block hashes introduced as fresh constants by Apalache
+    /\ DOMAIN single_node_state.view_blocks \subseteq BlockHashes \union { GenesisBlock.body }
     \* The genesis block is always in the block view, it's parent hash never
     /\ view_blocks[GenesisBlock.body] = GenesisBlock
     /\ GenesisBlock.parent_hash \notin DOMAIN view_blocks
@@ -144,12 +150,14 @@ IsValidNodeState(node_state) ==
     /\ \A msg \in node_state.view_votes: IsValidSigedVoteMessage(msg, node_state)
     /\ IsValidBlock(node_state.chava, node_state)
 
+
+\* ==================================================================
+\* State machine
 \* ==================================================================
 
 
 \* Start in some arbitrary state
-\* @type: () => Bool;
-Init == 
+Init ==
     LET
         config == Gen(1)
         id     == Gen(1)
@@ -163,6 +171,12 @@ Init ==
 
 Next == UNCHANGED single_node_state
 
+\* ==================================================================
+\* Invariants
+\* ==================================================================
+
+Inv == Cardinality(BlockHashes) >= MAX_SLOT
+
 NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
 
 \* The ebb-and-flow protocol property stipulates that at every step, two chains are maintained,
@@ -171,8 +185,5 @@ NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
 FinalizedChainIsPrefixOfAvailableChain == 
     LET lastFinBLock == get_block_from_hash(get_greatest_finalized_checkpoint(single_node_state).block_hash, single_node_state)
     IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava, single_node_state)
-
-Inv == NoSlashableInv
-
 
 =============================================================================
