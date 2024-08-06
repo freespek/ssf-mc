@@ -123,10 +123,12 @@ IsValidConfiguration(cfg, node_state) ==
 
 \* @type: ($hash -> $block, $commonNodeState) => Bool;
 IsValidBlockView(view_blocks, node_state) ==
-    /\ "" \notin DOMAIN node_state.view_blocks
+    \* The genesis block is always in the block view, it's parent hash never
+    /\ view_blocks[GenesisBlock.body] = GenesisBlock
+    /\ GenesisBlock.parent_hash \notin DOMAIN view_blocks
     \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
-    /\ \A hash1,hash2 \in DOMAIN node_state.view_blocks: 
-        hash1 = hash2 <=> node_state.view_blocks[hash1] = node_state.view_blocks[hash2]
+    /\ \A hash1,hash2 \in DOMAIN view_blocks:
+        hash1 = hash2 <=> view_blocks[hash1] = view_blocks[hash2]
 
 \* @type: ($commonNodeState) => Bool;
 IsValidNodeState(node_state) ==
