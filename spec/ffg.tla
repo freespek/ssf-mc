@@ -281,7 +281,7 @@ Chain(x, node_state, N) ==
                 IF P(seq[1])
                 THEN seq
                 ELSE <<b(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
-        IN ApaFoldSet( step, <<x>>, 1..N )
+        IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, (* @type: Int => Int; *) LAMBDA i: i) )
 
 \* @type: ($targetMap, $commonNodeState, Int) => Set($checkpoint);
 AllJustifiedCheckpoints(initialTargetMap, node_state, N) ==
