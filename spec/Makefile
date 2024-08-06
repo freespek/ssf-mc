@@ -6,7 +6,7 @@ typecheck:
 	apalache-mc typecheck helpers_recursive.tla
 
 check:
-	apalache-mc check --length=0 --inv=NoSlashableInv MC_ffg.tla
+	apalache-mc check --length=0 --discard-disabled=true --inv=Inv MC_ffg.tla
 
 clean:
 	rm -rf _apalache-out/

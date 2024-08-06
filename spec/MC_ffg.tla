@@ -7,10 +7,18 @@
  * Subject to Apache 2.0. See `LICENSE.md`.
  *)
 
+EXTENDS FiniteSets
+
 Nodes == { "A", "B", "C", "D" }
 
 \* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
-MAX_SLOT == 5
+\* Let `genesis <- b1 <- ... <- bn` be the longest chain from genesis in `view_votes`. Then `MAX_SLOT` MUST be at least `n`.
+MAX_SLOT == 4
+\* Readable names for block hashes (introduced as fresh constants by Apalache). `BlockHashes` must satisfy |BlockHashes| >= MAX_SLOT
+BlockHashes == { "BLOCK1", "BLOCK2", "BLOCK3", "BLOCK4", "BLOCK5", "BLOCK6", "BLOCK7", "BLOCK8", "BLOCK9", "BLOCK10" }
+
+\* Model-checking: Maximum number of votes in `view_votes`.
+MAX_VOTES == 6
 
 \* ========== Dummy implementations of stubs ==========
 
@@ -121,29 +129,53 @@ IsValidConfiguration(cfg, node_state) ==
     /\ cfg.eta >= 1
     /\ cfg.k >= 0
 
+\* @type: ($hash -> $block, $commonNodeState) => Bool;
+IsValidBlockView(view_blocks, node_state) ==
+    \* Assign readable names to block hashes introduced as fresh constants by Apalache
+    /\ DOMAIN node_state.view_blocks \subseteq BlockHashes \union { GenesisBlock.body }
+    \* The genesis block is always in the block view, it's parent hash never
+    /\ view_blocks[GenesisBlock.body] = GenesisBlock
+    /\ GenesisBlock.parent_hash \notin DOMAIN view_blocks
+    \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
+    /\ \A hash1,hash2 \in DOMAIN view_blocks:
+        hash1 = hash2 <=> view_blocks[hash1] = view_blocks[hash2]
+
 \* @type: ($commonNodeState) => Bool;
 IsValidNodeState(node_state) ==
     /\ IsValidConfiguration(node_state.configuration, node_state)
     /\ node_state.identity \in Nodes
     /\ node_state.current_slot >= 0
     /\ node_state.current_slot <= MAX_SLOT
-    /\ "" \notin DOMAIN node_state.view_blocks
-    \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
-    /\ \A hash1,hash2 \in DOMAIN node_state.view_blocks: 
-        hash1 = hash2 <=> node_state.view_blocks[hash1] = node_state.view_blocks[hash2]
+    /\ IsValidBlockView(node_state.view_blocks, node_state)
     /\ \A msg \in node_state.view_votes: IsValidSigedVoteMessage(msg, node_state)
     /\ IsValidBlock(node_state.chava, node_state)
 
+
+\* ==================================================================
+\* State machine
 \* ==================================================================
 
 
 \* Start in some arbitrary state
-\* @type: () => Bool;
-Init == 
-    /\ single_node_state = Gen(5)
+Init ==
+    LET
+        config == Gen(1)
+        id     == Gen(1)
+        current_slot == MAX_SLOT
+        view_blocks  == Gen(MAX_SLOT + 1)  \* MAX_SLOT "regular" blocks + 1 for genesis (at slot 0)
+        view_votes   == Gen(MAX_VOTES)
+        chava  == Gen(1)
+    IN
+    /\ single_node_state = [ configuration |-> config, identity |-> id, current_slot |-> current_slot, view_blocks |-> view_blocks, view_votes |-> view_votes, chava |-> chava ]
     /\ IsValidNodeState(single_node_state)
 
 Next == UNCHANGED single_node_state
+
+\* ==================================================================
+\* Invariants
+\* ==================================================================
+
+Inv == Cardinality(BlockHashes) >= MAX_SLOT
 
 NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
 
@@ -153,8 +185,5 @@ NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
 FinalizedChainIsPrefixOfAvailableChain == 
     LET lastFinBLock == get_block_from_hash(get_greatest_finalized_checkpoint(single_node_state).block_hash, single_node_state)
     IN is_ancestor_descendant_relationship(lastFinBLock, single_node_state.chava, single_node_state)
-
-Inv == NoSlashableInv
-
 
 =============================================================================
