@@ -38,13 +38,6 @@ CONSTANTS
 Last(lst) == At(lst, (Size(lst) - 1))
 
 (*
- * Slots that Apalache should fold over when traversing ancestors.
- *
- * @type: $commonNodeState => Set(Int);
- *)
-ApalacheFoldSlots(node_state) == { i \in 0..MAX_SLOT: i <= node_state.current_slot }
-
-(*
  * Checkpoint for the genesis block.
  * 
  * @type: $commonNodeState => $checkpoint;
@@ -138,7 +131,7 @@ get_blockchain(block, node_state) ==
             LET parent == get_parent(last_block, node_state) IN
             Pair(parent, Push(chain_upto_slot, parent))
     IN
-    ApaFoldSet( ChainWithParent, Pair(block, List(<< block >>)), ApalacheFoldSlots(node_state) )[2]
+    ApaFoldSeqLeft( ChainWithParent, Pair(block, List(<< block >>)), MkSeq(MAX_SLOT, (* @type: Int => Int; *) LAMBDA i: i) )[2]
 
 \* @type: ($block, $commonNodeState) => Bool;
 is_complete_chain(block, node_state) ==
@@ -160,11 +153,11 @@ is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
     FindAncestor(last_block_and_flag, slot) ==
         LET last_block == last_block_and_flag[1] IN
         LET flag == last_block_and_flag[2] IN
-        IF last_block = ancestor \/ flag THEN Pair(last_block, TRUE)
+        IF flag THEN Pair(last_block, TRUE)
         ELSE IF last_block = node_state.configuration.genesis \/ ~has_parent(last_block, node_state) THEN Pair(last_block, FALSE)
-        ELSE Pair(get_parent(last_block, node_state), FALSE)
+        ELSE LET parent == get_parent(last_block, node_state) IN Pair(parent, parent = ancestor)
     IN
-    ApaFoldSet( FindAncestor, Pair(descendant, FALSE), ApalacheFoldSlots(node_state) )[2]
+    ApaFoldSeqLeft( FindAncestor, Pair(descendant, descendant = ancestor), MkSeq(MAX_SLOT, (* @type: Int => Int; *) LAMBDA i: i) )[2]
 
 (*
  * Filter blocks, retaining only those that are ancestors of a specified block.
@@ -194,7 +187,7 @@ have_common_ancestor(chain1, chain2, node_state) ==
                 LET parent == get_parent(last_block, node_state) IN
                 Pair(parent, chain_upto_slot \union { parent })
         IN
-        ApaFoldSet( ChainWithParent, Pair(block, { block }), ApalacheFoldSlots(node_state) )[2]
+        ApaFoldSeqLeft( ChainWithParent, Pair(block, { block }), MkSeq(MAX_SLOT, (* @type: Int => Int; *) LAMBDA i: i) )[2]
     IN
     get_blockchain_set(chain1) \intersect get_blockchain_set(chain2) # {}
 
