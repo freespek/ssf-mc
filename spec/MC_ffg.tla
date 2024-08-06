@@ -10,7 +10,11 @@
 Nodes == { "A", "B", "C", "D" }
 
 \* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
-MAX_SLOT == 5
+\* Let `genesis <- b1 <- ... <- bn` be the longest chain from genesis in `view_votes`. Then `MAX_SLOT` MUST be at least `n`.
+MAX_SLOT == 4
+
+\* Model-checking: Maximum number of votes in `view_votes`.
+MAX_VOTES == 6
 
 \* ========== Dummy implementations of stubs ==========
 
@@ -146,7 +150,15 @@ IsValidNodeState(node_state) ==
 \* Start in some arbitrary state
 \* @type: () => Bool;
 Init == 
-    /\ single_node_state = Gen(5)
+    LET
+        config == Gen(1)
+        id     == Gen(1)
+        current_slot == MAX_SLOT
+        view_blocks  == Gen(MAX_SLOT + 1)  \* MAX_SLOT "regular" blocks + 1 for genesis (at slot 0)
+        view_votes   == Gen(MAX_VOTES)
+        chava  == Gen(1)
+    IN
+    /\ single_node_state = [ configuration |-> config, identity |-> id, current_slot |-> current_slot, view_blocks |-> view_blocks, view_votes |-> view_votes, chava |-> chava ]
     /\ IsValidNodeState(single_node_state)
 
 Next == UNCHANGED single_node_state
