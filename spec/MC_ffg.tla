@@ -54,10 +54,11 @@ VARIABLES
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 IsValidCheckpoint(c, node_state) ==
     /\ c.block_hash \in DOMAIN node_state.view_blocks
-    \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
-    /\ c.block_slot >= 0
-    /\ c.chkp_slot > c.block_slot 
-    /\ c.chkp_slot <= MAX_SLOT
+    /\ \/ c = genesis_checkpoint(node_state)
+       \/ \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
+          /\ c.block_slot >= 0
+          /\ c.chkp_slot > c.block_slot
+          /\ c.chkp_slot <= MAX_SLOT
 
 \* @type: ($voteMessage, $commonNodeState) => Bool;
 IsValidVoteMessage(msg, node_state) ==
