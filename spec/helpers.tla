@@ -153,11 +153,11 @@ is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
     FindAncestor(last_block_and_flag, slot) ==
         LET last_block == last_block_and_flag[1] IN
         LET flag == last_block_and_flag[2] IN
-        IF last_block = ancestor \/ flag THEN Pair(last_block, TRUE)
+        IF flag THEN Pair(last_block, TRUE)
         ELSE IF last_block = node_state.configuration.genesis \/ ~has_parent(last_block, node_state) THEN Pair(last_block, FALSE)
-        ELSE Pair(get_parent(last_block, node_state), FALSE)
+        ELSE LET parent == get_parent(last_block, node_state) IN Pair(parent, parent = ancestor)
     IN
-    ApaFoldSet( FindAncestor, Pair(descendant, FALSE), 0..MAX_SLOT )[2]
+    ApaFoldSet( FindAncestor, Pair(descendant, descendant = ancestor), 1..MAX_SLOT )[2]
 
 (*
  * Filter blocks, retaining only those that are ancestors of a specified block.
