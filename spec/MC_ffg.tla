@@ -121,16 +121,20 @@ IsValidConfiguration(cfg, node_state) ==
     /\ cfg.eta >= 1
     /\ cfg.k >= 0
 
+\* @type: ($hash -> $block, $commonNodeState) => Bool;
+IsValidBlockView(view_blocks, node_state) ==
+    /\ "" \notin DOMAIN node_state.view_blocks
+    \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
+    /\ \A hash1,hash2 \in DOMAIN node_state.view_blocks: 
+        hash1 = hash2 <=> node_state.view_blocks[hash1] = node_state.view_blocks[hash2]
+
 \* @type: ($commonNodeState) => Bool;
 IsValidNodeState(node_state) ==
     /\ IsValidConfiguration(node_state.configuration, node_state)
     /\ node_state.identity \in Nodes
     /\ node_state.current_slot >= 0
     /\ node_state.current_slot <= MAX_SLOT
-    /\ "" \notin DOMAIN node_state.view_blocks
-    \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
-    /\ \A hash1,hash2 \in DOMAIN node_state.view_blocks: 
-        hash1 = hash2 <=> node_state.view_blocks[hash1] = node_state.view_blocks[hash2]
+    /\ IsValidBlockView(node_state.view_blocks, node_state)
     /\ \A msg \in node_state.view_votes: IsValidSigedVoteMessage(msg, node_state)
     /\ IsValidBlock(node_state.chava, node_state)
 
