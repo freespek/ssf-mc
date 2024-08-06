@@ -124,7 +124,7 @@ valid_FFG_vote(vote, node_state) ==
                 node_state
             )
         )
-    /\ is_ancestor_descendant_relationship(
+    /\ PRECOMPUTED__is_ancestor_descendant_relationship(
             get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
             get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
             node_state
@@ -162,16 +162,12 @@ IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
     \* could be omitted here to simplify computation.
     /\ valid_FFG_vote(vote, node_state)
     /\ vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot
-    \* TODO: If we end up always doing 1-state model checking, we could
-    \* precompute the relation is_ancestor_descendant_relationship(a,b), for all blocks
-    \* ahead of time as a _function_, s.t. this lookup here becomes a simple access, instead of each of them being
-    \* another pseudo-recursive computation
-    /\ is_ancestor_descendant_relationship(
+    /\ PRECOMPUTED__is_ancestor_descendant_relationship(
         get_block_from_hash(checkpoint.block_hash, node_state),
         get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
         node_state
         )
-    /\ is_ancestor_descendant_relationship(
+    /\ PRECOMPUTED__is_ancestor_descendant_relationship(
         get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
         get_block_from_hash(checkpoint.block_hash, node_state),
         node_state
@@ -380,12 +376,12 @@ is_justified_checkpoint_unrolled(checkpoint, node_state) ==
                                     vote \in node_state.view_votes:
                                         /\ valid_FFG_vote(vote, node_state)
                                         /\ vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot
-                                        /\ is_ancestor_descendant_relationship(
+                                        /\ PRECOMPUTED__is_ancestor_descendant_relationship(
                                                 get_block_from_hash(checkpoint.block_hash, node_state),
                                                 get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
                                                 node_state
                                             )
-                                        /\ is_ancestor_descendant_relationship(
+                                        /\ PRECOMPUTED__is_ancestor_descendant_relationship(
                                                 get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
                                                 get_block_from_hash(checkpoint.block_hash, node_state),
                                                 node_state)

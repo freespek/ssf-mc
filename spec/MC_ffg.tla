@@ -45,15 +45,18 @@ GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
 
 \* ====================================================
 
+VARIABLES
+    \* @type: $commonNodeState;
+    single_node_state,
+    \* A precomputed map from (descendant) blocks to their ancestors.
+    \* @type: $block -> Set($block);
+    PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP
+
 INSTANCE ffg WITH
     MAX_SLOT <- MAX_SLOT,
     BLOCK_HASH <- BLOCK_HASH,
     VERIFY_VOTE_SIGNATURE <- VERIFY_VOTE_SIGNATURE,
     GET_VALIDATOR_SET_FOR_SLOT <- GET_VALIDATOR_SET_FOR_SLOT
-
-VARIABLES
-    \* @type: $commonNodeState;
-    single_node_state
 
 \* ========== Shape-requirements for state-variable fields ==========
 
@@ -90,7 +93,7 @@ IsValidVoteMessage(msg, node_state) ==
     \* Section 3.Votes: "... C1 and C2 are checkpoints with C1.c < C2.c and C1.B <- C2.B"
     /\ msg.ffg_source.chkp_slot < msg.ffg_target.chkp_slot
     \* TODO: MAJOR source of slowdown as MAX_SLOT increases, investigate further
-    /\ is_ancestor_descendant_relationship(
+    /\ PRECOMPUTED__is_ancestor_descendant_relationship(
         get_block_from_hash(msg.ffg_source.block_hash, node_state), 
         get_block_from_hash(msg.ffg_target.block_hash, node_state),
         node_state
@@ -170,8 +173,11 @@ Init ==
     IN
     /\ single_node_state = [ configuration |-> config, identity |-> id, current_slot |-> current_slot, view_blocks |-> view_blocks, view_votes |-> view_votes, chava |-> chava ]
     /\ IsValidNodeState(single_node_state)
+    /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
+        [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
 
-Next == UNCHANGED single_node_state
+
+Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP>>
 
 \* ==================================================================
 \* Invariants
