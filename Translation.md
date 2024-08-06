@@ -407,7 +407,7 @@ Chain(x, N) ==
       IF P(seq[1])
       THEN seq
       ELSE <<b(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
-  IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+  IN ApaFoldSet( step, <<x>>, 1..N )
 ```
 We can see that `Chain(x,N)` returns the sequence `<<v_n, ..., x>>` if `N` is sufficiently large. We can verify whether or not that is the case, by evaluating `P(Chain(x, N)[1])`. If it does not hold, the `N` chosen is not large enough, and needs to be increased.
 

@@ -281,7 +281,7 @@ Chain(x, node_state, N) ==
                 IF P(seq[1])
                 THEN seq
                 ELSE <<b(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
-        IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+        IN ApaFoldSet( step, <<x>>, 1..N )
 
 \* @type: ($targetMap, $commonNodeState, Int) => Set($checkpoint);
 AllJustifiedCheckpoints(initialTargetMap, node_state, N) ==
@@ -345,7 +345,7 @@ AllJustifiedCheckpoints(initialTargetMap, node_state, N) ==
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 is_justified_checkpoint(checkpoint, node_state) ==
     LET initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, node_state) ]
-    IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state, checkpoint.chkp_slot)
+    IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state, MAX_SLOT)
 
 \* For comparison, we include the unrolled version of is_justified_checkpoint
 RECURSIVE is_justified_checkpoint_unrolled(_, _)
