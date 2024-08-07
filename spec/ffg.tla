@@ -25,6 +25,11 @@ CONSTANTS
      *)
     GET_VALIDATOR_SET_FOR_SLOT(_,_,_)
 
+VARIABLES
+    \* A precomputed set of all justified checkpoints.
+    \* @type: Set($checkpoint);
+    PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT
+
 \* ========  HELPER METHODS ========
 
 \* Lexicographically compares (a,b) to (c,d).
@@ -343,6 +348,12 @@ is_justified_checkpoint(checkpoint, node_state) ==
     LET initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, node_state) ]
     IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state, MAX_SLOT)
 
+
+\* A precomputed version of `is_justified_checkpoint`, to avoid emitting folds.
+\* @type: ($checkpoint, $commonNodeState) => Bool;
+PRECOMPUTED__is_justified_checkpoint(checkpoint, node_state) ==
+    checkpoint \in PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT
+
 \* For comparison, we include the unrolled version of is_justified_checkpoint
 RECURSIVE is_justified_checkpoint_unrolled(_, _)
 \* @type: ($checkpoint, $commonNodeState) => Bool;
@@ -385,7 +396,7 @@ is_justified_checkpoint_unrolled(checkpoint, node_state) ==
                                                 get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
                                                 get_block_from_hash(checkpoint.block_hash, node_state),
                                                 node_state)
-                                        /\ is_justified_checkpoint(vote.message.ffg_source, node_state)
+                                        /\ PRECOMPUTED__is_justified_checkpoint(vote.message.ffg_source, node_state)
                                 }
                             },
                             validatorBalances
@@ -425,7 +436,7 @@ get_validators_in_FFG_votes_linking_to_a_checkpoint_in_next_slot(checkpoint, nod
 \* and `validator_set_weight` to sum their stakes. Finally it checks if `FFG_support_weight * 3 >= tot_validator_set_weight * 2` to finalize `checkpoint`.
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 is_finalized_checkpoint(checkpoint, node_state) ==
-    IF ~is_justified_checkpoint(checkpoint, node_state)
+    IF ~PRECOMPUTED__is_justified_checkpoint(checkpoint, node_state)
     THEN FALSE
     ELSE 
         LET 

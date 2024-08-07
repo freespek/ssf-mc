@@ -53,7 +53,10 @@ VARIABLES
     PRECOMPUTED__IS_COMPLETE_CHAIN,
     \* A precomputed map from (descendant) blocks to their ancestors.
     \* @type: $block -> Set($block);
-    PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP
+    PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP,
+    \* A precomputed set of all justified checkpoints.
+    \* @type: Set($checkpoint);
+    PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT
 
 INSTANCE ffg WITH
     MAX_SLOT <- MAX_SLOT,
@@ -170,6 +173,14 @@ Precompute ==
             { block \in all_blocks : is_complete_chain(block, single_node_state) }
         /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
             [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
+        /\ LET
+                all_source_and_target_checkpoints ==
+                    { vote.message.ffg_source : vote \in single_node_state.view_votes } \union { vote.message.ffg_target : vote \in single_node_state.view_votes }
+                votes_in_support_assuming_justified_source ==
+                    [ checkpoint \in all_source_and_target_checkpoints |-> VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) ]
+                initialTargetMap ==
+                    [ target \in get_set_FFG_targets(single_node_state.view_votes) |-> votes_in_support_assuming_justified_source[target] ]
+           IN PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT = AllJustifiedCheckpoints(initialTargetMap, single_node_state, MAX_SLOT)
 
 \* Start in some arbitrary state
 Init ==
@@ -185,7 +196,7 @@ Init ==
     /\ Precompute
     /\ IsValidNodeState(single_node_state)
 
-Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP, PRECOMPUTED__IS_COMPLETE_CHAIN>>
+Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP, PRECOMPUTED__IS_COMPLETE_CHAIN, PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT>>
 
 \* ==================================================================
 \* Invariants
