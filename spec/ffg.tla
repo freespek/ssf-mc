@@ -297,7 +297,7 @@ AllJustifiedCheckpoints(initialTargetMap, node_state, N) ==
                         \* implied by the sate validity predicate and can be omitted
                         hasBlockHash == has_block_hash(checkpoint.block_hash, node_state)
                         isCompleteChain ==
-                            is_complete_chain(
+                            PRECOMPUTED__is_complete_chain(
                                 get_block_from_hash(checkpoint.block_hash, node_state),
                                 node_state
                             )

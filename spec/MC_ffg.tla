@@ -48,6 +48,9 @@ GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
 VARIABLES
     \* @type: $commonNodeState;
     single_node_state,
+    \* A precomputed set of blocks that form complete chains.
+    \* @type: Set($block);
+    PRECOMPUTED__IS_COMPLETE_CHAIN,
     \* A precomputed map from (descendant) blocks to their ancestors.
     \* @type: $block -> Set($block);
     PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP
@@ -173,11 +176,13 @@ Init ==
     IN
     /\ single_node_state = [ configuration |-> config, identity |-> id, current_slot |-> current_slot, view_blocks |-> view_blocks, view_votes |-> view_votes, chava |-> chava ]
     /\ IsValidNodeState(single_node_state)
-    /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
-        [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
+    /\ LET all_blocks == get_all_blocks(single_node_state) IN
+        /\ PRECOMPUTED__IS_COMPLETE_CHAIN =
+            { block \in all_blocks : is_complete_chain(block, single_node_state) }
+        /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
+            [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
 
-
-Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP>>
+Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP, PRECOMPUTED__IS_COMPLETE_CHAIN>>
 
 \* ==================================================================
 \* Invariants

@@ -31,6 +31,9 @@ CONSTANTS
     MAX_SLOT
 
 VARIABLES
+    \* A precomputed set of blocks that form complete chains.
+    \* @type: Set($block);
+    PRECOMPUTED__IS_COMPLETE_CHAIN,
     \* A precomputed map from (descendant) blocks to their ancestors.
     \* @type: $block -> Set($block);
     PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP
@@ -144,6 +147,10 @@ is_complete_chain(block, node_state) ==
     \* with a fold similar to above, but reducing to a boolean flag indicating
     \* if it has seen the genesis block. Choosing this version now for brevity.
     Last(get_blockchain(block, node_state)) = node_state.configuration.genesis
+
+\* A precomputed version of `is_complete_chain`, to avoid emitting folds.
+\* @type: ($block, $commonNodeState) => Bool;
+PRECOMPUTED__is_complete_chain(block, node_state) == block \in PRECOMPUTED__IS_COMPLETE_CHAIN
 
 (*
  * Determine if there is an ancestor-descendant relationship between two blocks.
