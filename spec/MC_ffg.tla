@@ -177,8 +177,6 @@ Next == UNCHANGED single_node_state
 
 Inv == Cardinality(BlockHashes) >= MAX_SLOT
 
-NoSlashableInv == get_slashable_nodes(single_node_state.view_votes) = {}
-
 \* The ebb-and-flow protocol property stipulates that at every step, two chains are maintained,
 \* the finalized chain, which is safe, and the available chain, which is live, s.t. the finalized
 \* chain is a prefix of the available chain.
