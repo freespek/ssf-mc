@@ -55,7 +55,11 @@ INSTANCE ffg WITH
 
 VARIABLES
     \* @type: $commonNodeState;
-    single_node_state
+    single_node_state,
+    \* @typeAlias: ancestorMap = $hash -> Set($hash);
+    \* @type: $ancestorMap;
+    ancestorMap
+
 
 \* ========== Shape-requirements for state-variable fields ==========
 
@@ -155,6 +159,33 @@ IsValidNodeState(node_state) ==
 \* State machine
 \* ==================================================================
 
+\* @type: ($blockView) => $ancestorMap;
+GetAncestorMap(blockHashmap) ==
+    LET blockHashes == DOMAIN blockHashmap IN
+    \* because we don't have a getOrElse, we prepopulate the map domain with all
+    \* parent hashes mapping to {}, so we don't have to ITE in lookup.
+    \* We could assume that allHashes is `(blockHashes) \cup {""}`
+    \* if we're hardocding chain completeness.
+    LET allHashes == (blockHashes \union {blockHashmap[hash].parent_hash: hash \in blockHashes}) IN
+    LET 
+        \* @type: ($ancestorMap, Int) => $ancestorMap;
+        step(map, i) ==
+            [
+                hash \in allHashes |-> 
+                    LET block == blockHashmap[hash] IN
+                    IF hash \in blockHashes /\ block.slot = i
+                    THEN map[block.parent_hash] \union {hash}
+                    ELSE map[hash]
+            ]     
+    IN ApaFoldSeqLeft( step, [ hash \in allHashes |-> {} ], MkSeq(MAX_SLOT + 1, (* @type: Int => Int; *) LAMBDA i: i - 1) ) \* we need 0..MAX_SLOT, not 1..MAX_SLOT
+
+\* If we have computed ancestorMap once, every call to is_ancestor_descendant_relationship
+\* can be substituted by a simple lookup.
+\* @type: ($block, $block) => Bool;
+is_ancestor_descendant_relationship_alt(ancestor, descendant) ==
+    LET ancestorHash == BLOCK_HASH(ancestor)
+        descendantHash == BLOCK_HASH(descendant)
+    IN ancestorHash \in ancestorMap[descendantHash]
 
 \* Start in some arbitrary state
 Init ==
@@ -168,8 +199,11 @@ Init ==
     IN
     /\ single_node_state = [ configuration |-> config, identity |-> id, current_slot |-> current_slot, view_blocks |-> view_blocks, view_votes |-> view_votes, chava |-> chava ]
     /\ IsValidNodeState(single_node_state)
+    /\ ancestorMap = GetAncestorMap(view_blocks)
 
-Next == UNCHANGED single_node_state
+Next == 
+    /\ UNCHANGED single_node_state
+    /\ UNCHANGED ancestorMap
 
 \* ==================================================================
 \* Invariants
