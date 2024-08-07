@@ -163,6 +163,13 @@ IsValidNodeState(node_state) ==
 \* State machine
 \* ==================================================================
 
+\* The following variables encode precomputed sets, to avoid emitting nested folds
+Precompute ==
+    LET all_blocks == get_all_blocks(single_node_state) IN
+        /\ PRECOMPUTED__IS_COMPLETE_CHAIN =
+            { block \in all_blocks : is_complete_chain(block, single_node_state) }
+        /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
+            [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
 
 \* Start in some arbitrary state
 Init ==
@@ -175,12 +182,8 @@ Init ==
         chava  == Gen(1)
     IN
     /\ single_node_state = [ configuration |-> config, identity |-> id, current_slot |-> current_slot, view_blocks |-> view_blocks, view_votes |-> view_votes, chava |-> chava ]
+    /\ Precompute
     /\ IsValidNodeState(single_node_state)
-    /\ LET all_blocks == get_all_blocks(single_node_state) IN
-        /\ PRECOMPUTED__IS_COMPLETE_CHAIN =
-            { block \in all_blocks : is_complete_chain(block, single_node_state) }
-        /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
-            [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
 
 Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP, PRECOMPUTED__IS_COMPLETE_CHAIN>>
 
