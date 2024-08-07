@@ -1,6 +1,7 @@
 typecheck:
-	apalache-mc typecheck ffg.tla
+	apalache-mc typecheck MC_ffg.tla
 
+typecheck_all: typecheck
 	# alternative implementations of recursive operators
 	apalache-mc typecheck ffg_recursive.tla
 	apalache-mc typecheck helpers_recursive.tla
@@ -11,4 +12,4 @@ check:
 clean:
 	rm -rf _apalache-out/
 
-.PHONY: clean typecheck
+.PHONY: check clean typecheck typecheck_all
