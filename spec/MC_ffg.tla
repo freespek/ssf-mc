@@ -13,10 +13,10 @@ Nodes == { "A", "B", "C", "D" }
 
 \* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
 \* Let `genesis <- b1 <- ... <- bn` be the longest chain from genesis in `view_votes`. Then `MAX_SLOT` MUST be at least `n`.
-MAX_SLOT == 4
+MAX_SLOT == 1
 
 \* Model-checking: Maximum number of votes in `view_votes`.
-MAX_VOTES == 6
+MAX_VOTES == 12
 
 \* ========== Dummy implementations of stubs ==========
 
@@ -73,12 +73,12 @@ IsValidCheckpoint(c, node_state) ==
        \/ \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
           /\ c.block_slot >= 0
           /\ c.chkp_slot > c.block_slot
-          /\ c.chkp_slot <= MAX_SLOT
+          /\ c.chkp_slot <= MAX_SLOT+2
 
 \* @type: ($voteMessage, $commonNodeState) => Bool;
 IsValidVoteMessage(msg, node_state) ==
     /\ msg.slot >= 0
-    /\ msg.slot <= MAX_SLOT
+    /\ msg.slot <= MAX_SLOT+2
     \* A message can only reference checkpoints that have already happened
     \* QUESTION TO REVIEWERS: strict > ?
     /\ msg.slot >= msg.ffg_source.chkp_slot
@@ -161,12 +161,13 @@ Precompute ==
         /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
             [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
         /\ LET
-                all_source_and_target_checkpoints ==
-                    { vote.message.ffg_source : vote \in single_node_state.view_votes } \union { vote.message.ffg_target : vote \in single_node_state.view_votes }
+                ffg_sources == { vote.message.ffg_source : vote \in single_node_state.view_votes }
+                ffg_targets == get_set_FFG_targets(single_node_state.view_votes)
+                all_source_and_target_checkpoints == ffg_sources \union ffg_targets
                 votes_in_support_assuming_justified_source ==
                     [ checkpoint \in all_source_and_target_checkpoints |-> VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) ]
                 initialTargetMap ==
-                    [ target \in get_set_FFG_targets(single_node_state.view_votes) |-> votes_in_support_assuming_justified_source[target] ]
+                    [ target \in ffg_targets |-> votes_in_support_assuming_justified_source[target] ]
            IN PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT = AllJustifiedCheckpoints(initialTargetMap, single_node_state, MAX_SLOT)
 
 \* Start in some arbitrary state
