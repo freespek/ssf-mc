@@ -104,7 +104,7 @@ IsValidSigedVoteMessage(msg, node_state) ==
 
 \* @type: ($block, $commonNodeState) => Bool;
 IsValidBlock(block, node_state) == 
-    /\ block.parent_hash \in (DOMAIN node_state.view_blocks \union {""}) \* Parent of genesis = ""
+    /\ block.parent_hash \in (DOMAIN node_state.view_blocks \union { GenesisBlock.parent_hash })
     /\ block.slot >= 0
     /\ block.slot <= MAX_SLOT
     /\ \A voteMsg \in block.votes: IsValidSigedVoteMessage(voteMsg, node_state)
