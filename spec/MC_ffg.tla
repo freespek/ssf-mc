@@ -132,12 +132,11 @@ IsValidConfiguration(cfg, node_state) ==
 
 \* @type: ($hash -> $block, $commonNodeState) => Bool;
 IsValidBlockView(view_blocks, node_state) ==
-    LET genesis_hash == BLOCK_HASH(GenesisBlock) IN
     \* Assign readable names to block hashes introduced as fresh constants by Apalache
     /\ DOMAIN node_state.view_blocks \subseteq BlockHashes
     \* The genesis block is always in the block view, it's parent hash never
-    /\ genesis_hash \in DOMAIN view_blocks
-    /\ view_blocks[genesis_hash] = GenesisBlock
+    /\ BLOCK_HASH(GenesisBlock) \in DOMAIN view_blocks
+    /\ view_blocks[BLOCK_HASH(GenesisBlock)] = GenesisBlock
     /\ GenesisBlock.parent_hash \notin DOMAIN view_blocks
     \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
     /\ \A hash1,hash2 \in DOMAIN view_blocks:
