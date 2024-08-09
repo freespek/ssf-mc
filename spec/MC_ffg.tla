@@ -134,6 +134,7 @@ IsValidBlockView(view_blocks, node_state) ==
     \* Assign readable names to block hashes introduced as fresh constants by Apalache
     /\ DOMAIN node_state.view_blocks \subseteq BlockHashes \union { GenesisBlock.body }
     \* The genesis block is always in the block view, it's parent hash never
+    /\ GenesisBlock.body \in DOMAIN view_blocks
     /\ view_blocks[GenesisBlock.body] = GenesisBlock
     /\ GenesisBlock.parent_hash \notin DOMAIN view_blocks
     \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
