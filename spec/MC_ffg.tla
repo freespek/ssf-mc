@@ -179,7 +179,7 @@ Next == UNCHANGED single_node_state
 \* ==================================================================
 
 \* Consistency checks on parameters
-ConsistentParameters == Cardinality(BlockHashes) >= MAX_SLOT
+ConsistentParameters == Cardinality(BlockHashes) >= Cardinality(DOMAIN single_node_state.view_blocks)
 
 \* Theorem 1 (Accountable safety). The finalized chain chFin_i is accountably safe, i.e.,
 \* two conflicting finalized blocks imply that at least n/3 adversarial validators can be
