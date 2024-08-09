@@ -14,8 +14,6 @@ Nodes == { "A", "B", "C", "D" }
 \* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
 \* Let `genesis <- b1 <- ... <- bn` be the longest chain from genesis in `view_votes`. Then `MAX_SLOT` MUST be at least `n`.
 MAX_SLOT == 4
-\* Readable names for block hashes (introduced as fresh constants by Apalache). `BlockHashes` must satisfy |BlockHashes| >= MAX_SLOT
-BlockHashes == { "BLOCK1", "BLOCK2", "BLOCK3", "BLOCK4", "BLOCK5", "BLOCK6", "BLOCK7", "BLOCK8", "BLOCK9", "BLOCK10" }
 
 \* Model-checking: Maximum number of votes in `view_votes`.
 MAX_VOTES == 6
@@ -59,6 +57,17 @@ VARIABLES
 
 \* ========== Shape-requirements for state-variable fields ==========
 
+\* @type: $block;
+GenesisBlock == [
+        parent_hash |-> "",
+        slot        |-> 0,
+        votes       |-> {},
+        body        |-> "genesis"
+    ]
+
+\* Readable names for block hashes (introduced as fresh constants by Apalache). `BlockHashes` must satisfy |BlockHashes| >= |DOMAIN view_blocks|
+BlockHashes == { BLOCK_HASH(GenesisBlock), "BLOCK1", "BLOCK2", "BLOCK3", "BLOCK4", "BLOCK5", "BLOCK6", "BLOCK7", "BLOCK8", "BLOCK9", "BLOCK10" }
+
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 IsValidCheckpoint(c, node_state) ==
     /\ c.block_hash \in DOMAIN node_state.view_blocks
@@ -95,7 +104,7 @@ IsValidSigedVoteMessage(msg, node_state) ==
 
 \* @type: ($block, $commonNodeState) => Bool;
 IsValidBlock(block, node_state) == 
-    /\ block.parent_hash \in (DOMAIN node_state.view_blocks \union {""}) \* Parent of genesis = ""
+    /\ block.parent_hash \in (DOMAIN node_state.view_blocks \union { GenesisBlock.parent_hash })
     /\ block.slot >= 0
     /\ block.slot <= MAX_SLOT
     /\ \A voteMsg \in block.votes: IsValidSigedVoteMessage(voteMsg, node_state)
@@ -112,14 +121,6 @@ IsValidProposeMessage(msg, node_state) ==
 IsValidSignedProposeMessage(msg, node_state) ==
     /\ IsValidProposeMessage(msg.message, node_state)
     \* there's no equivalent to verify_vote_signature for propose messages
-
-\* @type: $block;
-GenesisBlock == [
-        parent_hash |-> "",
-        slot        |-> 0,
-        votes       |-> {},
-        body        |-> "genesis"
-    ]
     
 \* QUESTION TO REVIEWERS: strict > ?
 \* @type: ($configuration, $commonNodeState) => Bool;
@@ -132,9 +133,10 @@ IsValidConfiguration(cfg, node_state) ==
 \* @type: ($hash -> $block, $commonNodeState) => Bool;
 IsValidBlockView(view_blocks, node_state) ==
     \* Assign readable names to block hashes introduced as fresh constants by Apalache
-    /\ DOMAIN node_state.view_blocks \subseteq BlockHashes \union { GenesisBlock.body }
+    /\ DOMAIN node_state.view_blocks \subseteq BlockHashes
     \* The genesis block is always in the block view, it's parent hash never
-    /\ view_blocks[GenesisBlock.body] = GenesisBlock
+    /\ BLOCK_HASH(GenesisBlock) \in DOMAIN view_blocks
+    /\ view_blocks[BLOCK_HASH(GenesisBlock)] = GenesisBlock
     /\ GenesisBlock.parent_hash \notin DOMAIN view_blocks
     \* Each block must have a unique hash: H(B1) = H(B2) <=> B1 = B2
     /\ \A hash1,hash2 \in DOMAIN view_blocks:
@@ -176,7 +178,7 @@ Next == UNCHANGED single_node_state
 \* ==================================================================
 
 \* Consistency checks on parameters
-ConsistentParameters == Cardinality(BlockHashes) >= MAX_SLOT
+ConsistentParameters == Cardinality(BlockHashes) >= Cardinality(DOMAIN single_node_state.view_blocks)
 
 \* Theorem 1 (Accountable safety). The finalized chain chFin_i is accountably safe, i.e.,
 \* two conflicting finalized blocks imply that at least n/3 adversarial validators can be
