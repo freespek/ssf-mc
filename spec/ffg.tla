@@ -34,7 +34,9 @@ VARIABLES
     votes_in_support_assuming_justified_source_map,
     \* @typeAlias: isCompleteChainMap = $hash -> Bool;
     \* @type: $isCompleteChainMap;
-    is_complete_chain_map
+    is_complete_chain_map,
+    \* @type: Set($checkpoint);
+    alljust
 
 \* ========  HELPER METHODS ========
 
@@ -120,6 +122,10 @@ is_ancestor_descendant_relationship_PRECOMPUTED(anc, desc) ==
     LET \* @type: <<$hash, $hash>>;
         key == <<anc, desc>>
     IN key \in DOMAIN ancestor_descendant_map /\ ancestor_descendant_map[key]
+
+\* @type: ($hash) => Bool;
+is_complete_chain_PRECOMPUTED(block) ==
+    block \in DOMAIN is_complete_chain_map /\ is_complete_chain_map[block]
 
 \* SRC: https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py#L20
 \* A FFG vote is valid if:
@@ -302,7 +308,7 @@ Chain(x, node_state) ==
                 CheckpointsPendingJustification == UNION { Sources(head[previousStepCheckpoint]): previousStepCheckpoint \in DOMAIN head }
                 newMap == [ checkpoint \in CheckpointsPendingJustification |-> VotesInSupportAssumingJustifiedSource_PRECOMPUTED(checkpoint) ]
             IN <<newMap>> \o seq \* Alternatively, we can append here and reverse the list at the end
-    IN ApaFoldSet(step, <<x>>, 0..MAX_SLOT)
+    IN ApaFoldSeqLeft( step, <<x>>, MkSeq(MAX_SLOT, (* @type: Int => Int; *) LAMBDA i: i) )
 
 \* @type: ($targetMap, $commonNodeState) => Set($checkpoint);
 AllJustifiedCheckpoints(initialTargetMap, node_state) ==
@@ -321,11 +327,11 @@ AllJustifiedCheckpoints(initialTargetMap, node_state) ==
                         \* TODO: If we end up always doing 1-state model checking, these two are
                         \* implied by the sate validity predicate and can be omitted
                         hasBlockHash == has_block_hash(checkpoint.block_hash, node_state)
-                        isCompleteChain ==
-                            is_complete_chain(
-                                get_block_from_hash(checkpoint.block_hash, node_state),
-                                node_state
-                            )
+                        isCompleteChain == is_complete_chain_PRECOMPUTED(checkpoint.block_hash)
+                            \* is_complete_chain(
+                            \*     get_block_from_hash(checkpoint.block_hash, node_state),
+                            \*     node_state
+                            \* )
                     IN  LET
                         \* TODO: #20
                         \* Since GET_VALIDATOR_SET_FOR_SLOT is a constant operator, we could
@@ -367,6 +373,10 @@ AllJustifiedCheckpoints(initialTargetMap, node_state) ==
 is_justified_checkpoint(checkpoint, node_state) ==
     LET initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource_PRECOMPUTED(c) ]
     IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state)
+
+\* @type: ($checkpoint) => Bool;
+is_justified_checkpoint_PRECOMPUTED(checkpoint) ==
+    checkpoint \in alljust
 
 \* For comparison, we include the unrolled version of is_justified_checkpoint
 RECURSIVE is_justified_checkpoint_unrolled(_, _)
@@ -450,7 +460,8 @@ get_validators_in_FFG_votes_linking_to_a_checkpoint_in_next_slot(checkpoint, nod
 \* and `validator_set_weight` to sum their stakes. Finally it checks if `FFG_support_weight * 3 >= tot_validator_set_weight * 2` to finalize `checkpoint`.
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 is_finalized_checkpoint(checkpoint, node_state) ==
-    IF ~is_justified_checkpoint(checkpoint, node_state)
+    \* IF ~is_justified_checkpoint(checkpoint, node_state)
+    IF ~is_justified_checkpoint_PRECOMPUTED(checkpoint)
     THEN FALSE
     ELSE 
         LET 

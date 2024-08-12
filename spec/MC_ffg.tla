@@ -12,8 +12,8 @@ EXTENDS FiniteSets
 Nodes == { "A", "B", "C", "D" }
 
 \* Model-checking: Maximum slot (inclusive) that Apalache folds over when traversing ancestors.
-BLOCKS == { "genesis", "HASH1", "HASH2", "HASH3", "HASH4" }
-MAX_SLOT == 5
+BLOCKS == { "genesis", "HASH1", "HASH2", "HASH3", "HASH4", "HASH5" }
+MAX_SLOT == 4
 
 \* ========== Dummy implementations of stubs ==========
 
@@ -54,10 +54,10 @@ VARIABLES
     \* @typeAlias: isCompleteChainMap = $hash -> Bool;
     \* @type: $isCompleteChainMap;
     is_complete_chain_map,
-    \* @type: Seq($targetMap);
-    chn,
     \* @type: Set($checkpoint);
-    alljust
+    alljust,
+    \* @type: Set($checkpoint);
+    allfin
 
 INSTANCE ffg WITH
     MAX_SLOT <- MAX_SLOT,
@@ -70,10 +70,11 @@ INSTANCE ffg WITH
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 IsValidCheckpoint(c, node_state) ==
     /\ c.block_hash \in DOMAIN node_state.view_blocks
-    \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
-    /\ c.block_slot >= 0
-    /\ c.chkp_slot > c.block_slot 
-    /\ c.chkp_slot <= MAX_SLOT
+    /\ \/ c = genesis_checkpoint(node_state)
+       \/ \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
+          /\ c.block_slot >= 0
+          /\ c.chkp_slot > c.block_slot
+          /\ c.chkp_slot <= MAX_SLOT
 
 \* @type: ($voteMessage, $commonNodeState) => Bool;
 IsValidVoteMessage(msg, node_state) ==
@@ -88,11 +89,11 @@ IsValidVoteMessage(msg, node_state) ==
     \* Section 3.Votes: "... C1 and C2 are checkpoints with C1.c < C2.c and C1.B <- C2.B"
     /\ msg.ffg_source.chkp_slot < msg.ffg_target.chkp_slot
     \* TODO: MAJOR source of slowdown as MAX_SLOT increases, investigate further
-    /\ is_ancestor_descendant_relationship(
-        get_block_from_hash(msg.ffg_source.block_hash, node_state), 
-        get_block_from_hash(msg.ffg_target.block_hash, node_state),
-        node_state
-        )
+    \* /\ is_ancestor_descendant_relationship(
+    \*     get_block_from_hash(msg.ffg_source.block_hash, node_state), 
+    \*     get_block_from_hash(msg.ffg_target.block_hash, node_state),
+    \*     node_state
+    \*     )
 
 \* @type: ($signedVoteMessage, $commonNodeState) => Bool;
 IsValidSignedVoteMessage(msg, node_state) ==
@@ -114,7 +115,7 @@ IsValidNodeState(node_state) ==
     /\ node_state.identity \in Nodes
     \* `.current_slot` is unused
     /\ node_state.view_blocks["genesis"] = GenesisBlock
-    /\ DOMAIN node_state.view_blocks = BLOCKS
+    /\ DOMAIN node_state.view_blocks \subseteq BLOCKS
     /\ \A hash \in DOMAIN node_state.view_blocks:
         \* we don't consider votes in `view_blocks` (only in `view_votes`)
         /\ node_state.view_blocks[hash].votes = {}
@@ -128,27 +129,42 @@ IsValidNodeState(node_state) ==
 
 \* ==================================================================
 
+Inv_LongestChainIsComplete == is_complete_chain(get_block_from_hash("HASH4", single_node_state), single_node_state)
+Inv_TipIsDescendantOfGenesis == is_ancestor_descendant_relationship(get_block_from_hash("genesis", single_node_state),get_block_from_hash("HASH4", single_node_state), single_node_state)
 
 \* Start in some arbitrary state
 \* @type: () => Bool;
-Init == 
-    /\ single_node_state = Gen(MAX_SLOT)
+Init ==
+    LET
+        config == Gen(1)
+        id == Gen(1)
+        current_slot == MAX_SLOT
+        view_blocks == SetAsFun({
+            <<"genesis", GenesisBlock>>,
+            <<"HASH1", [ parent_hash |-> "genesis", slot |-> 1, votes |-> {}, body |-> "HASH1" ] >>,
+            <<"HASH2", [ parent_hash |-> "HASH1", slot |-> 2, votes |-> {}, body |-> "HASH2" ] >>,
+            <<"HASH3", [ parent_hash |-> "HASH2", slot |-> 3, votes |-> {}, body |-> "HASH3" ] >>,
+            <<"HASH4", [ parent_hash |-> "HASH3", slot |-> 4, votes |-> {}, body |-> "HASH4" ] >>
+        })
+        view_votes == Gen(6)
+        chava == Gen(1)
+    IN
+    /\ single_node_state = [ configuration |-> config, identity |-> id, current_slot |-> current_slot, view_blocks |-> view_blocks, view_votes |-> view_votes, chava |-> chava ]
+    \* /\ single_node_state = Gen(MAX_SLOT)
     /\ IsValidNodeState(single_node_state)
-    /\ ancestor_descendant_map = [ ancestor_and_descendant \in BLOCKS \X BLOCKS |-> is_ancestor_descendant_relationship(
-            get_block_from_hash(ancestor_and_descendant[1], single_node_state),
-            get_block_from_hash(ancestor_and_descendant[2], single_node_state),
+    /\ ancestor_descendant_map = [ ancestor, descendant \in DOMAIN view_blocks |-> is_ancestor_descendant_relationship(
+            get_block_from_hash(ancestor, single_node_state),
+            get_block_from_hash(descendant, single_node_state),
             single_node_state
         ) ]
-    /\ votes_in_support_assuming_justified_source_map = [ ffg_source \in Sources(single_node_state.view_votes) |-> VotesInSupportAssumingJustifiedSource(ffg_source, single_node_state) ]
-    /\ is_complete_chain_map = [ block_hash \in BLOCKS |-> is_complete_chain(get_block_from_hash(block_hash, single_node_state), single_node_state) ]
-    /\ LET
-        checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
-        initialTargetMap == [ c \in {checkpoint} |-> votes_in_support_assuming_justified_source_map[c] ]
-       IN
-        /\ chn = Chain(initialTargetMap, single_node_state)
-        /\ alljust = AllJustifiedCheckpoints(initialTargetMap, single_node_state)
+    /\ is_complete_chain_map = [ block_hash \in DOMAIN view_blocks |-> is_complete_chain(get_block_from_hash(block_hash, single_node_state), single_node_state) ]
+    /\ LET all_source_and_target_checkpoints == { vote.message.ffg_source : vote \in single_node_state.view_votes } \union { vote.message.ffg_target : vote \in single_node_state.view_votes } IN
+       /\ votes_in_support_assuming_justified_source_map = [ c \in all_source_and_target_checkpoints |-> VotesInSupportAssumingJustifiedSource(c, single_node_state) ]
+       /\ LET initialTargetMap == [ c \in get_set_FFG_targets(single_node_state.view_votes) |-> VotesInSupportAssumingJustifiedSource_PRECOMPUTED(c) ] IN
+             /\ alljust = AllJustifiedCheckpoints(initialTargetMap, single_node_state)
+             /\ allfin = get_finalized_checkpoints(single_node_state)
 
-Next == UNCHANGED <<single_node_state, ancestor_descendant_map, votes_in_support_assuming_justified_source_map, is_complete_chain_map, chn, alljust>>
+Next == UNCHANGED <<single_node_state, ancestor_descendant_map, votes_in_support_assuming_justified_source_map, is_complete_chain_map, alljust, allfin>>
 
 \* -------------------------------------------------------------------------
 \* Falsy invariants to check reachability of certain states
@@ -213,16 +229,15 @@ ValidatorsLinkingNextSlot_Example ==
 \* Find at least 3 justifying votes for checkpoint
 VotesInSupport_Example ==
     LET checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
-    IN Cardinality(VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state)) < 3
+    IN Cardinality(VotesInSupportAssumingJustifiedSource_PRECOMPUTED(checkpoint)) < 3
 
+\* Find a justified checkpoint other than the genesis checkpoint
 JustifiedCheckpoint_Example ==
-    LET checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
-    IN checkpoint \notin alljust
+    alljust = { genesis_checkpoint(single_node_state) }
 
-\* Find a finalized checkpoint
+\* Find a finalized checkpoint other than the genesis checkpoint
 FinalizedCheckpoint_Example ==
-    LET checkpoint == [ block_hash |-> "HASH1", block_slot |-> 2, chkp_slot |-> 3 ]
-    IN ~is_finalized_checkpoint(checkpoint, single_node_state)
+    allfin = { genesis_checkpoint(single_node_state) }
 
 \* The ebb-and-flow protocol property stipulates that at every step, two chains are maintained,
 \* the finalized chain, which is safe, and the available chain, which is live, s.t. the finalized
