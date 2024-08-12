@@ -7,14 +7,18 @@
  * Subject to Apache 2.0. See `LICENSE.md`.
  *)
 
-EXTENDS Apalache, Integers, Sequences, typedefs
+EXTENDS Apalache, Integers, FiniteSets, Sequences, typedefs
 
 CONSTANT 
     \* @type: Int;
     MAX_BLOCK_SLOT,
-    \* @type: Set(BODY);
-    BLOCK_BODIES
-
+    \* @type: Set(Str);
+    BLOCK_BODIES,
+    \* @type: Set(Str);
+    VALIDATORS
+    \* N = Cardinality(VALIDATORS)
+    \* @type: Int;
+    N
 
 BlockSlots == 0..MAX_BLOCK_SLOT
 CheckpointSlots == 0..(MAX_BLOCK_SLOT+2)
@@ -28,6 +32,8 @@ VARIABLES
     block_graph_closure,
     \* @type: Set($ffgVote);
     ffg_votes,
+    \* @type: Set($vote);
+    votes,
     \* @type: Set($checkpoint);
     justified_checkpoints
 
@@ -75,7 +81,7 @@ ProposeBlock(parent, slot, body) ==
                 Edge(this, ancestorRelOfParent[2]): ancestorRelOfParent \in { edge \in block_graph_closure: edge[1] = parent } 
             }
         IN block_graph_closure \union inheritedFromParent \union {Edge(this, this)}
-    /\ UNCHANGED <<ffg_votes, justified_checkpoints>>
+    /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints>>
 
 
 \* @type: ($ffgVote) => Bool;
@@ -89,11 +95,17 @@ IsValidFFGVote(vote) ==
 \* @type: ($checkpoint, Set($ffgVote), Set($checkpoint)) => Bool;
 IsJustified(checkpoint, ffgVotes, fixpoint) == 
     \/ checkpoint = GenesisCheckpoint
-    \/ \E vote \in ffgVotes:
-        /\ vote.source \in fixpoint
-        /\ vote.target[2] = checkpoint[2]
-        /\ <<vote.target[1], checkpoint[1]>> \in block_graph_closure
-        /\ <<checkpoint[1], vote.source[1]>> \in block_graph_closure
+    \/ \E justifyingVotes \in SUBSET votes:
+        /\ 3 * Cardinality({v.validator: v \in justifyingVotes}) >= 2 * N
+        /\ \A justifyingVote \in justifyingVotes:
+            LET ffgVote == justifyingVote.ffg_vote IN
+            \* L6:
+            /\ ffgVote.source \in fixpoint
+            \* L7:
+            /\ <<ffgVote.target[1], checkpoint[1]>> \in block_graph_closure
+            /\ <<checkpoint[1], ffgVote.source[1]>> \in block_graph_closure
+            \* L8:
+            /\ ffgVote.target[2] = checkpoint[2]
 
 \* @type: ($checkpoint, Set($ffgVote), Set($checkpoint)) => Bool;
 IsFinalized(checkpoint, ffgVotes, justifiedCheckpoints) ==
@@ -107,17 +119,24 @@ AreConflictingBlocks(b1, b2) ==
     /\ Edge(b2,b1) \notin block_graph_closure
 
 
-\* @type: ($checkpoint, $checkpoint) => Bool;
-CastFFGVote(source, target) ==
+Vote(validator, ffgVote) = [
+    validator: Str,
+    ffg_vote: $ffgVote
+]
+
+\* @type: ($checkpoint, $checkpoint, Set(Str)) => Bool;
+CastVotes(source, target, validators) ==
     LET ffgVote == [ source |-> source, target |-> target ] IN
     /\ UNCHANGED <<blocks, block_graph, block_graph_closure>>
     /\ IsValidFFGVote(ffgVote)
+    /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ LET allCheckpoints == {Checkpoint(block, i): block \in blocks, i \in CheckpointSlots}
        IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
         /\ \A c \in allJustifiedCheckpoints: IsJustified(c, ffg_votes', allJustifiedCheckpoints)
         /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, ffg_votes', allJustifiedCheckpoints)
+    /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
 
     
 Init == 
@@ -125,14 +144,16 @@ Init ==
     /\ block_graph_closure = { Edge(GenesisBlock,GenesisBlock) }
     /\ block_graph = {}
     /\ ffg_votes = {}
+    /\ votes = {}
     /\ justified_checkpoints = {GenesisCheckpoint}
 
 Next == 
     \/ \E parent \in blocks, slot \in BlockSlots, body \in BLOCK_BODIES: ProposeBlock(parent, slot, body)
-    \/ \E <<targetBlock, sourceBlock>> \in block_graph_closure, srcSlot, tgtSlot \in CheckpointSlots: 
-        CastFFGVote(
+    \/ \E <<targetBlock, sourceBlock>> \in block_graph_closure, srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
+        CastVotes(
             Checkpoint(sourceBlock, srcSlot), 
-            Checkpoint(targetBlock, tgtSlot)
+            Checkpoint(targetBlock, tgtSlot),
+            validators
         )
 
 =============================================================================

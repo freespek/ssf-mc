@@ -10,6 +10,10 @@
         source: $checkpoint,
         target: $checkpoint
     };
+    @typeAlias vote = {
+        validator: Str,
+        ffg_vote: $ffgVote
+    };
 *)
 TYPEDEFS == TRUE
 

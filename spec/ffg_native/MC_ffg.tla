@@ -8,6 +8,11 @@ MAX_BLOCK_SLOT == 10
 \* @type: Set(Str);
 BLOCK_BODIES == {"A", "B", "C", "D", "E"}
 
+\* @type: Set(Str);
+VALIDATORS == {"V1", "V2", "V3", "V4"}
+
+N == 4
+
 VARIABLES
     \* @type: Set($block);
     blocks,
