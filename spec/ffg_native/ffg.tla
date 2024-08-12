@@ -15,7 +15,7 @@ CONSTANT
     \* @type: Set(Str);
     BLOCK_BODIES,
     \* @type: Set(Str);
-    VALIDATORS
+    VALIDATORS,
     \* N = Cardinality(VALIDATORS)
     \* @type: Int;
     N
@@ -92,10 +92,10 @@ IsValidFFGVote(vote) ==
     /\ vote.source[2] < vote.target[2]
     
 
-\* @type: ($checkpoint, Set($ffgVote), Set($checkpoint)) => Bool;
-IsJustified(checkpoint, ffgVotes, fixpoint) == 
+\* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
+IsJustified(checkpoint, viewVotes, fixpoint) == 
     \/ checkpoint = GenesisCheckpoint
-    \/ \E justifyingVotes \in SUBSET votes:
+    \/ \E justifyingVotes \in SUBSET viewVotes:
         /\ 3 * Cardinality({v.validator: v \in justifyingVotes}) >= 2 * N
         /\ \A justifyingVote \in justifyingVotes:
             LET ffgVote == justifyingVote.ffg_vote IN
@@ -107,21 +107,26 @@ IsJustified(checkpoint, ffgVotes, fixpoint) ==
             \* L8:
             /\ ffgVote.target[2] = checkpoint[2]
 
-\* @type: ($checkpoint, Set($ffgVote), Set($checkpoint)) => Bool;
-IsFinalized(checkpoint, ffgVotes, justifiedCheckpoints) ==
+\* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
+IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
     /\ checkpoint \in justifiedCheckpoints
-    /\ \E vote \in ffgVotes:
-        /\ vote.source = checkpoint
-        /\ vote.target[2] = checkpoint[2] + 1
+    /\ \E finalizingVotes \in SUBSET viewVotes:
+        /\ 3 * Cardinality({v.validator: v \in finalizingVotes}) >= 2 * N
+        /\ \A finalizingVote \in finalizingVotes:
+            LET ffgVote == finalizingVote.ffg_vote IN
+            \* L14:
+            /\ ffgVote.source = checkpoint
+            \* L15:
+            /\ ffgVote.target[2] = checkpoint[2] + 1
 
 AreConflictingBlocks(b1, b2) ==
     /\ Edge(b1,b2) \notin block_graph_closure
     /\ Edge(b2,b1) \notin block_graph_closure
 
 
-Vote(validator, ffgVote) = [
-    validator: Str,
-    ffg_vote: $ffgVote
+Vote(validator, ffgVote) == [
+    validator |-> validator,
+    ffg_vote |-> ffgVote
 ]
 
 \* @type: ($checkpoint, $checkpoint, Set(Str)) => Bool;
@@ -131,12 +136,12 @@ CastVotes(source, target, validators) ==
     /\ IsValidFFGVote(ffgVote)
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
+    /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
     /\ LET allCheckpoints == {Checkpoint(block, i): block \in blocks, i \in CheckpointSlots}
        IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
-        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, ffg_votes', allJustifiedCheckpoints)
-        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, ffg_votes', allJustifiedCheckpoints)
-    /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
+        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
+        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
 
     
 Init == 

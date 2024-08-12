@@ -22,6 +22,8 @@ VARIABLES
     block_graph_closure,
     \* @type: Set($ffgVote);
     ffg_votes,
+    \* @type: Set($vote);
+    votes,
     \* @type: Set($checkpoint);
     justified_checkpoints
 
@@ -31,8 +33,8 @@ ExistsJustifiedNonGenesisInv == Cardinality(justified_checkpoints) <= 1
 
 ExistTwoFinalizedConflictingBlocks == 
     LET disagreement == \E c1, c2 \in justified_checkpoints: 
-        /\ IsFinalized(c1, ffg_votes, justified_checkpoints)
-        /\ IsFinalized(c2, ffg_votes, justified_checkpoints)
+        /\ IsFinalized(c1, votes, justified_checkpoints)
+        /\ IsFinalized(c2, votes, justified_checkpoints)
         /\ AreConflictingBlocks(c1[1], c2[1])
     IN ~disagreement
 

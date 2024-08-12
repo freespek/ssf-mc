@@ -10,7 +10,7 @@
         source: $checkpoint,
         target: $checkpoint
     };
-    @typeAlias vote = {
+    @typeAlias: vote = {
         validator: Str,
         ffg_vote: $ffgVote
     };
