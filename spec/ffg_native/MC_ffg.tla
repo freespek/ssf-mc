@@ -38,6 +38,13 @@ ExistTwoFinalizedConflictingBlocks ==
         /\ AreConflictingBlocks(c1[1], c2[1])
     IN ~disagreement
 
+AccountableSafety ==
+    LET disagreement == \E c1, c2 \in justified_checkpoints: 
+            /\ IsFinalized(c1, votes, justified_checkpoints)
+            /\ IsFinalized(c2, votes, justified_checkpoints)
+            /\ AreConflictingBlocks(c1[1], c2[1])
+    IN ~disagreement \/ Cardinality(SlashableNodes) * 3 >= N
+
 Inv == ExistTwoFinalizedConflictingBlocks
 
 =============================================================================

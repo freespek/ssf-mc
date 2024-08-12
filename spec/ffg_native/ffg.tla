@@ -141,8 +141,21 @@ CastVotes(source, target, validators) ==
        IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
         /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+        \* /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
 
+SlashableNodes ==
+    LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
+        \* equivocation
+        \/ /\ vote1.validator = vote2.validator
+           /\ vote1 /= vote2
+           /\ vote1.ffg_vote.target[2] = vote2.ffg_vote.target[2]
+        \* surround voting
+        \/ /\ vote1.validator = vote2.validator
+           /\ \/ vote1.ffg_vote.source[2] < vote2.ffg_vote.source[2]
+              \/ /\ vote1.ffg_vote.source[2] = vote2.ffg_vote.source[2]
+                 /\ vote1.ffg_vote.source[1].slot < vote2.ffg_vote.source[1].slot
+           /\ vote2.ffg_vote.target[2] < vote1.ffg_vote.target[2]
+    } IN { v.validator: v \in slashable_votes }
     
 Init == 
     /\ blocks = {GenesisBlock}
