@@ -72,6 +72,9 @@ ProposeBlock(parent, slot, body) ==
     LET this == Block(slot, body) IN
     /\ slot > parent.slot
     /\ blocks' = blocks \union {this}
+    \* no block can have two parents
+    /\ \A <<ochild, oparent>> \in blocks:
+        ochild /= this
     /\ block_graph' = block_graph \union {Edge(this, parent)}
     /\ block_graph_closure' = 
         LET 
