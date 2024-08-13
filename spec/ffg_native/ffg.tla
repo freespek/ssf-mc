@@ -73,7 +73,7 @@ ProposeBlock(parent, slot, body) ==
     /\ slot > parent.slot
     /\ blocks' = blocks \union {this}
     \* no block can have two parents
-    /\ \A <<ochild, oparent>> \in blocks:
+    /\ \A <<ochild, oparent>> \in block_graph:
         ochild /= this
     /\ block_graph' = block_graph \union {Edge(this, parent)}
     /\ block_graph_closure' = 
