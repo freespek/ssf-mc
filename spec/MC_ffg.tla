@@ -48,9 +48,6 @@ GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
 VARIABLES
     \* @type: $commonNodeState;
     single_node_state,
-    \* A precomputed set of blocks that form complete chains.
-    \* @type: Set($block);
-    PRECOMPUTED__IS_COMPLETE_CHAIN,
     \* A precomputed map from (descendant) blocks to their ancestors.
     \* @type: $block -> Set($block);
     PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP,
@@ -65,14 +62,6 @@ INSTANCE ffg WITH
     GET_VALIDATOR_SET_FOR_SLOT <- GET_VALIDATOR_SET_FOR_SLOT
 
 \* ========== Shape-requirements for state-variable fields ==========
-
-\* @type: $block;
-GenesisBlock == [
-        parent_hash |-> "",
-        slot        |-> 0,
-        votes       |-> {},
-        body        |-> "genesis"
-    ]
 
 \* Readable names for block hashes (introduced as fresh constants by Apalache). `BlockHashes` must satisfy |BlockHashes| >= |DOMAIN view_blocks|
 BlockHashes == { BLOCK_HASH(GenesisBlock), "BLOCK1", "BLOCK2", "BLOCK3", "BLOCK4", "BLOCK5", "BLOCK6", "BLOCK7", "BLOCK8", "BLOCK9", "BLOCK10" }
@@ -169,8 +158,6 @@ IsValidNodeState(node_state) ==
 \* The following variables encode precomputed sets, to avoid emitting nested folds
 Precompute ==
     LET all_blocks == get_all_blocks(single_node_state) IN
-        /\ PRECOMPUTED__IS_COMPLETE_CHAIN =
-            { block \in all_blocks : is_complete_chain(block, single_node_state) }
         /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
             [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
         /\ LET
@@ -196,7 +183,7 @@ Init ==
     /\ Precompute
     /\ IsValidNodeState(single_node_state)
 
-Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP, PRECOMPUTED__IS_COMPLETE_CHAIN, PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT>>
+Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP, PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT>>
 
 \* ==================================================================
 \* Invariants
