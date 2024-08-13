@@ -3,7 +3,7 @@
 EXTENDS FiniteSets
 
 \* @type: Int;
-MAX_BLOCK_SLOT == 10
+MAX_BLOCK_SLOT == 5
 
 \* @type: Set(Str);
 BLOCK_BODIES == {"A", "B", "C", "D", "E"}
