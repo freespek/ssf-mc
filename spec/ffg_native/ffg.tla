@@ -86,6 +86,28 @@ ProposeBlock(parent, slot, body) ==
         IN block_graph_closure \union inheritedFromParent \union {Edge(this, this)}
     /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints>>
 
+\* Like ProposeBlock, but adds any number of children to one parent
+\* @type: ($block, Set(<<Int, Str>>)) => Bool;
+ProposeBlocks(parent, slotsAndBodies) ==
+    LET newBlocks == { Block(slot, body): <<slot,body>> \in slotsAndBodies } IN
+    /\ \A newBlock \in newBlocks:
+        /\ newBlock.slot > parent.slot
+        \* no block can have two parents
+        /\ \A <<ochild, oparent>> \in block_graph: ochild /= newBlock
+    /\ blocks' = blocks \union newBlocks
+    /\ block_graph' = block_graph \union {Edge(newBlock, parent): newBlock \in newBlocks }
+    /\ block_graph_closure' = 
+        LET 
+            \* @type: Set(<<$block, $block>>);
+            inheritedFromParent == 
+            UNION { 
+                { 
+                    Edge(newBlock, ancestorRelOfParent[2]): ancestorRelOfParent \in { edge \in block_graph_closure: edge[1] = parent } 
+                }: newBlock \in newBlocks
+            }
+        IN block_graph_closure \union inheritedFromParent \union {Edge(newBlock, newBlock): newBlock \in newBlocks}
+    /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints>>
+
 
 \* @type: ($ffgVote) => Bool;
 IsValidFFGVote(vote) ==
@@ -170,6 +192,8 @@ Init ==
 
 Next == 
     \/ \E parent \in blocks, slot \in BlockSlots, body \in BLOCK_BODIES: ProposeBlock(parent, slot, body)
+    \* ConstSimplifier throws StackOverflowError
+    \* \/ \E parent \in blocks, slotsAndBodies \in SUBSET (BlockSlots \X BLOCK_BODIES): ProposeBlocks(parent, slotsAndBodies)
     \/ \E <<targetBlock, sourceBlock>> \in block_graph_closure, srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
         CastVotes(
             Checkpoint(sourceBlock, srcSlot), 
