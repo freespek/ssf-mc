@@ -30,6 +30,19 @@ CONSTANTS
      *)
     MAX_SLOT
 
+VARIABLES
+    \* A precomputed map from (descendant) blocks to their ancestors.
+    \* @type: $block -> Set($block);
+    PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP
+
+\* @type: $block;
+GenesisBlock == [
+        parent_hash |-> "",
+        slot        |-> 0,
+        votes       |-> {},
+        body        |-> "genesis"
+    ]
+
 (*
  * The last element of a list.
  *
@@ -140,6 +153,10 @@ is_complete_chain(block, node_state) ==
     \* if it has seen the genesis block. Choosing this version now for brevity.
     Last(get_blockchain(block, node_state)) = node_state.configuration.genesis
 
+\* A precomputed version of `is_complete_chain`, to avoid emitting folds.
+\* @type: ($block, $commonNodeState) => Bool;
+PRECOMPUTED__is_complete_chain(block, node_state) == GenesisBlock \in PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP[block]
+
 (*
  * Determine if there is an ancestor-descendant relationship between two blocks.
  * Non-recursive version for Apalache.
@@ -159,13 +176,18 @@ is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
     IN
     ApaFoldSeqLeft( FindAncestor, Pair(descendant, descendant = ancestor), MkSeq(MAX_SLOT, (* @type: Int => Int; *) LAMBDA i: i) )[2]
 
+\* A precomputed version of `is_ancestor_descendant_relationship`, to avoid emitting folds.
+\* @type: ($block, $block, $commonNodeState) => Bool;
+PRECOMPUTED__is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
+    ancestor \in PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP[descendant]
+
 (*
  * Filter blocks, retaining only those that are ancestors of a specified block.
  *
  * @type: ($block, Set($block), $commonNodeState) => Set($block);
  *)
 filter_out_blocks_non_ancestor_of_block(block, blocks, node_state) ==
-    { b \in blocks: is_ancestor_descendant_relationship(b, block, node_state) }
+    { b \in blocks: PRECOMPUTED__is_ancestor_descendant_relationship(b, block, node_state) }
 
 (*
  * Check if two blocks have a common ancestor.
@@ -199,7 +221,7 @@ have_common_ancestor(chain1, chain2, node_state) ==
  * @type: ($block, $block, $commonNodeState) => Bool;
  *)
 are_conflicting(chain1, chain2, node_state) ==
-    /\ ~is_ancestor_descendant_relationship(chain1, chain2, node_state)
-    /\ ~is_ancestor_descendant_relationship(chain2, chain1, node_state)
+    /\ ~PRECOMPUTED__is_ancestor_descendant_relationship(chain1, chain2, node_state)
+    /\ ~PRECOMPUTED__is_ancestor_descendant_relationship(chain2, chain1, node_state)
 
 =====

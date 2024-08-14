@@ -25,6 +25,11 @@ CONSTANTS
      *)
     GET_VALIDATOR_SET_FOR_SLOT(_,_,_)
 
+VARIABLES
+    \* A precomputed set of all justified checkpoints.
+    \* @type: Set($checkpoint);
+    PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT
+
 \* ========  HELPER METHODS ========
 
 \* Lexicographically compares (a,b) to (c,d).
@@ -124,7 +129,7 @@ valid_FFG_vote(vote, node_state) ==
                 node_state
             )
         )
-    /\ is_ancestor_descendant_relationship(
+    /\ PRECOMPUTED__is_ancestor_descendant_relationship(
             get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
             get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
             node_state
@@ -162,16 +167,12 @@ IsVoteInSupportAssumingJustifiedSource(vote, checkpoint, node_state) ==
     \* could be omitted here to simplify computation.
     /\ valid_FFG_vote(vote, node_state)
     /\ vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot
-    \* TODO: If we end up always doing 1-state model checking, we could
-    \* precompute the relation is_ancestor_descendant_relationship(a,b), for all blocks
-    \* ahead of time as a _function_, s.t. this lookup here becomes a simple access, instead of each of them being
-    \* another pseudo-recursive computation
-    /\ is_ancestor_descendant_relationship(
+    /\ PRECOMPUTED__is_ancestor_descendant_relationship(
         get_block_from_hash(checkpoint.block_hash, node_state),
         get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
         node_state
         )
-    /\ is_ancestor_descendant_relationship(
+    /\ PRECOMPUTED__is_ancestor_descendant_relationship(
         get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
         get_block_from_hash(checkpoint.block_hash, node_state),
         node_state
@@ -301,7 +302,7 @@ AllJustifiedCheckpoints(initialTargetMap, node_state, N) ==
                         \* implied by the sate validity predicate and can be omitted
                         hasBlockHash == has_block_hash(checkpoint.block_hash, node_state)
                         isCompleteChain ==
-                            is_complete_chain(
+                            PRECOMPUTED__is_complete_chain(
                                 get_block_from_hash(checkpoint.block_hash, node_state),
                                 node_state
                             )
@@ -347,6 +348,12 @@ is_justified_checkpoint(checkpoint, node_state) ==
     LET initialTargetMap == [ c \in {checkpoint} |-> VotesInSupportAssumingJustifiedSource(c, node_state) ]
     IN checkpoint \in AllJustifiedCheckpoints(initialTargetMap, node_state, MAX_SLOT)
 
+
+\* A precomputed version of `is_justified_checkpoint`, to avoid emitting folds.
+\* @type: ($checkpoint, $commonNodeState) => Bool;
+PRECOMPUTED__is_justified_checkpoint(checkpoint, node_state) ==
+    checkpoint \in PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT
+
 \* For comparison, we include the unrolled version of is_justified_checkpoint
 RECURSIVE is_justified_checkpoint_unrolled(_, _)
 \* @type: ($checkpoint, $commonNodeState) => Bool;
@@ -380,16 +387,16 @@ is_justified_checkpoint_unrolled(checkpoint, node_state) ==
                                     vote \in node_state.view_votes:
                                         /\ valid_FFG_vote(vote, node_state)
                                         /\ vote.message.ffg_target.chkp_slot = checkpoint.chkp_slot
-                                        /\ is_ancestor_descendant_relationship(
+                                        /\ PRECOMPUTED__is_ancestor_descendant_relationship(
                                                 get_block_from_hash(checkpoint.block_hash, node_state),
                                                 get_block_from_hash(vote.message.ffg_target.block_hash, node_state),
                                                 node_state
                                             )
-                                        /\ is_ancestor_descendant_relationship(
+                                        /\ PRECOMPUTED__is_ancestor_descendant_relationship(
                                                 get_block_from_hash(vote.message.ffg_source.block_hash, node_state),
                                                 get_block_from_hash(checkpoint.block_hash, node_state),
                                                 node_state)
-                                        /\ is_justified_checkpoint(vote.message.ffg_source, node_state)
+                                        /\ PRECOMPUTED__is_justified_checkpoint(vote.message.ffg_source, node_state)
                                 }
                             },
                             validatorBalances
@@ -429,7 +436,7 @@ get_validators_in_FFG_votes_linking_to_a_checkpoint_in_next_slot(checkpoint, nod
 \* and `validator_set_weight` to sum their stakes. Finally it checks if `FFG_support_weight * 3 >= tot_validator_set_weight * 2` to finalize `checkpoint`.
 \* @type: ($checkpoint, $commonNodeState) => Bool;
 is_finalized_checkpoint(checkpoint, node_state) ==
-    IF ~is_justified_checkpoint(checkpoint, node_state)
+    IF ~PRECOMPUTED__is_justified_checkpoint(checkpoint, node_state)
     THEN FALSE
     ELSE 
         LET 

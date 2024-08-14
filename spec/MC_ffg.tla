@@ -45,25 +45,23 @@ GET_VALIDATOR_SET_FOR_SLOT(block, slot, node_state) == [node \in Nodes |-> 100]
 
 \* ====================================================
 
+VARIABLES
+    \* @type: $commonNodeState;
+    single_node_state,
+    \* A precomputed map from (descendant) blocks to their ancestors.
+    \* @type: $block -> Set($block);
+    PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP,
+    \* A precomputed set of all justified checkpoints.
+    \* @type: Set($checkpoint);
+    PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT
+
 INSTANCE ffg WITH
     MAX_SLOT <- MAX_SLOT,
     BLOCK_HASH <- BLOCK_HASH,
     VERIFY_VOTE_SIGNATURE <- VERIFY_VOTE_SIGNATURE,
     GET_VALIDATOR_SET_FOR_SLOT <- GET_VALIDATOR_SET_FOR_SLOT
 
-VARIABLES
-    \* @type: $commonNodeState;
-    single_node_state
-
 \* ========== Shape-requirements for state-variable fields ==========
-
-\* @type: $block;
-GenesisBlock == [
-        parent_hash |-> "",
-        slot        |-> 0,
-        votes       |-> {},
-        body        |-> "genesis"
-    ]
 
 \* Readable names for block hashes (introduced as fresh constants by Apalache). `BlockHashes` must satisfy |BlockHashes| >= |DOMAIN view_blocks|
 BlockHashes == { BLOCK_HASH(GenesisBlock), "BLOCK1", "BLOCK2", "BLOCK3", "BLOCK4", "BLOCK5", "BLOCK6", "BLOCK7", "BLOCK8", "BLOCK9", "BLOCK10" }
@@ -90,7 +88,7 @@ IsValidVoteMessage(msg, node_state) ==
     \* Section 3.Votes: "... C1 and C2 are checkpoints with C1.c < C2.c and C1.B <- C2.B"
     /\ msg.ffg_source.chkp_slot < msg.ffg_target.chkp_slot
     \* TODO: MAJOR source of slowdown as MAX_SLOT increases, investigate further
-    /\ is_ancestor_descendant_relationship(
+    /\ PRECOMPUTED__is_ancestor_descendant_relationship(
         get_block_from_hash(msg.ffg_source.block_hash, node_state), 
         get_block_from_hash(msg.ffg_target.block_hash, node_state),
         node_state
@@ -157,6 +155,19 @@ IsValidNodeState(node_state) ==
 \* State machine
 \* ==================================================================
 
+\* The following variables encode precomputed sets, to avoid emitting nested folds
+Precompute ==
+    LET all_blocks == get_all_blocks(single_node_state) IN
+        /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
+            [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
+        /\ LET
+                all_source_and_target_checkpoints ==
+                    { vote.message.ffg_source : vote \in single_node_state.view_votes } \union { vote.message.ffg_target : vote \in single_node_state.view_votes }
+                votes_in_support_assuming_justified_source ==
+                    [ checkpoint \in all_source_and_target_checkpoints |-> VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) ]
+                initialTargetMap ==
+                    [ target \in get_set_FFG_targets(single_node_state.view_votes) |-> votes_in_support_assuming_justified_source[target] ]
+           IN PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT = AllJustifiedCheckpoints(initialTargetMap, single_node_state, MAX_SLOT)
 
 \* Start in some arbitrary state
 Init ==
@@ -169,9 +180,10 @@ Init ==
         chava  == Gen(1)
     IN
     /\ single_node_state = [ configuration |-> config, identity |-> id, current_slot |-> current_slot, view_blocks |-> view_blocks, view_votes |-> view_votes, chava |-> chava ]
+    /\ Precompute
     /\ IsValidNodeState(single_node_state)
 
-Next == UNCHANGED single_node_state
+Next == UNCHANGED <<single_node_state, PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP, PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT>>
 
 \* ==================================================================
 \* Invariants
