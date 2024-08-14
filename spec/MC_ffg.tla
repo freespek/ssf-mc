@@ -73,12 +73,12 @@ IsValidCheckpoint(c, node_state) ==
        \/ \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
           /\ c.block_slot >= 0
           /\ c.chkp_slot > c.block_slot
-          /\ c.chkp_slot <= MAX_SLOT+2
+          /\ c.chkp_slot <= MAX_SLOT
 
 \* @type: ($voteMessage, $commonNodeState) => Bool;
 IsValidVoteMessage(msg, node_state) ==
     /\ msg.slot >= 0
-    /\ msg.slot <= MAX_SLOT+2
+    /\ msg.slot <= MAX_SLOT
     \* A message can only reference checkpoints that have already happened
     \* QUESTION TO REVIEWERS: strict > ?
     /\ msg.slot >= msg.ffg_source.chkp_slot
@@ -160,14 +160,7 @@ Precompute ==
     LET all_blocks == get_all_blocks(single_node_state) IN
         /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
             [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
-        /\ LET
-                ffg_sources == { vote.message.ffg_source : vote \in single_node_state.view_votes }
-                ffg_targets == get_set_FFG_targets(single_node_state.view_votes)
-                all_source_and_target_checkpoints == ffg_sources \union ffg_targets
-                votes_in_support_assuming_justified_source ==
-                    [ checkpoint \in all_source_and_target_checkpoints |-> VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) ]
-                initialTargetMap ==
-                    [ target \in ffg_targets |-> votes_in_support_assuming_justified_source[target] ]
+        /\ LET initialTargetMap == [ checkpoint \in get_set_FFG_targets(single_node_state.view_votes) |-> VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) ]
            IN PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT = AllJustifiedCheckpoints(initialTargetMap, single_node_state, MAX_SLOT)
 
 \* Start in some arbitrary state
