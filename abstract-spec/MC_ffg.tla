@@ -78,9 +78,7 @@ GraphIsTreeInv ==
     /\ \A block \in blocks: <<block, GenesisBlock>> \in block_graph_closure
 
 GraphWellFormedInv == 
-    /\ \A block \in blocks: 
-        /\ block.body \in (BLOCK_BODIES \union {GenesisBlockBody})
-        /\ block.slot \in BlockSlots
+    /\ \A block \in blocks: IsValidBlock(block)
     /\ \A <<child, parent>> \in block_graph:  
         /\ child \in blocks
         /\ parent \in blocks
@@ -90,6 +88,16 @@ GraphInv ==
     /\ GraphWellFormedInv
     /\ RealClosureInv
     /\ GraphIsTreeInv
+
+VotesWellFormedInv ==
+    /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
+    /\ \A vote \in votes: 
+        /\ vote.ffg_vote \in ffg_votes
+        /\ vote.validator \in VALIDATORS
+    /\ \A c \in justified_checkpoints: 
+        /\ IsValidCheckpoint(c)
+        \* Something about justified_checkpoints
+        \* /\ TODO
 
 
 Init0 ==

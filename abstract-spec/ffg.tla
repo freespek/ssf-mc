@@ -53,15 +53,21 @@ Checkpoint(block, checkpoint_slot) == <<block, checkpoint_slot>>
 
 GenesisCheckpoint == Checkpoint(GenesisBlock, 0)
 
+\* @type: ($block) => Bool;
+IsValidBlock(block) ==
+    /\ block.body \in (BLOCK_BODIES \union {GenesisBlockBody})
+    /\ block.slot \in BlockSlots
+
 \* @type: ($checkpoint) => Bool;
 IsValidCheckpoint(checkpoint) == 
     LET block == checkpoint[1]
         checkpoint_slot == checkpoint[2]
     IN
-        \/ checkpoint = GenesisCheckpoint
-        \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
-        \//\ checkpoint_slot \in CheckpointSlots
-          /\ checkpoint_slot > block.slot
+        /\ IsValidBlock(block)
+        /\\/ checkpoint = GenesisCheckpoint
+            \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
+          \//\ checkpoint_slot \in CheckpointSlots
+            /\ checkpoint_slot > block.slot
 
 
 \* @type: ($block, $block) => <<$block, $block>>;
@@ -120,17 +126,18 @@ IsValidFFGVote(vote) ==
 \* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
 IsJustified(checkpoint, viewVotes, fixpoint) == 
     \/ checkpoint = GenesisCheckpoint
-    \/ \E justifyingVotes \in SUBSET viewVotes:
-        /\ 3 * Cardinality({v.validator: v \in justifyingVotes}) >= 2 * N
-        /\ \A justifyingVote \in justifyingVotes:
-            LET ffgVote == justifyingVote.ffg_vote IN
-            \* L6:
-            /\ ffgVote.source \in fixpoint
-            \* L7:
-            /\ <<ffgVote.target[1], checkpoint[1]>> \in block_graph_closure
-            /\ <<checkpoint[1], ffgVote.source[1]>> \in block_graph_closure
-            \* L8:
-            /\ ffgVote.target[2] = checkpoint[2]
+    \/ LET validatorsWhoCastJustifyingVote == { 
+        v \in VALIDATORS: \E justifyingVote \in viewVotes:
+            /\ justifyingVote.validator = v
+            /\ LET ffgVote == justifyingVote.ffg_vote IN
+                \* L6:
+                /\ ffgVote.source \in fixpoint
+                \* L7:
+                /\ <<ffgVote.target[1], checkpoint[1]>> \in block_graph_closure
+                /\ <<checkpoint[1], ffgVote.source[1]>> \in block_graph_closure
+                \* L8:
+                /\ ffgVote.target[2] = checkpoint[2] }    
+        IN 3 * Cardinality(validatorsWhoCastJustifyingVote) >= 2 * N
 
 \* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
 IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
@@ -166,7 +173,7 @@ CastVotes(source, target, validators) ==
        IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
         /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        \* /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
 
 SlashableNodes ==
     LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
