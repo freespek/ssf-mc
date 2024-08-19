@@ -1,0 +1,58 @@
+classDiagram
+    class Checkpoint {
+      block_hash: Hash
+      chkp_slot: int
+      block_slot: int
+    }
+
+    class VoteMessage {
+        slot: int
+        head_hash: Hash
+        ffg_source: Checkpoint
+        ffg_target: Checkpoint
+    }
+
+    class SignedVoteMessage {
+        message: VoteMessage
+        signature: Signature
+        sender: NodeIdentity
+    }
+
+    class Block {
+        parent_hash: Hash
+        slot: int
+        votes: Set[SignedVoteMessage]
+        body: BlockBody
+    }
+
+    class ProposeMessage {
+        block: Block
+        proposer_view: List[SignedVoteMessage]
+    }
+
+    class Configuration {
+        delta: int
+        genesis: Block
+        eta: int
+        k: int
+    }
+
+    class CommonNodeState {
+        configuration: Configuration
+        identity: NodeIdentity
+        current_slot: int
+        view_blocks: Hash -> Block
+        view_votes: Set[SignedVoteMessage]
+        chava: Block
+    }
+
+    VoteMessage "*" --> "1" Checkpoint
+    SignedVoteMessage "*" --> "1" VoteMessage
+    Block "*" --> "*" SignedVoteMessage
+    ProposeMessage "*" --> "1" Block
+    ProposeMessage "*" --> "*" SignedVoteMessage
+    Configuration "*" --> "1" Block
+    CommonNodeState "*" --> "1" Configuration
+    CommonNodeState "*" --> "*" Block
+    CommonNodeState "*" --> "*" SignedVoteMessage
+
