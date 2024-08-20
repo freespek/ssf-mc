@@ -94,11 +94,19 @@ VotesWellFormedInv ==
     /\ \A vote \in votes: 
         /\ vote.ffg_vote \in ffg_votes
         /\ vote.validator \in VALIDATORS
+
+JustifiedCheckpointsInv == 
     /\ \A c \in justified_checkpoints: 
         /\ IsValidCheckpoint(c)
-        \* Something about justified_checkpoints
-        \* /\ TODO
+        /\ IsJustified(c, votes, justified_checkpoints)
+    /\ LET allCheckpoints == {Checkpoint(block, i): block \in blocks, i \in CheckpointSlots} 
+       IN \A c \in (allCheckpoints \ justified_checkpoints): ~IsJustified(c, votes, justified_checkpoints)
 
+VoteAndCheckpointInv ==
+    /\ VotesWellFormedInv
+    /\ JustifiedCheckpointsInv
+
+InductiveInv == GraphInv /\ VoteAndCheckpointInv
 
 Init0 ==
     /\ ffg_votes = Gen(5)
@@ -107,10 +115,10 @@ Init0 ==
     /\ blocks = Gen(MAX_BLOCK_SLOT)
     /\ block_graph = Gen(MAX_BLOCK_SLOT)
     /\ block_graph_closure = Gen(MAX_BLOCK_SLOT * MAX_BLOCK_SLOT)
-    /\ GraphInv
+    /\ InductiveInv
 
-Next0 == \E parent \in blocks, slot \in BlockSlots, body \in BLOCK_BODIES: ProposeBlock(parent, slot, body)
+Next0 == Next
 
-Inv0 == GraphInv
+Inv0 == InductiveInv
     
 =============================================================================
