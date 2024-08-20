@@ -142,14 +142,15 @@ IsJustified(checkpoint, viewVotes, fixpoint) ==
 \* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
 IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
     /\ checkpoint \in justifiedCheckpoints
-    /\ \E finalizingVotes \in SUBSET viewVotes:
-        /\ 3 * Cardinality({v.validator: v \in finalizingVotes}) >= 2 * N
-        /\ \A finalizingVote \in finalizingVotes:
-            LET ffgVote == finalizingVote.ffg_vote IN
-            \* L14:
-            /\ ffgVote.source = checkpoint
-            \* L15:
-            /\ ffgVote.target[2] = checkpoint[2] + 1
+    /\ LET validatorsWhoCastFinalizingVote == { 
+        v \in VALIDATORS: \E finalizingVote \in viewVotes:
+            /\ finalizingVote.validator = v
+            /\ LET ffgVote == finalizingVote.ffg_vote IN
+                \* L14:
+                /\ ffgVote.source = checkpoint
+                \* L15:
+                /\ ffgVote.target[2] = checkpoint[2] + 1 }
+        IN 3 * Cardinality(validatorsWhoCastFinalizingVote) >= 2 * N
 
 AreConflictingBlocks(b1, b2) ==
     /\ Edge(b1,b2) \notin block_graph_closure
