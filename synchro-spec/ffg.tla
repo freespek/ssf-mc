@@ -143,7 +143,7 @@ Vote(validator, ffgVote) == [
 The most notable difference in the synchronous spec is that 
 If, at current_slot, a checkpoint with a slot number i < current_slot
 has not been justified, there will never be a vote justifying it in the future,
-because the votes are always cast s.t. the tharget checkpoint slot is current_slot
+because the votes are always cast s.t. the target checkpoint slot is current_slot.
 
 This allows us to compute justified_checkpoints incrementally.
 *)
