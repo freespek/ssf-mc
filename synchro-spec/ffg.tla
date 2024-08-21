@@ -155,15 +155,13 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    \* The ffg vote (b1, s1) -> (b2, s2) can justify (b,s2), for all blocks b1 <= b <= b2 in the block graph
-    \* We branch, based on whether there is a quorum of the ffg vote
-    /\ 
-        IF (3 * Cardinality({v \in VALIDATORS: Vote(v, ffgVote) \in votes'}) >= 2 * N /\ source \in justified_checkpoints)
-        THEN LET newJustifiedBlocks == { b \in blocks: 
+    \* The ffg vote (b1, s1) -> (b2, s2) can help justify (b,s2), for all blocks b1 <= b <= b2 in the block graph
+    /\ LET newPotentiallyJustifiedBlocks == { b \in blocks: 
                 /\ <<target[1], b>> \in block_graph_closure
-                /\ <<b, source[1]>> \in block_graph_closure } 
-            IN justified_checkpoints' = justified_checkpoints \union {Checkpoint(b, target[2]): b \in newJustifiedBlocks}
-        ELSE UNCHANGED justified_checkpoints
+                /\ <<b, source[1]>> \in block_graph_closure }
+       IN LET newPotentiallyJustifiedCheckpoints == {Checkpoint(b, target[2]): b \in newPotentiallyJustifiedBlocks}
+       IN LET newJustifiedCheckpoints == { c \in newPotentiallyJustifiedCheckpoints: IsJustified(c, votes', justified_checkpoints)}
+       IN justified_checkpoints' = justified_checkpoints \union newJustifiedCheckpoints
 
 SlashableNodes ==
     LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
@@ -182,6 +180,7 @@ SlashableNodes ==
 MayAdvanceSlot ==
     \E i \in Int:
         /\ i >= current_slot
+        /\ i <= MAX_BLOCK_SLOT + 2
         /\ current_slot' = i
     
 Init == 
