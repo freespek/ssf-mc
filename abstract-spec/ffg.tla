@@ -77,9 +77,9 @@ Edge(b1, b2) == <<b1,b2>>
 ProposeBlock(parent, slot, body) ==
     LET this == Block(slot, body) IN
     /\ slot > parent.slot
-    /\ blocks' = blocks \union {this}
     \* no block gets proposed twice (e.g. with different parents)
     /\ this \notin blocks
+    /\ blocks' = blocks \union {this}
     /\ block_graph' = block_graph \union {Edge(this, parent)}
     /\ block_graph_closure' = 
         LET 
