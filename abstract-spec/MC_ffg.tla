@@ -46,23 +46,6 @@ AccountableSafety ==
     IN ~disagreement \/ Cardinality(SlashableNodes) * 3 >= N
 
 Inv == ExistTwoFinalizedConflictingBlocks
-
-\* `block_graph_closure` is the closure of the relation `block_graph`
-RealClosureInv ==
-    \* MUST contain
-    \* Would be trivially true for block_graph_closure = blocks^2
-    /\ \A block \in blocks: <<block, block>> \in block_graph_closure
-    /\ block_graph \subseteq block_graph_closure
-    /\ \A <<descendant, midpoint1>> \in block_graph_closure: \A <<midpoint2, ancestor>> \in block_graph_closure:
-        midpoint1 = midpoint2 => <<descendant, ancestor>> \in block_graph_closure
-    \* MAY contain
-    \* Would be trivially true for block_graph_closure = {}
-    /\ \A <<descendant, ancestor>> \in block_graph_closure:
-        \/ descendant = ancestor
-        \/ <<descendant, ancestor>> \in block_graph
-        \/ \E block \in blocks: 
-            /\ <<descendant, block>> \in block_graph
-            /\ <<block, ancestor>> \in block_graph_closure 
     
 \* `block_graph` forms a tree. Assumes RealClosureInv for brevity (to be used in conjunction)
 GraphIsTreeInv ==
@@ -84,16 +67,27 @@ GraphWellFormedInv ==
         /\ parent \in blocks
         /\ child.slot > parent.slot
 
+\* `block_graph_closure` is the closure of the relation `block_graph`
+RealClosureInv ==
+    \* MUST contain
+    \* Would be trivially true for block_graph_closure = blocks^2
+    /\ \A block \in blocks: <<block, block>> \in block_graph_closure
+    /\ block_graph \subseteq block_graph_closure
+    /\ \A <<descendant, midpoint1>> \in block_graph_closure: \A <<midpoint2, ancestor>> \in block_graph_closure:
+        midpoint1 = midpoint2 => <<descendant, ancestor>> \in block_graph_closure
+    \* MAY contain
+    \* Would be trivially true for block_graph_closure = {}
+    /\ \A <<descendant, ancestor>> \in block_graph_closure:
+        \/ descendant = ancestor
+        \/ <<descendant, ancestor>> \in block_graph
+        \/ \E block \in blocks: 
+            /\ <<descendant, block>> \in block_graph
+            /\ <<block, ancestor>> \in block_graph_closure 
+
 GraphInv ==
+    /\ GraphIsTreeInv
     /\ GraphWellFormedInv
     /\ RealClosureInv
-    /\ GraphIsTreeInv
-
-VotesWellFormedInv ==
-    /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
-    /\ \A vote \in votes: 
-        /\ vote.ffg_vote \in ffg_votes
-        /\ vote.validator \in VALIDATORS
 
 JustifiedCheckpointsInv == 
     /\ \A c \in justified_checkpoints: 
@@ -102,9 +96,15 @@ JustifiedCheckpointsInv ==
     /\ LET allCheckpoints == {Checkpoint(block, i): block \in blocks, i \in CheckpointSlots} 
        IN \A c \in (allCheckpoints \ justified_checkpoints): ~IsJustified(c, votes, justified_checkpoints)
 
+VotesWellFormedInv ==
+    /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
+    /\ \A vote \in votes: 
+        /\ vote.ffg_vote \in ffg_votes
+        /\ vote.validator \in VALIDATORS
+
 VoteAndCheckpointInv ==
-    /\ VotesWellFormedInv
     /\ JustifiedCheckpointsInv
+    /\ VotesWellFormedInv
 
 InductiveInv == GraphInv /\ VoteAndCheckpointInv
 
