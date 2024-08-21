@@ -167,7 +167,7 @@ $ JVM_ARGS=-Xmx20G ~/devl/apalache/bin/apalache-mc check \
   MC_ffg.tla
 ```
 
-This experiment takes about **TODO**.
+This experiment took 19 hours 48 min 29 sec.
 
 
 [Apalache]: https://apalache-mc.org/
