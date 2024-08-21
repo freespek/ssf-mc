@@ -77,10 +77,9 @@ Edge(b1, b2) == <<b1,b2>>
 ProposeBlock(parent, slot, body) ==
     LET this == Block(slot, body) IN
     /\ slot > parent.slot
+    \* no block gets proposed twice (e.g. with different parents)
+    /\ this \notin blocks
     /\ blocks' = blocks \union {this}
-    \* no block can have two parents
-    /\ \A <<ochild, oparent>> \in block_graph:
-        ochild /= this
     /\ block_graph' = block_graph \union {Edge(this, parent)}
     /\ block_graph_closure' = 
         LET 
@@ -98,8 +97,8 @@ ProposeBlocks(parent, slotsAndBodies) ==
     LET newBlocks == { Block(slot, body): <<slot,body>> \in slotsAndBodies } IN
     /\ \A newBlock \in newBlocks:
         /\ newBlock.slot > parent.slot
-        \* no block can have two parents
-        /\ \A <<ochild, oparent>> \in block_graph: ochild /= newBlock
+        \* no block gets proposed twice (e.g. with different parents)
+        /\ newBlock \notin blocks
     /\ blocks' = blocks \union newBlocks
     /\ block_graph' = block_graph \union {Edge(newBlock, parent): newBlock \in newBlocks }
     /\ block_graph_closure' = 
