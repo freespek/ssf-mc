@@ -162,7 +162,7 @@ CastVotes(source, target, validators) ==
         THEN LET newJustifiedBlocks == { b \in blocks: 
                 /\ <<target[1], b>> \in block_graph_closure
                 /\ <<b, source[1]>> \in block_graph_closure } 
-            IN justified_checkpoints' = justified_checkpoints \union {<<b, target[2]>>: b \in newJustifiedBlocks}
+            IN justified_checkpoints' = justified_checkpoints \union {Checkpoint(b, target[2]): b \in newJustifiedBlocks}
         ELSE UNCHANGED justified_checkpoints
 
 SlashableNodes ==
