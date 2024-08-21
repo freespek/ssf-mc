@@ -95,9 +95,9 @@ GraphInv ==
 JustifiedCheckpointsInv == 
     /\ \A c \in justified_checkpoints: 
         /\ IsValidCheckpoint(c)
+        /\ IsJustified(c, votes, justified_checkpoints)
     /\ LET allCheckpoints == {Checkpoint(block, i): block \in blocks, i \in CheckpointSlots} 
-       IN LET allJustifiedCheckpoints == {c \in allCheckpoints: IsJustified(c, votes, justified_checkpoints)}
-       IN allJustifiedCheckpoints = justified_checkpoints
+       IN \A c \in (allCheckpoints \ justified_checkpoints): ~IsJustified(c, votes, justified_checkpoints)
 
 VotesWellFormedInv ==
     /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
