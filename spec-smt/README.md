@@ -36,6 +36,7 @@ We obtained the following runtimes on a Nov 2023 14" Macbook Pro (Apple M3 Pro):
 |----------|---------------|---------|
 |   3      |      5        |  20sec  |
 |   4      |      5        |  96sec  |
+|   5      |      5        |   8min  |
 |   3      |      6        |  74min  |
 
 The script in [`./benchmark_ssf.py`](./benchmark_ssf.py) can be used to do a grid search over parameters.
