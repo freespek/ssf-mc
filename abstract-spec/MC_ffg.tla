@@ -120,7 +120,7 @@ Init0 ==
 
 Init1 ==
     /\ ffg_votes = Gen(5)
-    /\ votes \subseteq [ validator: VALIDATORS, ffg_vote: ffg_votes ]
+    /\ votes \in SUBSET [ validator: VALIDATORS, ffg_vote: ffg_votes ]
     /\ justified_checkpoints = Gen(5)
     /\ blocks = Gen(MAX_BLOCK_SLOT)
     /\ block_graph = Gen(MAX_BLOCK_SLOT)
@@ -130,21 +130,21 @@ Init1 ==
 Init2 ==
     /\ blocks = Gen(MAX_BLOCK_SLOT)
     /\ LET CHECKPOINTS == blocks \X CheckpointSlots IN
-        /\ ffg_votes \subseteq [ source: CHECKPOINTS, target: CHECKPOINTS ]
-        /\ votes \subseteq [ validator: VALIDATORS, ffg_vote: ffg_votes ]
-        /\ justified_checkpoints \subseteq CHECKPOINTS
+        /\ ffg_votes \in SUBSET [ source: CHECKPOINTS, target: CHECKPOINTS ]
+        /\ votes \in SUBSET [ validator: VALIDATORS, ffg_vote: ffg_votes ]
+        /\ justified_checkpoints \in SUBSET CHECKPOINTS
         /\ block_graph = Gen(MAX_BLOCK_SLOT)
         /\ block_graph_closure = Gen(MAX_BLOCK_SLOT * MAX_BLOCK_SLOT)
         /\ InductiveInv
 
 Init3 ==
-    /\ blocks \subseteq [ slot: BlockSlots, body: BLOCK_BODIES ]
+    /\ blocks \in SUBSET [ slot: BlockSlots, body: BLOCK_BODIES ]
     /\ LET CHECKPOINTS == blocks \X CheckpointSlots IN
-        /\ ffg_votes \subseteq [ source: CHECKPOINTS, target: CHECKPOINTS ]
-        /\ votes \subseteq [ validator: VALIDATORS, ffg_vote: ffg_votes ]
-        /\ justified_checkpoints \subseteq CHECKPOINTS
-        /\ block_graph \subseteq blocks \X blocks
-        /\ block_graph_closure \subseteq blocks \X blocks
+        /\ ffg_votes \in SUBSET [ source: CHECKPOINTS, target: CHECKPOINTS ]
+        /\ votes \in SUBSET [ validator: VALIDATORS, ffg_vote: ffg_votes ]
+        /\ justified_checkpoints \in SUBSET CHECKPOINTS
+        /\ block_graph \in SUBSET (blocks \X blocks)
+        /\ block_graph_closure \in SUBSET (blocks \X blocks)
         /\ InductiveInv
 
 Init4 ==
