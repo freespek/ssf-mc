@@ -37,6 +37,10 @@ sig Vote {
 	ffgVote: FfgVote
 }
 
+one sig JustifiedCheckpoints {
+	justified: set Checkpoint
+}
+
 fact voteStructuralEquality {
 	all v1: Vote, v2: Vote |
 		v1 = v2 <=> v1.validator = v2.validator and v1.ffgVote = v2.ffgVote
@@ -100,6 +104,7 @@ fact blocksDescendFromGenesis {
 
 fun justifyingVotes[checkpoint: Checkpoint]: set Vote {
 	{ v: Vote | {
+		 	(v.ffgVote.source) in JustifiedCheckpoints.justified
 			isAncestorDescendant[checkpoint.block, v.ffgVote.target.block]
 			isAncestorDescendant[v.ffgVote.source.block, checkpoint.block]
 			v.ffgVote.target.slot = checkpoint.slot
@@ -107,9 +112,19 @@ fun justifyingVotes[checkpoint: Checkpoint]: set Vote {
 	}
 }
 
+fact justifiedCheckpointsAreJustified {
+	all c: JustifiedCheckpoints.justified |
+		c.slot = 0 or 3.mul[#justifyingVotes[c].validator] >= 2.mul[#Signature]
+}
+
+fact unjustifiedCheckpointsAreNotJustified {
+	all c: Checkpoint | {
+		not c in JustifiedCheckpoints.justified => 3.mul[#justifyingVotes[c].validator] < 2.mul[#Signature]
+	}
+}
+
 pred isJustified[checkpoint: Checkpoint] {
-	checkpoint.slot = 0 or
-		3.mul[#justifyingVotes[checkpoint].validator] >= 2.mul[#Signature]
+	checkpoint in JustifiedCheckpoints.justified
 }
 
 fun finalizedVotes[checkpoint: Checkpoint]: set Vote {
