@@ -6,7 +6,8 @@ EXTENDS FiniteSets
 MAX_BLOCK_SLOT == 5
 
 \* @type: Set(Str);
-BLOCK_BODIES == {"A", "B", "C", "D", "E"}
+BLOCK_BODIES == { "A", "B", "C" }
+N_BLOCK_BODIES == 3
 
 \* @type: Set(Str);
 VALIDATORS == {"V1", "V2", "V3", "V4"}
@@ -116,6 +117,48 @@ Init0 ==
     /\ block_graph = Gen(MAX_BLOCK_SLOT)
     /\ block_graph_closure = Gen(MAX_BLOCK_SLOT * MAX_BLOCK_SLOT)
     /\ InductiveInv
+
+Init1 ==
+    /\ ffg_votes = Gen(5)
+    /\ votes \subseteq [ validator: VALIDATORS, ffg_vote: ffg_votes ]
+    /\ justified_checkpoints = Gen(5)
+    /\ blocks = Gen(MAX_BLOCK_SLOT)
+    /\ block_graph = Gen(MAX_BLOCK_SLOT)
+    /\ block_graph_closure = Gen(MAX_BLOCK_SLOT * MAX_BLOCK_SLOT)
+    /\ InductiveInv
+
+Init2 ==
+    /\ blocks = Gen(MAX_BLOCK_SLOT)
+    /\ LET CHECKPOINTS == blocks \X CheckpointSlots IN
+        /\ ffg_votes \subseteq [ source: CHECKPOINTS, target: CHECKPOINTS ]
+        /\ votes \subseteq [ validator: VALIDATORS, ffg_vote: ffg_votes ]
+        /\ justified_checkpoints \subseteq CHECKPOINTS
+        /\ block_graph = Gen(MAX_BLOCK_SLOT)
+        /\ block_graph_closure = Gen(MAX_BLOCK_SLOT * MAX_BLOCK_SLOT)
+        /\ InductiveInv
+
+Init3 ==
+    /\ blocks \subseteq [ slot: BlockSlots, body: BLOCK_BODIES ]
+    /\ LET CHECKPOINTS == blocks \X CheckpointSlots IN
+        /\ ffg_votes \subseteq [ source: CHECKPOINTS, target: CHECKPOINTS ]
+        /\ votes \subseteq [ validator: VALIDATORS, ffg_vote: ffg_votes ]
+        /\ justified_checkpoints \subseteq CHECKPOINTS
+        /\ block_graph \subseteq blocks \X blocks
+        /\ block_graph_closure \subseteq blocks \X blocks
+        /\ InductiveInv
+
+Init4 ==
+    LET NB == (MAX_BLOCK_SLOT + 1) * N_BLOCK_BODIES IN
+    /\ blocks = Gen(NB)
+    /\ LET NC == (MAX_BLOCK_SLOT + 1) * N_BLOCK_BODIES * (MAX_BLOCK_SLOT + 2)
+           \* @type: Set($checkpoint);
+           CHECKPOINTS == Gen(NC) IN
+        /\ ffg_votes = Gen(NC * NC)
+        /\ votes = Gen(N * NC * NC)
+        /\ justified_checkpoints = Gen(NC)
+        /\ block_graph = Gen(NB * NB)
+        /\ block_graph_closure = Gen(NB * NB)
+        /\ InductiveInv
 
 Next0 == Next
 
