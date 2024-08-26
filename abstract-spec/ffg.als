@@ -205,4 +205,3 @@ run someSlashable { some slashableNodes }
 run disagreement for 10 but 5 Block, 6 Checkpoint, 20 Vote, 5 int
 run accountableSafety for 10 but 5 Block, 6 Checkpoint, 20 Vote, 5 int
 run noAccountableSafety for 10 but 5 Block, 6 Checkpoint, 20 Vote, 5 int
-run { some b: Block | b != GenesisBlock } for 6 but 5 Block, 5 Checkpoint, 5 int
