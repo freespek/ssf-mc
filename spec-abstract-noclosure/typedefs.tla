@@ -1,9 +1,10 @@
 ----------------------------- MODULE typedefs -----------------------------
 
 (*
+    @typeAlias: body = Str;
     @typeAlias: block = {
         slot: Int,
-        body: Str
+        body: $body
     };
     @typeAlias: checkpoint = <<$block, Int>>;
     @typeAlias: ffgVote = {

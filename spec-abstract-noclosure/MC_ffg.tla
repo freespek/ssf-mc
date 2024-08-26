@@ -15,19 +15,15 @@ N == 4
 
 VARIABLES
     \* @type: Set($block);
-    blocks,
-    \* @type: Int -> $block;
+    all_blocks,
+    \* @type: Set($block);
     chain1,
     \* @type: Int;
-    chain1_tip_index,
-    \* @type: Int -> $block;
+    chain1_tip_slot,
+    \* @type: Set($block);
     chain2,
     \* @type: Int;
-    chain2_tip_index,
-    \* @type: Bool;
-    forked,
-    \* @type: $block -> Set($block);
-    ancestors,
+    chain2_tip_slot,
     \* @type: Set($ffgVote);
     ffg_votes,
     \* @type: Set($vote);

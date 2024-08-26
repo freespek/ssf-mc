@@ -12,7 +12,7 @@ EXTENDS FiniteSets, Integers, TLC, typedefs
 CONSTANT 
     \* @type: Int;
     MAX_BLOCK_SLOT,
-    \* @type: Set(Str);
+    \* @type: Set($body);
     BLOCK_BODIES,
     \* @type: Set(Str);
     VALIDATORS,
@@ -20,24 +20,22 @@ CONSTANT
     \* @type: Int;
     N
 
-BlockSlots == 0..MAX_BLOCK_SLOT
+all_blockslots == 0..MAX_BLOCK_SLOT
 CheckpointSlots == 0..(MAX_BLOCK_SLOT+2)
 
 VARIABLES
     \* @type: Set($block);
-    blocks,
-    \* @type: Int -> $block;
+    all_blocks,
+    \* the set of all_blocks
+    \* @type: Set($block);
     chain1,
     \* @type: Int;
-    chain1_tip_index,
-    \* @type: Int -> $block;
+    chain1_tip_slot,
+    \* the set of all_blocks
+    \* @type: Set($block);
     chain2,
     \* @type: Int;
-    chain2_tip_index,
-    \* @type: Bool;
-    forked,
-    \* @type: $block -> Set($block);
-    ancestors,
+    chain2_tip_slot,
     \* @type: Set($ffgVote);
     ffg_votes,
     \* @type: Set($vote);
@@ -56,15 +54,32 @@ GenesisBlockBody == "genesis"
 GenesisBlock == Block(0, GenesisBlockBody)
 GenesisCheckpoint == Checkpoint(GenesisBlock, 0)
 
+\* @type: $block => Bool;
+IsOnChain1(b) == b \in chain1
+
+\* @type: $block => Bool;
+IsOnChain2(b) == b \in chain2
+
 \* @type: ($block, $block) => Bool;
-AreConflictingBlocks(b1, b2) ==
-    /\ b1 \notin ancestors[b2]
-    /\ b2 \notin ancestors[b1]
+IsLeftAncestorOfRight(before, after) ==
+   /\ before.slot < after.slot
+   /\ \/ IsOnChain1(before) /\ IsOnChain1(after)
+      \/ IsOnChain2(before) /\ IsOnChain2(after)
+
+\* @type: ($block, $block) => Bool;
+AreConflictingall_blocks(b1, b2) ==
+    LET b1_on_chain1 == IsOnChain1(b1)
+        b1_on_chain2 == IsOnChain2(b1)
+        b2_on_chain1 == IsOnChain1(b2)
+        b2_on_chain2 == IsOnChain2(b2)
+    IN
+    \/ b1_on_chain1 /\ ~b1_on_chain2 /\ b2_on_chain2
+    \/ b1_on_chain2 /\ ~b1_on_chain1 /\ b2_on_chain1
 
 \* @type: ($block) => Bool;
 IsValidBlock(block) ==
     /\ block.body \in (BLOCK_BODIES \union {GenesisBlockBody})
-    /\ block.slot \in BlockSlots
+    /\ block.slot \in all_blockslots
 
 \* @type: ($checkpoint) => Bool;
 IsValidCheckpoint(checkpoint) == 
@@ -82,7 +97,7 @@ IsValidFFGVote(vote) ==
     /\ IsValidCheckpoint(vote.source)
     /\ IsValidCheckpoint(vote.target)
     /\ vote.source[2] < vote.target[2]
-    /\ vote.source[1] \in ancestors[vote.target[1]]
+    /\ IsLeftAncestorOfRight(vote.source[1], vote.target[1])
 
 \* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
 IsJustified(checkpoint, viewVotes, fixpoint) == 
@@ -94,8 +109,8 @@ IsJustified(checkpoint, viewVotes, fixpoint) ==
                 \* L6:
                 /\ ffgVote.source \in fixpoint
                 \* L7:
-                /\ checkpoint[1] \in ancestors[ffgVote.target[1]]
-                /\ ffgVote.source[1] \in ancestors[checkpoint[1]]
+                /\ IsLeftAncestorOfRight(checkpoint[1], ffgVote.target[1])
+                /\ IsLeftAncestorOfRight(ffgVote.source[1], checkpoint[1])
                 \* L8:
                 /\ ffgVote.target[2] = checkpoint[2] }    
         IN 3 * Cardinality(validatorsWhoCastJustifyingVote) >= 2 * N
@@ -128,36 +143,25 @@ SlashableNodes ==
            /\ vote2.ffg_vote.target[2] < vote1.ffg_vote.target[2]
     } IN { v.validator: v \in slashable_votes }
 
-\* Append a block to both chains (if `~forked`), or either `chain1` or `chain2` (if `forked`).
+\* Append a block to chain 1.
 \* @type: (Int, Str) => Bool;
-ProposeBlock(slot, body) ==
+ProposeBlockOnChain1(slot, body) ==
     LET new_block == Block(slot, body) IN
-    /\ new_block \notin blocks
-    /\ blocks' = blocks \union { new_block }
-    /\ IF ~forked THEN
-        LET tip == chain1[chain1_tip_index] IN
-        LET extended_chain == chain1 @@ [ i \in {chain1_tip_index + 1} |-> new_block ] IN
-        /\ slot > tip.slot
-        /\ chain1' = extended_chain
-        /\ chain2' = extended_chain
-        /\ chain1_tip_index' = chain1_tip_index + 1
-        /\ chain2_tip_index' = chain2_tip_index + 1
-        /\ forked' \in BOOLEAN  \* may fork at this point
-        /\ ancestors' = ancestors @@ [ b \in {new_block} |-> { new_block } \union ancestors[tip] ]
-       ELSE
-        \/ LET tip == chain1[chain1_tip_index] IN
-           /\ slot > tip.slot
-           /\ chain1' = chain1 @@ [ i \in {chain1_tip_index + 1} |-> new_block ]
-           /\ chain1_tip_index' = chain1_tip_index + 1
-           /\ ancestors' = ancestors @@ [ b \in {new_block} |-> { new_block } \union ancestors[tip] ]
-           /\ UNCHANGED <<chain2, chain2_tip_index, forked>>
-        \/ LET tip == chain2[chain2_tip_index] IN
-           /\ slot > tip.slot
-           /\ chain2' = chain2 @@ [ i \in {chain2_tip_index + 1} |-> new_block ]
-           /\ chain2_tip_index' = chain2_tip_index + 1
-           /\ ancestors' = ancestors @@ [ b \in {new_block} |-> { new_block } \union ancestors[tip] ]
-           /\ UNCHANGED <<chain1, chain1_tip_index, forked>>
-    /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints>>
+    /\ slot > chain1_tip_slot
+    /\ all_blocks' = all_blocks \union { new_block }
+    /\ chain1' = chain1 \union { new_block }
+    /\ chain1_tip_slot' = slot
+    /\ UNCHANGED <<chain2, chain2_tip_slot, ffg_votes, votes, justified_checkpoints>>
+
+\* Append a block to chain 2.
+\* @type: (Int, Str) => Bool;
+ProposeBlockOnChain2(slot, body) ==
+    LET new_block == Block(slot, body) IN
+    /\ slot > chain2_tip_slot
+    /\ all_blocks' = all_blocks \union { new_block }
+    /\ chain2' = chain2 \union { new_block }
+    /\ chain2_tip_slot' = slot
+    /\ UNCHANGED <<chain1, chain1_tip_slot, ffg_votes, votes, justified_checkpoints>>
 
 \* @type: ($checkpoint, $checkpoint, Set(Str)) => Bool;
 CastVotes(source, target, validators) ==
@@ -166,44 +170,43 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    /\ LET allCheckpoints == {Checkpoint(block, i): block \in blocks, i \in CheckpointSlots}
+    /\ LET allCheckpoints == {Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots}
        IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
         /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
         /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
-    /\ UNCHANGED <<blocks, chain1, chain1_tip_index, chain2, chain2_tip_index, forked, ancestors>>
+    /\ UNCHANGED <<all_blocks, chain1, chain1_tip_slot, chain2, chain2_tip_slot>>
 
-
-ExistTwoConflictingBlocks == \A b1, b2 \in blocks: ~AreConflictingBlocks(b1, b2)
+ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingall_blocks(b1, b2)
 ExistTwoFinalizedConflictingBlocks ==
     LET disagreement == \E c1, c2 \in justified_checkpoints: 
         /\ IsFinalized(c1, votes, justified_checkpoints)
         /\ IsFinalized(c2, votes, justified_checkpoints)
-        /\ AreConflictingBlocks(c1[1], c2[1])
+        /\ AreConflictingall_blocks(c1[1], c2[1])
     IN ~disagreement
 
 AccountableSafety ==
     LET disagreement == \E c1, c2 \in justified_checkpoints: 
             /\ IsFinalized(c1, votes, justified_checkpoints)
             /\ IsFinalized(c2, votes, justified_checkpoints)
-            /\ AreConflictingBlocks(c1[1], c2[1])
+            /\ AreConflictingall_blocks(c1[1], c2[1])
     IN ~disagreement \/ Cardinality(SlashableNodes) * 3 >= N
 
 Init == 
-    /\ blocks = { GenesisBlock }
-    /\ forked \in BOOLEAN
-    /\ chain1_tip_index = 0
-    /\ chain2_tip_index = 0
-    /\ chain1 = [i \in {0} |-> GenesisBlock]
-    /\ chain2 = [i \in {0} |-> GenesisBlock]
-    /\ ancestors = [b \in {GenesisBlock} |-> { GenesisBlock }]
+    /\ all_blocks = { GenesisBlock }
+    /\ chain1_tip_slot = 0
+    /\ chain2_tip_slot = 0
+    /\ chain1 = { GenesisBlock }
+    /\ chain2 = { GenesisBlock }
     /\ ffg_votes = {}
     /\ votes = {}
     /\ justified_checkpoints = { GenesisCheckpoint }
 
 Next == 
-    \/ \E slot \in BlockSlots, body \in BLOCK_BODIES: ProposeBlock(slot, body)
-    \/ \E sourceBlock, targetBlock \in blocks, srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
+    \/ \E slot \in all_blockslots, body \in BLOCK_BODIES:
+        \/ ProposeBlockOnChain1(slot, body)
+        \/ ProposeBlockOnChain2(slot, body)
+    \/ \E sourceBlock, targetBlock \in all_blocks, srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
         CastVotes(
             Checkpoint(sourceBlock, srcSlot), 
             Checkpoint(targetBlock, tgtSlot),
