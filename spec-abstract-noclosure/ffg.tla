@@ -73,8 +73,8 @@ AreConflictingBlocks(b1, b2) ==
         b2_on_chain1 == IsOnChain1(b2)
         b2_on_chain2 == IsOnChain2(b2)
     IN
-    \/ b1_on_chain1 /\ ~b1_on_chain2 /\ b2_on_chain2
-    \/ b1_on_chain2 /\ ~b1_on_chain1 /\ b2_on_chain1
+    \/ b1_on_chain1 /\ ~b1_on_chain2 /\ b2_on_chain2 /\ ~b2_on_chain1
+    \/ b1_on_chain2 /\ ~b1_on_chain1 /\ b2_on_chain1 /\ ~b2_on_chain2
 
 \* @type: ($block) => Bool;
 IsValidBlock(block) ==
