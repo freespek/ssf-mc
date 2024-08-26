@@ -1,7 +1,7 @@
 ----------------------------- MODULE typedefs -----------------------------
 
 (*
-    @typeAlias: body = Str;
+    @typeAlias: body = Int;
     @typeAlias: block = {
         slot: Int,
         body: $body
