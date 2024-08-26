@@ -161,6 +161,14 @@ Vote(validator, ffgVote) == [
     ffg_vote |-> ffgVote
 ]
 
+JustifiedCheckpoints ==
+    \* @type: Set($checkpoint) => Set($checkpoint);
+    LET AccJustified(justifiedSoFar, justifiedCheckpointSlot) ==
+        LET candidateCheckpoints == { Checkpoint(block, justifiedCheckpointSlot): block \in blocks } IN
+        LET newJustifiedCheckpoints == { c \in candidateCheckpoints: IsJustified(c, votes, justifiedSoFar) } IN
+        justifiedSoFar \union newJustifiedCheckpoints
+    IN ApaFoldSeqLeft(AccJustified, { GenesisCheckpoint }, MkSeq(MAX_BLOCK_SLOT+2, (* @type: Int => Int; *) LAMBDA i: i))
+
 \* @type: ($checkpoint, $checkpoint, Set(Str)) => Bool;
 CastVotes(source, target, validators) ==
     LET ffgVote == [ source |-> source, target |-> target ] IN
@@ -169,11 +177,7 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    /\ LET allCheckpoints == {Checkpoint(block, i): block \in blocks, i \in CheckpointSlots}
-       IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
-        /\ justified_checkpoints' = allJustifiedCheckpoints
-        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+    /\ justified_checkpoints' = JustifiedCheckpoints
 
 SlashableNodes ==
     LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
