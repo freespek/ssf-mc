@@ -20,7 +20,7 @@ CONSTANT
     \* @type: Int;
     N
 
-all_blockslots == 0..MAX_BLOCK_SLOT
+BlockSlots == 0..MAX_BLOCK_SLOT
 CheckpointSlots == 0..(MAX_BLOCK_SLOT+2)
 
 VARIABLES
@@ -67,7 +67,7 @@ IsLeftAncestorOfRight(before, after) ==
       \/ IsOnChain2(before) /\ IsOnChain2(after)
 
 \* @type: ($block, $block) => Bool;
-AreConflictingall_blocks(b1, b2) ==
+AreConflictingBlocks(b1, b2) ==
     LET b1_on_chain1 == IsOnChain1(b1)
         b1_on_chain2 == IsOnChain2(b1)
         b2_on_chain1 == IsOnChain1(b2)
@@ -79,7 +79,7 @@ AreConflictingall_blocks(b1, b2) ==
 \* @type: ($block) => Bool;
 IsValidBlock(block) ==
     /\ block.body \in (BLOCK_BODIES \union {GenesisBlockBody})
-    /\ block.slot \in all_blockslots
+    /\ block.slot \in BlockSlots
 
 \* @type: ($checkpoint) => Bool;
 IsValidCheckpoint(checkpoint) == 
@@ -177,19 +177,19 @@ CastVotes(source, target, validators) ==
         /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
     /\ UNCHANGED <<all_blocks, chain1, chain1_tip_slot, chain2, chain2_tip_slot>>
 
-ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingall_blocks(b1, b2)
+ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingBlocks(b1, b2)
 ExistTwoFinalizedConflictingBlocks ==
     LET disagreement == \E c1, c2 \in justified_checkpoints: 
         /\ IsFinalized(c1, votes, justified_checkpoints)
         /\ IsFinalized(c2, votes, justified_checkpoints)
-        /\ AreConflictingall_blocks(c1[1], c2[1])
+        /\ AreConflictingBlocks(c1[1], c2[1])
     IN ~disagreement
 
 AccountableSafety ==
     LET disagreement == \E c1, c2 \in justified_checkpoints: 
             /\ IsFinalized(c1, votes, justified_checkpoints)
             /\ IsFinalized(c2, votes, justified_checkpoints)
-            /\ AreConflictingall_blocks(c1[1], c2[1])
+            /\ AreConflictingBlocks(c1[1], c2[1])
     IN ~disagreement \/ Cardinality(SlashableNodes) * 3 >= N
 
 Init == 
@@ -203,7 +203,7 @@ Init ==
     /\ justified_checkpoints = { GenesisCheckpoint }
 
 Next == 
-    \/ \E slot \in all_blockslots, body \in BLOCK_BODIES:
+    \/ \E slot \in BlockSlots, body \in BLOCK_BODIES:
         \/ ProposeBlockOnChain1(slot, body)
         \/ ProposeBlockOnChain2(slot, body)
     \/ \E sourceBlock, targetBlock \in all_blocks, srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
