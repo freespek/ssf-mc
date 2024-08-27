@@ -7,7 +7,7 @@
  * Subject to Apache 2.0. See `LICENSE.md`.
  *)
 
-EXTENDS FiniteSets, Integers, Sequences, typedefs
+EXTENDS Apalache, FiniteSets, Integers, Sequences, typedefs
 
 CONSTANT 
     \* @type: Int;
@@ -187,6 +187,14 @@ ProposeBlockOnChain2(slot) ==
     /\ chain2_next_idx' = chain2_next_idx + 1
     /\ UNCHANGED <<chain1, chain1_tip_slot, chain1_next_idx, ffg_votes, votes, justified_checkpoints>>
 
+JustifiedCheckpoints ==
+    \* @type: Set($checkpoint) => Set($checkpoint);
+    LET AccJustified(justifiedSoFar, justifiedCheckpointSlot) ==
+        LET candidateCheckpoints == { Checkpoint(block, justifiedCheckpointSlot): block \in all_blocks } IN
+        LET newJustifiedCheckpoints == { c \in candidateCheckpoints: IsJustified(c, votes, justifiedSoFar) } IN
+        justifiedSoFar \union newJustifiedCheckpoints
+    IN ApaFoldSeqLeft(AccJustified, { GenesisCheckpoint }, MkSeq(MAX_BLOCK_SLOT+2, (* @type: Int => Int; *) LAMBDA i: i))
+
 \* @type: ($checkpoint, $checkpoint, Set(Str)) => Bool;
 CastVotes(source, target, validators) ==
     LET ffgVote == [ source |-> source, target |-> target ] IN
@@ -194,11 +202,7 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    /\ LET allCheckpoints == {Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots}
-       IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
-        /\ justified_checkpoints' = allJustifiedCheckpoints
-        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+    /\ justified_checkpoints' = JustifiedCheckpoints
     /\ UNCHANGED <<all_blocks, chain1, chain1_tip_slot, chain2, chain2_tip_slot, chain1_next_idx, chain2_next_idx, chain2_forked>>
 
 ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingBlocks(b1, b2)
