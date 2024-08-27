@@ -72,7 +72,7 @@ IsOnChain2(b) == b \in chain2
 
 \* @type: ($block, $block) => Bool;
 IsLeftAncestorOfRight(before, after) ==
-   /\ before.slot < after.slot
+   /\ before.slot <= after.slot
    /\ \/ IsOnChain1(before) /\ IsOnChain1(after)
       \/ IsOnChain2(before) /\ IsOnChain2(after)
 
@@ -164,22 +164,27 @@ ProposeBlockOnChain1(slot) ==
     /\ chain1' = chain1 \union { new_block }
     /\ chain1_tip_slot' = slot
     /\ chain1_next_idx' = chain1_next_idx + 1
-    /\ UNCHANGED <<chain2, chain2_tip_slot, chain2_next_idx, ffg_votes, votes, justified_checkpoints, chain2_forked>>
+    /\ IF chain2_forked
+       THEN UNCHANGED <<chain2, chain2_tip_slot, chain2_next_idx>>
+       ELSE
+         /\ chain2' = chain2 \union { new_block }
+         /\ chain2_tip_slot' = slot
+         /\ chain2_next_idx' = chain2_next_idx + 1
+    /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints, chain2_forked>>
 
 \* Append a block to chain 2.
 \* @type: Int => Bool;
 ProposeBlockOnChain2(slot) ==
-    LET body == IF chain2_forked THEN BLOCK_BODIES2[chain2_next_idx] ELSE BLOCK_BODIES1[chain2_next_idx]
+    LET body == BLOCK_BODIES2[chain2_next_idx]
         new_block == Block(slot, body)
     IN
-    /\ chain2_next_idx <= IF chain2_forked THEN Len(BLOCK_BODIES2) ELSE Len(BLOCK_BODIES1)
+    /\ chain2_forked' = TRUE
+    /\ chain2_next_idx <= Len(BLOCK_BODIES2)
     /\ slot > chain2_tip_slot
     /\ all_blocks' = all_blocks \union { new_block }
     /\ chain2' = chain2 \union { new_block }
     /\ chain2_tip_slot' = slot
     /\ chain2_next_idx' = chain2_next_idx + 1
-    /\ \/ chain2_forked /\ UNCHANGED chain2_forked
-       \/ ~chain2_forked /\ chain2_forked' \in BOOLEAN
     /\ UNCHANGED <<chain1, chain1_tip_slot, chain1_next_idx, ffg_votes, votes, justified_checkpoints>>
 
 \* @type: ($checkpoint, $checkpoint, Set(Str)) => Bool;
@@ -217,8 +222,8 @@ Init ==
     /\ chain2_tip_slot = 0
     /\ chain1 = { GenesisBlock }
     /\ chain2 = { GenesisBlock }
-    /\ chain1_next_idx = 1
-    /\ chain2_next_idx = 1
+    /\ chain1_next_idx = 2
+    /\ chain2_next_idx = 2
     /\ chain2_forked \in BOOLEAN
     /\ ffg_votes = {}
     /\ votes = {}
