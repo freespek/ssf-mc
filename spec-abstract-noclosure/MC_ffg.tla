@@ -43,4 +43,30 @@ VARIABLES
 
 INSTANCE ffg
 
+IndInit ==
+    /\ chain1 = Gen(MAX_BLOCK_SLOT + 1)
+    /\ \A block \in chain1: IsValidBlock(block)
+    /\ chain2 = Gen(MAX_BLOCK_SLOT + 1)
+    /\ \A block \in chain2: IsValidBlock(block)
+    /\ all_blocks = chain1 \union chain2
+    /\ GenesisBlock \in chain1
+    /\ GenesisBlock \in chain2
+    /\ chain1_tip_slot = 
+        LET blockWithLargestSlot == CHOOSE block \in chain1: \A otherBlock \in chain1: block.slot >= otherBlock.slot
+        IN blockWithLargestSlot.slot
+    /\ chain2_tip_slot = 
+        LET blockWithLargestSlot == CHOOSE block \in chain2: \A otherBlock \in chain2: block.slot >= otherBlock.slot
+        IN blockWithLargestSlot.slot
+    /\ chain1_next_idx = Cardinality(chain1) + 1
+    /\ chain2_next_idx = Cardinality(chain2) + 1
+    /\ chain2_forked = (chain1 /= chain2)
+    /\ ffg_votes = Gen(5) \* must be >= 4 to create two finalized conflicting blocks 
+    /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
+    /\ votes = Gen(12) \* Must be >= 12 to observe disagreement
+    /\ \A vote \in votes:
+        /\ vote.ffg_vote \in ffg_votes
+        /\ vote.validator \in VALIDATORS
+    /\ justified_checkpoints = JustifiedCheckpoints
+
+
 =============================================================================
