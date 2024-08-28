@@ -6,7 +6,10 @@
         body: Int
     };
 
-    @typeAlias: checkpoint = <<$block, Int>>;
+    @typeAlias: checkpoint = {
+        chkp_block: $block, 
+        chkp_slot: Int
+    };
 
     @typeAlias: ffgVote = {
         source: $checkpoint,
