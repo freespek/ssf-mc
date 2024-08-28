@@ -114,7 +114,8 @@ and allows Apalache to run within 20GB of JVM heap memory.
 
 To flatten nested folds, we introduce TLA+ state variables that "precompute" the
 fold-based operations `is_ancestor_descendant_relationship` and
-`is_justified_checkpoint`.
+`is_justified_checkpoint` (`is_complete_chain` is expressed in terms of ancestry
+of genesis).
 
 We evaluated 3 startegies for expressing these precomputed state variables and
 continued with the most efficient one. For details on these experiments, see the
