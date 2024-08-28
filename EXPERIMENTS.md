@@ -50,17 +50,18 @@ We have produced the following specifications in the project:
  that `Spec 2` uses "folds" (also known as "reduce") instead of recursion. We
  expect `Spec 2` to be equivalent to `Spec 1`, although we do not have a formal
  proof of this equivalence. This specification has high model-checking
- complexity, roughly speaking, as it contains multiple nested folds.
- This specification also contains a preliminary construction that could help us
- in proving `AccountableSafety`. However, model checking does not terminate in reasonable time on it.
- This specification is the result of our work in [Milestone 1][] and [Milestone 2][].
+ complexity, roughly speaking, as it contains multiple nested folds. This
+ specification also contains a preliminary construction that could help us in
+ proving `AccountableSafety`. However, model checking goes out of memory rather
+ quickly. This specification is the result of our work in [Milestone 1][] and
+ [Milestone 2][].
  
  - **Spec 3**. This is the specification [abstract-spec/ffg.tla][]. It is a
  manual abstraction of `Spec 2` that is highly optimized for constraint solving,
  especially with Apalache. In addition to that, Spec 3 describes a state machine
- that adds blocks and votes in every step. Spec 3 contains a preliminary inductive
- construction in the initial-state predicate.
- This is ongoing work in [Milestone 4][].
+ that adds blocks and votes in every step, and thus enables bounded
+ model-checking. Spec 3 contains a preliminary inductive construction in the
+ initial-state predicate. This is ongoing work in [Milestone 4][].
 
  - **Spec 4**. This is a spec that allows us to prove `AccountableSafety` inductively.
    Actually, we are producing several specifications in TLA+, Alloy, and SMT.
@@ -86,31 +87,83 @@ which was popularized by tools such as [Alloy][].
 
 The following table summarizes the experimental figures in one place:
 
-| Experiment | Specification | Property   | Time    | Memory |
-|-----------:|---------------|------------|---------|--------|
-| 4.1        | `Spec 2`      | Row 1      | TBD     | TBD    |
-| 5.1        | `Spec 3`      | Row 2      | TBD     | TBD    |
-| 5.2        | `Spec 3`      | Row 3      | TBD     | TBD    |
-| 6.1        | `Spec 4`      | Row 4      | TBD     | TBD    |
-| 6.2        | `Spec 4`      | Row 5      | TBD     | TBD    |
+| Experiment | Specification | Property             | Time    | Memory     |
+|-----------:|---------------|----------------------|---------|------------|
+| 4.        | `Spec 2` (w/o [PR #38]) | any                  | n/a     | OOM (>20GB)    |
+| 4.1        | `Spec 2`               | `Conflicting_Example`                      | TBD     | TBD    |
+| 4.1        | `Spec 2`               | `Finalized_And_Conflicting_Blocks_Example` | TBD     | TBD    |
+| 4.2        | `Spec 2`               | `AccountableSafety`  | TBD     | TBD    |
+| 5.1        | `Spec 3`               | Row 2                | TBD     | TBD    |
+| 5.2        | `Spec 3`               | Row 3                | TBD     | TBD    |
+| 6.1        | `Spec 4`               | Row 4                | TBD     | TBD    |
+| 6.2        | `Spec 4`               | Row 5                | TBD     | TBD    |
 
 ## 4. Model checking Spec 2
 
-<!-- TODO: Thomas, please add a description of the experiments with MC_ffg_examples.tla -->
+We describe model checking experiments with `Spec 2`, that is [spec/ffg.tla][].
 
-### 4.1. Bounded model checking of Accountable Safety
+`Spec 2` is a manual adaptation of `Spec 1`, that introduces (equivalent) fold
+operations instead of recursion. Initial experiments showed that this naive
+translation quickly goes out of memory even with the JVM heap size set to 20GB,
+due to the number of constraints emitted for nested folds (originating from
+nested recursion in the Python specification). Therefore, we introduced a
+further manual optimization that flattens nested fold operations,
+and allows Apalache to run within 20GB of JVM heap memory.
+
+#### Choosing a strategy for flattening folds
+
+To flatten nested folds, we introduce TLA+ state variables that "precompute" the
+fold-based operations `is_ancestor_descendant_relationship` and
+`is_justified_checkpoint`.
+
+We evaluated 3 startegies for expressing these precomputed state variables and
+continued with the most efficient one. For details on these experiments, see the
+[description of PR
+#38][PR #38].
+
+### 4.1. Bounded model checking to find reachable protocol states
+
+This specification can already be used to discover examples of reachable
+protocol states: We introduce falsy invariants (to check for reachable protocol
+states) and concrete chains (to manage complexity) in
+[spec/MC_ffg_examples.tla]. Apalache reports these example states as
+counterexamples to the supplied property.
+
+> [!NOTE]
+> Since `Spec 2` presents a snapshot of a single validator and does not make any
+steps, we only have to check properties on the initial states (`--length=0`).
+>
+> Also, note that we have to extend the default JVM heap size from 4G to 20G (`JVM_ARGS=-Xmx20G`).
+
+
+For example, to find a protocol state with two conflicting blocks, run:
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=Conflicting_Example MC_ffg_examples.tla
+```
+
+This experiment took **TODO**.
+
+To find a protocol state with two conflicting finalized blocks, run:
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
+```
+
+This experiment took **TODO**.
+
+### 4.2. Bounded model checking of Accountable Safety
 
 In this experiment, we are checking whether Accountable Safety holds true for
-`Spec 2`. Since `Spec 2` presents a snapshot of a single validator and does not
-make any steps, we have to check this property only in the initial states.
+`Spec 2`.
 
 ```sh
 $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 \
   --inv=AccountableSafety MC_ffg.tla
 ```
-
-Note that we have to extend the default JVM heap size from 4G to 20G.
 
 Since `Spec 2` has high complexity, this experiment takes long. **TODO:** how
 long.
@@ -192,6 +245,7 @@ This experiment took 19 hours 48 min 29 sec.
 [spec/ffg.tla]: ./spec/ffg.tla
 [abstract-spec/ffg.tla]: ./abstract-spec/ffg.tla
 [spec/MC_ffg.tla]: ./spec/MC_ffg.tla
+[spec/MC_ffg_examples.tla]: ./spec/MC_ffg_examples.tla
 [abstract-spec/MC_ffg.tla]: ./abstract-spec/MC_ffg.tla
 [Alloy]: https://en.wikipedia.org/wiki/Alloy_(specification_language)
 [Milestone 1]: https://github.com/freespek/ssf-mc/milestone/1?closed=1
@@ -199,3 +253,4 @@ This experiment took 19 hours 48 min 29 sec.
 [Milestone 3]: https://github.com/freespek/ssf-mc/milestone/3?closed=1
 [Milestone 4]: https://github.com/freespek/ssf-mc/milestone/4?closed=1
 [Milestone 5]: https://github.com/freespek/ssf-mc/milestone/5?closed=1
+[PR #38]: https://github.com/freespek/ssf-mc/pull/38
