@@ -92,7 +92,7 @@ The following table summarizes the experimental figures in one place:
 
 | Experiment | Specification | Property             | Time    | Memory     |
 |-----------:|---------------|----------------------|---------|------------|
-| 4.        | `Spec 2` (w/o [PR #38]) | any                  | n/a     | OOM (>20GB)    |
+| 4.        | `Spec 2` (w/o [PR #38]) | any                  | n/a     | OOM (>20GB)[^1]    |
 | 4.1        | `Spec 2`               | `Conflicting_Example`                      | TBD     | TBD    |
 | 4.1        | `Spec 2`               | `Finalized_And_Conflicting_Blocks_Example` | TBD     | TBD    |
 | 4.2        | `Spec 2`               | `AccountableSafety`  | TBD     | TBD    |
@@ -106,14 +106,19 @@ The following table summarizes the experimental figures in one place:
 We describe model checking experiments with `Spec 2`, that is [spec/ffg.tla][].
 
 `Spec 2` is a manual adaptation of `Spec 1`, that introduces (equivalent) fold
-operations instead of recursion. Initial experiments showed that this naive
-translation quickly goes out of memory even with the JVM heap size set to 20GB,
-due to the number of constraints emitted for nested folds (originating from
-nested recursion in the Python specification). Therefore, we introduced a
-further manual optimization that flattens nested fold operations,
-and allows Apalache to run within 20GB of JVM heap memory.
+operations instead of recursion.
 
-#### Choosing a strategy for flattening folds
+Initial experiments showed that this naive translation quickly[^1] goes out of
+memory even with the JVM heap size set to 20GB (from Apalche's default of 4GB),
+due to the number of constraints emitted for nested folds (originating from
+nested recursion in the Python specification). In our experience, it does not
+help to increase the JVM heap size further, since for that many constraints,
+solving time would be prohibitive.
+
+#### Flattening nested folds
+
+Therefore, we introduced a further manual optimization that flattens nested fold
+operations, and allows Apalache to run within 20GB of JVM heap memory.
 
 To flatten nested folds, we introduce TLA+ state variables that "precompute" the
 fold-based operations `is_ancestor_descendant_relationship` and
@@ -122,8 +127,7 @@ of genesis).
 
 We evaluated 3 startegies for expressing these precomputed state variables and
 continued with the most efficient one. For details on these experiments, see the
-[description of PR
-#38][PR #38].
+[description of PR #38][PR #38].
 
 ### 4.1. Bounded model checking to find reachable protocol states
 
@@ -262,3 +266,4 @@ This experiment took 19 hours 48 min 29 sec.
 [recursive]: https://apalache-mc.org/docs/apalache/principles/recursive.html
 [fold]: https://en.wikipedia.org/wiki/Fold_(higher-order_function)
 [PR 38]: https://github.com/freespek/ssf-mc/pull/38
+[^1]: Apalache runs out of memory after 49 minutes, but heavy CPU use due to excessive JVM garbage collection already starts after 10 minutes of runtime.
