@@ -200,12 +200,12 @@ $ JVM_ARGS=-Xmx20G apalache-mc simulate \
 In addition, we bound the running time of individual SMT queries to 3 hours. If
 the timeout is reached, the query is skipped. This command typically finds
 counterexamples much quicker than `check`. Therefore, when `simulate` does not
-find counterexamples, it gives us relatively good confidence that the property
+find counterexamples, it gives us relatively high confidence that the property
 holds true.
 
 This experiment takes about **TODO** on a single node. The interesting thing is
 that we can parallelize the enumeration of 100 runs across multiple cores. For
-instance, we try 5 symbolic runs on 20 CPU cores.
+instance, we use 20 CPU cores to check 5 symbolic runs each.
 
 ## 6. Induction checking Spec 4
 
@@ -214,6 +214,7 @@ instance, we try 5 symbolic runs on 20 CPU cores.
 In this experiment, we show that `Inv0` is an inductive invariant for `Spec 3`:
 
 ```sh
+$ cd ./abstract-spec
 $ apalache-mc check --length=1 --inv=Inv0 \
   --init=Init0 --next=Next0 MC_ffg.tla
 ```
