@@ -41,20 +41,23 @@ We have produced the following specifications in the project:
  - **Spec 1**. This is the specification [spec/ffg_recursive.tla][]. It is the
  result of a manual mechanical translation of the original executable
  specification in Python, which can be found in [ffg.py]. This specification is
- using mutually recursive operators, which are not supported by Apalache.  As a
+ using mutually recursive operators, which are [not supported by Apalache][recursive].  As a
  result, we are not checking this specification. This specification is the result
  of our work in [Milestone 1][].
 
  - **Spec 2**. This is the specification [spec/ffg.tla][]. It is a manual
  adaptation of `Spec 1`. The main difference between `Spec 2` and `Spec 1` is
- that `Spec 2` uses "folds" (also known as "reduce") instead of recursion. We
- expect `Spec 2` to be equivalent to `Spec 1`, although we do not have a formal
- proof of this equivalence. This specification has high model-checking
- complexity, roughly speaking, as it contains multiple nested folds. This
- specification also contains a preliminary construction that could help us in
- proving `AccountableSafety`. However, model checking goes out of memory rather
- quickly. This specification is the result of our work in [Milestone 1][] and
- [Milestone 2][].
+ that `Spec 2` uses ["folds"][fold] (also known as "reduce") instead of
+ recursion. We expect `Spec 2` to be equivalent to `Spec 1`, although we do not
+ have a formal proof of this equivalence. This specification has high
+ model-checking complexity, roughly speaking, as it contains multiple nested
+ folds. In Milestone 2, we have introduced an optimization that avoids
+ repetitive recursive computations by memorization in the initial states, see
+ [PR 38][].  This specification also contains a preliminary construction that
+ could help us in proving `AccountableSafety`. Even considering all the
+ optimization, the model checker is still consuming a lot of resources (>40G)
+ and computing for over 24h. This specification is the result of our work in
+ [Milestone 1][] and [Milestone 2][].
  
  - **Spec 3**. This is the specification [abstract-spec/ffg.tla][]. It is a
  manual abstraction of `Spec 2` that is highly optimized for constraint solving,
@@ -256,3 +259,6 @@ This experiment took 19 hours 48 min 29 sec.
 [Milestone 4]: https://github.com/freespek/ssf-mc/milestone/4?closed=1
 [Milestone 5]: https://github.com/freespek/ssf-mc/milestone/5?closed=1
 [PR #38]: https://github.com/freespek/ssf-mc/pull/38
+[recursive]: https://apalache-mc.org/docs/apalache/principles/recursive.html
+[fold]: https://en.wikipedia.org/wiki/Fold_(higher-order_function)
+[PR 38]: https://github.com/freespek/ssf-mc/pull/38
