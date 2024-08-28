@@ -42,7 +42,8 @@ We have produced the following specifications in the project:
  result of a manual mechanical translation of the original executable
  specification in Python, which can be found in [ffg.py]. This specification is
  using mutually recursive operators, which are not supported by Apalache.  As a
- result, we are not checking this specification.
+ result, we are not checking this specification. This specification is the result
+ of our work in [Milestone 1][].
 
  - **Spec 2**. This is the specification [spec/ffg.tla][]. It is a manual
  adaptation of `Spec 1`. The main difference between `Spec 2` and `Spec 1` is
@@ -50,13 +51,20 @@ We have produced the following specifications in the project:
  expect `Spec 2` to be equivalent to `Spec 1`, although we do not have a formal
  proof of this equivalence. This specification has high model-checking
  complexity, roughly speaking, as it contains multiple nested folds.
+ This specification also contains a preliminary construction that could help us
+ in proving `AccountableSafety`. However, model checking does not terminate in reasonable time on it.
+ This specification is the result of our work in [Milestone 1][] and [Milestone 2][].
  
  - **Spec 3**. This is the specification [abstract-spec/ffg.tla][]. It is a
  manual abstraction of `Spec 2` that is highly optimized for constraint solving,
  especially with Apalache. In addition to that, Spec 3 describes a state machine
- that adds blocks and votes in every step.
+ that adds blocks and votes in every step. Spec 3 contains a preliminary inductive
+ construction in the initial-state predicate.
+ This is ongoing work in [Milestone 4][].
 
- - **Spec 4**. This is an inductive invariant constructed for `Spec 3`. **TBD**
+ - **Spec 4**. This is a spec that allows us to prove `AccountableSafety` inductively.
+   Actually, we are producing several specifications in TLA+, Alloy, and SMT.
+   This is ongoing work in [Milestone 4][].
  
 The specifications `Spec 2` and `Spec 3` come with model checking instances
 [spec/MC_ffg.tla] and [abstract-spec/MC_ffg.tla], respectively. These instances
@@ -186,3 +194,8 @@ This experiment took 19 hours 48 min 29 sec.
 [spec/MC_ffg.tla]: ./spec/MC_ffg.tla
 [abstract-spec/MC_ffg.tla]: ./abstract-spec/MC_ffg.tla
 [Alloy]: https://en.wikipedia.org/wiki/Alloy_(specification_language)
+[Milestone 1]: https://github.com/freespek/ssf-mc/milestone/1?closed=1
+[Milestone 2]: https://github.com/freespek/ssf-mc/milestone/2?closed=1
+[Milestone 3]: https://github.com/freespek/ssf-mc/milestone/3?closed=1
+[Milestone 4]: https://github.com/freespek/ssf-mc/milestone/4?closed=1
+[Milestone 5]: https://github.com/freespek/ssf-mc/milestone/5?closed=1
