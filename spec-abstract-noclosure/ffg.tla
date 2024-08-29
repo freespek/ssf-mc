@@ -228,7 +228,7 @@ Init ==
     /\ chain2 = { GenesisBlock }
     /\ chain1_next_idx = 2
     /\ chain2_next_idx = 2
-    /\ chain2_forked \in BOOLEAN
+    /\ chain2_forked = FALSE
     /\ ffg_votes = {}
     /\ votes = {}
     /\ justified_checkpoints = { GenesisCheckpoint }
