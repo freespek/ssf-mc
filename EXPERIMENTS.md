@@ -53,7 +53,7 @@ We have produced the following specifications in the project:
  model-checking complexity, roughly speaking, as it contains multiple nested
  folds. In Milestone 2, we have introduced an optimization that avoids
  repetitive recursive computations by memorization in the initial states, see
- [PR 38][].  This specification also contains a preliminary construction that
+ [PR #38][].  This specification also contains a preliminary construction that
  could help us in proving `AccountableSafety`. Even considering all the
  optimization, the model checker is still consuming a lot of resources (>40G)
  and computing for over 24h. This specification is the result of our work in
@@ -265,5 +265,4 @@ This experiment took 19 hours 48 min 29 sec.
 [PR #38]: https://github.com/freespek/ssf-mc/pull/38
 [recursive]: https://apalache-mc.org/docs/apalache/principles/recursive.html
 [fold]: https://en.wikipedia.org/wiki/Fold_(higher-order_function)
-[PR 38]: https://github.com/freespek/ssf-mc/pull/38
 [^1]: Apalache runs out of memory after 49 minutes, but heavy CPU use due to excessive JVM garbage collection already starts after 10 minutes of runtime.
