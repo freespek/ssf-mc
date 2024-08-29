@@ -44,7 +44,7 @@ INSTANCE ffg
 Abs(x) == IF x >= 0 THEN x ELSE -x
 
 IndInv ==
-    /\ chain2_fork_block_number \in -1..MAX_BLOCK_BODY
+    /\ chain2_fork_block_number \in 0..MAX_BLOCK_BODY
     /\ all_blocks = chain1 \union chain2
     \* chain1_tip is the maximum block in chain 1
     /\ \A b \in chain1: b.body <= chain1_tip.body
@@ -58,14 +58,16 @@ IndInv ==
     \* chain2_tip is the maximum block in chain 2
     /\ \A b \in chain2: Abs(b.body) <= Abs(chain2_tip.body)
     \* block numbers on chain 2 go from 0 to (chain2_for_block_number - 1),
-    \* then -chain2_fork_block_number to chain2_tip.body
+    \* then chain2_tip.body to chain2_fork_block_number
     /\ \A b1, b2 \in chain2:
-        /\ (b1.body >= 0) => (b1.body < chain2_fork_block_number) \/ ~IsForked
-        /\ (b1.body < 0)  => (chain2_fork_block_number <= -chain2_tip.body)
+        /\ (b1.body >= 0) => (b1.body < -chain2_fork_block_number) \/ ~IsForked
+        /\ (b1.body < 0)  => (chain2_tip.body <= chain2_fork_block_number)
         /\ (Abs(b1.body) >= Abs(b2.body)) <=> (b1.slot >= b2.slot)
     \* there are no gaps in the block numbers (some of them are negative)
     /\ \A i \in 0..MAX_BLOCK_BODY:
         i <= Abs(chain2_tip.body) => \E b \in chain2: Abs(b.body) = i
+    \* when there is no fork, the tips coincide
+    /\ ~IsForked => chain2_tip = chain1_tip
     /\ GenesisBlock \in chain1
     /\ GenesisBlock \in chain2
     /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
@@ -84,7 +86,7 @@ IndInit ==
     /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
     /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
     /\ \E fork_number \in Int:
-        /\ fork_number \in -1..MAX_BLOCK_BODY
+        /\ fork_number \in 0..MAX_BLOCK_BODY
         /\ chain2_fork_block_number = fork_number
     /\ IndInv
 

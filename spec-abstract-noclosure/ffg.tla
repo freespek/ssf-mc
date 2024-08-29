@@ -42,7 +42,7 @@ VARIABLES
     \* the latest block on chain 2
     \* @type: $block;
     chain2_tip,
-    \* If chain2_fork_block_number is not -1,
+    \* If chain2_fork_block_number is not equal to 0,
     \* then chain2 is a fork of chain1 starting at chain2_fork_block_number
     \* @type: Int;
     chain2_fork_block_number,
@@ -71,7 +71,7 @@ IsOnMainPath(b) == b.body >= 0
 IsOnForkPath(b) == b.body < 0
 
 \* Has chain2 forked from chain1?
-IsForked == chain2_fork_block_number /= -1
+IsForked == chain2_fork_block_number /= 0
 
 \* Compute the next body for a block and a path "main" or "fork".
 \* @type: ($block, Str) => $body;
@@ -182,7 +182,7 @@ ProposeBlockOnChain2(slot) ==
     /\ IsValidBlock(new_block)
     /\ slot > chain2_tip.slot
     /\ chain2_fork_block_number' =
-        IF IsForked THEN chain2_fork_block_number ELSE -new_block.body
+        IF IsForked THEN chain2_fork_block_number ELSE new_block.body
     /\ all_blocks' = all_blocks \union { new_block }
     /\ chain2' = chain2 \union { new_block }
     /\ chain2_tip' = new_block
@@ -227,7 +227,7 @@ Init ==
     /\ chain2_tip = [ slot |-> 0, body |-> 0 ]
     /\ chain1 = { GenesisBlock }
     /\ chain2 = { GenesisBlock }
-    /\ chain2_fork_block_number = -1
+    /\ chain2_fork_block_number = 0
     /\ ffg_votes = {}
     /\ votes = {}
     /\ justified_checkpoints = { GenesisCheckpoint }
