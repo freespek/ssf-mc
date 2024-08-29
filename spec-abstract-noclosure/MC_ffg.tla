@@ -45,10 +45,7 @@ VARIABLES
 
 INSTANCE ffg
 
-IndInit ==
-    \* We avoid creating chain1 and chain2 with Gen. See Apalache issue #2973.
-    /\ chain1 \in SUBSET [slot: BlockSlots, body: BLOCK_BODIES1_SET]
-    /\ chain2 \in SUBSET [slot: BlockSlots, body: ALL_BLOCK_BODIES]
+IndInv ==
     /\ all_blocks = chain1 \union chain2
     \* There are no two blocks on chain1 and chain2 with the same slot
     /\ \A b1, b2 \in chain1: b1 /= b2 => b1.slot /= b2.slot
@@ -68,12 +65,19 @@ IndInit ==
     /\ chain1_next_idx = Cardinality(chain1) + 1
     /\ chain2_next_idx = Cardinality(chain2) + 1
     /\ chain2_forked = (chain1 /= chain2)
-    /\ ffg_votes = Gen(5) \* must be >= 4 to create two finalized conflicting blocks 
     /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
-    /\ votes = Gen(12) \* Must be >= 12 to observe disagreement
     /\ \A vote \in votes:
         /\ vote.ffg_vote \in ffg_votes
         /\ vote.validator \in VALIDATORS
     /\ justified_checkpoints = JustifiedCheckpoints(votes)
+
+IndInit ==
+    \* We choose two different bounds for creating chain1 and chain2 with Gen.
+    \* See Apalache issue #2973.
+    /\ chain1 = Gen(3)
+    /\ chain2 = Gen(4)
+    /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
+    /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
+    /\ IndInv
 
 =============================================================================
