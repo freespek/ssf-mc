@@ -46,6 +46,8 @@ Abs(x) == IF x >= 0 THEN x ELSE -x
 IndInv ==
     /\ chain2_fork_block_number \in -1..MAX_BLOCK_BODY
     /\ all_blocks = chain1 \union chain2
+    \* chain1_tip is the maximum block in chain 1
+    /\ \A b \in chain1: b.body <= chain1_tip.body
     \* block numbers on chain 1 simply go from 0 to chain1_tip.body
     /\ \A b1, b2 \in chain1:
         /\ b1.body >= 0 /\ b1.body <= chain1_tip.body
@@ -53,7 +55,9 @@ IndInv ==
     \* there are no gaps in the block numbers
     /\ \A i \in 0..MAX_BLOCK_BODY:
         i <= chain1_tip.body => \E b \in chain1: b.body = i
-    \* block numbers of in chain 1 go from 0 to (chain2_for_block_number - 1),
+    \* chain2_tip is the maximum block in chain 2
+    /\ \A b \in chain2: Abs(b.body) <= Abs(chain2_tip.body)
+    \* block numbers on chain 2 go from 0 to (chain2_for_block_number - 1),
     \* then -chain2_fork_block_number to chain2_tip.body
     /\ \A b1, b2 \in chain2:
         /\ (b1.body >= 0) => (b1.body < chain2_fork_block_number) \/ ~IsForked
