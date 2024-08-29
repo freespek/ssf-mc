@@ -61,7 +61,7 @@ IndInit ==
         /\ \A i \in DOMAIN BLOCK_BODIES1: 
             \* shared prefix with chain1
             /\ (i <= prefixLen) => \E block \in (chain2 \intersect chain1): block.body = BLOCK_BODIES1[i]
-            /\ (prefixLen < i /\ i <= chain2Len) => \E block \in chain2: block.body = BLOCK_BODIES2[i]
+            /\ (prefixLen < i /\ i <= chain2Len) => \E block \in (chain2 \ chain1): block.body = BLOCK_BODIES2[i]
         /\ \A b1,b2 \in chain2: b1.body < b2.body => b1.slot < b2.slot
     /\ all_blocks = chain1 \union chain2
     /\ GenesisBlock \in chain1
