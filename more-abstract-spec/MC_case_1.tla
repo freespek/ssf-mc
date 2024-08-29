@@ -76,7 +76,7 @@ AllBlocks == {Block(slot, body): slot \in BlockSlots, body \in BlockBodies}
 
 
 \* @type: ($block, Int) => $checkpoint;
-Checkpoint(block, checkpoint_slot) == <<block, checkpoint_slot>>    
+Checkpoint(block, checkpoint_slot) == [ chkp_block |-> block, chkp_slot |-> checkpoint_slot ]    
 
 GenesisCheckpoint == Checkpoint(GenesisBlock, 0)
 AllCheckpoints == {Checkpoint(block, i): block \in AllBlocks, i \in CheckpointSlots}
@@ -112,7 +112,7 @@ InitConflictingJustifiedheckpoint2 ==
 
 InitConditionsInCase1 ==
     /\ conflicting_justified_checkpoint_1 /= conflicting_justified_checkpoint_2
-    /\ conflicting_justified_checkpoint_1[2] = conflicting_justified_checkpoint_2[2]
+    /\ conflicting_justified_checkpoint_1.chkp_slot = conflicting_justified_checkpoint_2.chkp_slot
     
     
 InitVotersFirstJustification ==
@@ -134,7 +134,7 @@ Init ==
 \* @type: ($ffgVote, $ffgVote) => Bool;
 IsSlashableByE1(ffg_vote_1, ffg_vote_2) ==
     /\ ffg_vote_1 /= ffg_vote_2
-    /\ ffg_vote_1.target[2] = ffg_vote_2.target[2]
+    /\ ffg_vote_1.target.chkp_slot = ffg_vote_2.target.chkp_slot
 
 
     
@@ -143,11 +143,11 @@ AtLeastOneThirdIsSlashable ==
     IN  /\ 3 * Cardinality(voters) >= N
         /\ \A v \in voters, vote_1 \in All_Votes, vote_2 \in All_Votes : 
             /\ vote_1.validator = v
-            /\ vote_1.ffg_vote.target[2] = conflicting_justified_checkpoint_1[2]
+            /\ vote_1.ffg_vote.target.chkp_slot = conflicting_justified_checkpoint_1.chkp_slot
             /\ vote_2.validator = v
-            /\ vote_2.ffg_vote.target[2] = conflicting_justified_checkpoint_2[2]
+            /\ vote_2.ffg_vote.target.chkp_slot = conflicting_justified_checkpoint_2.chkp_slot
             (*Just use the following assumption temporarilty*)
-            /\ vote_1.ffg_vote.target[1] /= vote_2.ffg_vote.target[1]
+            /\ vote_1.ffg_vote.target.chkp_block /= vote_2.ffg_vote.target.chkp_block
             => IsSlashableByE1(vote_1.ffg_vote, vote_2.ffg_vote)
 
 
