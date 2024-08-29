@@ -28,7 +28,7 @@ VARIABLES
     \* the latest block on chain 2
     \* @type: $block;
     chain2_tip,
-    \* If chain2_fork_block_number is not -1,
+    \* If chain2_fork_block_number is not equal to 0,
     \* then chain2 is a fork of chain1 starting at chain2_fork_block_number
     \* @type: Int;
     chain2_fork_block_number,
@@ -38,6 +38,7 @@ VARIABLES
     votes,
     \* @type: Set($checkpoint);
     justified_checkpoints
+
 
 INSTANCE ffg
 
