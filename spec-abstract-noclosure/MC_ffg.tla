@@ -45,25 +45,18 @@ VARIABLES
 
 INSTANCE ffg
 
-\* We avoid creating chain1 and chain2 with Gen. See Apalache issue #2973.
 IndInit ==
-    /\ \E chain1Len \in DOMAIN BLOCK_BODIES1: \* if we know how long chain1 is, we know the exact sequence of block bodies
-        /\ chain1 \in SUBSET [slot: BlockSlots, body: BLOCK_BODIES1_SET]
-        \* Below, B gives us at least one block per body, A additionally constrains it to _exactly_ one block per body:
-        /\ Cardinality(chain1) = chain1Len \* A
-        /\ \A i \in DOMAIN BLOCK_BODIES1: (i <= chain1Len) => \E block \in chain1: block.body = BLOCK_BODIES1[i] \* B
-        \* well-ordered blocks
-        /\ \A b1,b2 \in chain1: b1.body < b2.body => b1.slot < b2.slot
-    /\ \E chain2Len, prefixLen \in DOMAIN BLOCK_BODIES1: \* if we know how long chain2 is, we know the _relative_ sequence of block bodies
-        /\ prefixLen <= chain2Len
-        /\ chain2 \in SUBSET [slot: BlockSlots, body: ALL_BLOCK_BODIES]
-        /\ Cardinality(chain1) = chain2Len
-        /\ \A i \in DOMAIN BLOCK_BODIES1: 
-            \* shared prefix with chain1
-            /\ (i <= prefixLen) => \E block \in (chain2 \intersect chain1): block.body = BLOCK_BODIES1[i]
-            /\ (prefixLen < i /\ i <= chain2Len) => \E block \in chain2: block.body = BLOCK_BODIES2[i]
-        /\ \A b1,b2 \in chain2: b1.body < b2.body => b1.slot < b2.slot
+    \* We avoid creating chain1 and chain2 with Gen. See Apalache issue #2973.
+    /\ chain1 \in SUBSET [slot: BlockSlots, body: BLOCK_BODIES1_SET]
+    /\ chain2 \in SUBSET [slot: BlockSlots, body: ALL_BLOCK_BODIES]
     /\ all_blocks = chain1 \union chain2
+    \* There are no two blocks on chain1 and chain2 with the same slot
+    /\ \A b1, b2 \in chain1: b1 /= b2 => b1.slot /= b2.slot
+    /\ \A b1, b2 \in chain2: b1 /= b2 => b1.slot /= b2.slot
+    \* The only blocks chain1 and chain2 have in common are the ones up to the highest common prefix slot
+    /\ \E highestCommonPrefixSlot \in BlockSlots: \A block \in all_blocks:
+        IF block.slot <= highestCommonPrefixSlot THEN block \in chain1 \intersect chain2
+        ELSE block \notin chain1 \/ block \notin chain2
     /\ GenesisBlock \in chain1
     /\ GenesisBlock \in chain2
     /\ \E blockWithLargestSlot \in chain1: 
