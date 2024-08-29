@@ -4,15 +4,8 @@ EXTENDS FiniteSets
 
 \* @type: Int;
 MAX_BLOCK_SLOT == 5
-
-\* @type: Seq(Int);
-BLOCK_BODIES1 == <<0, 1, 2, 3, 4, 5>>
-\* @type: Set(Int);
-BLOCK_BODIES1_SET == {0, 1, 2, 3, 4, 5}
-\* @type: Seq(Int);
-BLOCK_BODIES2 == <<0, 11, 12, 13, 14, 15>>
-\* @type: Set(Int);
-ALL_BLOCK_BODIES == { 0, 1, 2, 3, 4, 5, 11, 12, 13, 14, 15 }
+\* @type: Int;
+MAX_BLOCK_BODY == 3
 
 \* @type: Set(Str);
 VALIDATORS == {"V1", "V2", "V3", "V4"}
@@ -20,22 +13,25 @@ VALIDATORS == {"V1", "V2", "V3", "V4"}
 N == 4
 
 VARIABLES
+    \* the set of all_blocks
     \* @type: Set($block);
     all_blocks,
+    \* the set of blocks on chain 1
     \* @type: Set($block);
     chain1,
-    \* @type: Int;
-    chain1_tip_slot,
-    \* @type: Int;
-    chain1_next_idx,
+    \* the latest block on chain 1
+    \* @type: $block;
+    chain1_tip,
+    \* the set of blocks on chain 2
     \* @type: Set($block);
     chain2,
+    \* the latest block on chain 2
+    \* @type: $block;
+    chain2_tip,
+    \* If chain2_fork_block_number is not -1,
+    \* then chain2 is a fork of chain1 starting at chain2_fork_block_number
     \* @type: Int;
-    chain2_tip_slot,
-    \* @type: Int;
-    chain2_next_idx,
-    \* @type: Bool;
-    chain2_forked,
+    chain2_fork_block_number,
     \* @type: Set($ffgVote);
     ffg_votes,
     \* @type: Set($vote);
@@ -45,26 +41,29 @@ VARIABLES
 
 INSTANCE ffg
 
+Abs(x) == IF x >= 0 THEN x ELSE -x
+
 IndInv ==
+    /\ chain2_fork_block_number \in -1..MAX_BLOCK_BODY
     /\ all_blocks = chain1 \union chain2
-    \* There are no two blocks on chain1 and chain2 with the same slot
-    /\ \A b1, b2 \in chain1: b1 /= b2 => b1.slot /= b2.slot
-    /\ \A b1, b2 \in chain2: b1 /= b2 => b1.slot /= b2.slot
-    \* The only blocks chain1 and chain2 have in common are the ones up to the highest common prefix slot
-    /\ \E highestCommonPrefixSlot \in BlockSlots: \A block \in all_blocks:
-        IF block.slot <= highestCommonPrefixSlot THEN block \in chain1 \intersect chain2
-        ELSE block \notin chain1 \/ block \notin chain2
+    \* block numbers on chain 1 simply go from 0 to chain1_tip.body
+    /\ \A b1, b2 \in chain1:
+        /\ b1.body >= 0 /\ b1.body <= chain1_tip.body
+        /\ (b1.body >= b2.body) <=> (b1.slot >= b2.slot)
+    \* there are no gaps in the block numbers
+    /\ \A i \in 0..MAX_BLOCK_BODY:
+        i <= chain1_tip.body => \E b \in chain1: b.body = i
+    \* block numbers of in chain 1 go from 0 to (chain2_for_block_number - 1),
+    \* then -chain2_fork_block_number to chain2_tip.body
+    /\ \A b1, b2 \in chain2:
+        /\ (b1.body >= 0) => (b1.body < chain2_fork_block_number) \/ ~IsForked
+        /\ (b1.body < 0)  => (chain2_fork_block_number <= -chain2_tip.body)
+        /\ (Abs(b1.body) >= Abs(b2.body)) <=> (b1.slot >= b2.slot)
+    \* there are no gaps in the block numbers (some of them are negative)
+    /\ \A i \in 0..MAX_BLOCK_BODY:
+        i <= Abs(chain2_tip.body) => \E b \in chain2: Abs(b.body) = i
     /\ GenesisBlock \in chain1
     /\ GenesisBlock \in chain2
-    /\ \E blockWithLargestSlot \in chain1: 
-        /\ chain1_tip_slot = blockWithLargestSlot.slot
-        /\ \A otherBlock \in chain1: blockWithLargestSlot.slot >= otherBlock.slot
-    /\ \E blockWithLargestSlot \in chain2: 
-        /\ chain2_tip_slot = blockWithLargestSlot.slot
-        /\ \A otherBlock \in chain2: blockWithLargestSlot.slot >= otherBlock.slot
-    /\ chain1_next_idx = Cardinality(chain1) + 1
-    /\ chain2_next_idx = Cardinality(chain2) + 1
-    /\ chain2_forked = (chain1 /= chain2)
     /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
     /\ \A vote \in votes:
         /\ vote.ffg_vote \in ffg_votes
@@ -75,9 +74,14 @@ IndInit ==
     \* We choose two different bounds for creating chain1 and chain2 with Gen.
     \* See Apalache issue #2973.
     /\ chain1 = Gen(3)
+    /\ chain1_tip \in chain1
     /\ chain2 = Gen(4)
+    /\ chain2_tip \in chain2
     /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
     /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
+    /\ \E fork_number \in Int:
+        /\ fork_number \in -1..MAX_BLOCK_BODY
+        /\ chain2_fork_block_number = fork_number
     /\ IndInv
 
 =============================================================================

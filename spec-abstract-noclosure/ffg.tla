@@ -2,7 +2,7 @@
 (*
  * TODO
  *
- * Thomas Pani, 2024.
+ * Thomas Pani, Igor Konnov, Jure Kukovec, 2024.
  *
  * Subject to Apache 2.0. See `LICENSE.md`.
  *)
@@ -10,14 +10,13 @@
 EXTENDS Apalache, FiniteSets, Integers, Sequences, typedefs
 
 CONSTANT 
+    \* the maximal slot number
     \* @type: Int;
     MAX_BLOCK_SLOT,
-    \* @type: Set($body);
-    ALL_BLOCK_BODIES,
-    \* @type: Seq($body);
-    BLOCK_BODIES1,
-    \* @type: Seq($body);
-    BLOCK_BODIES2,
+    \* the maximal number in the block body
+    \* @type: Int;
+    MAX_BLOCK_BODY,
+    \* the set of all validators (that can cast votes)
     \* @type: Set(Str);
     VALIDATORS,
     \* N = Cardinality(VALIDATORS)
@@ -28,24 +27,25 @@ BlockSlots == 0..MAX_BLOCK_SLOT
 CheckpointSlots == 0..(MAX_BLOCK_SLOT+2)
 
 VARIABLES
+    \* the set of all_blocks
     \* @type: Set($block);
     all_blocks,
-    \* the set of all_blocks
+    \* the set of blocks on chain 1
     \* @type: Set($block);
     chain1,
-    \* @type: Int;
-    chain1_tip_slot,
-    \* @type: Int;
-    chain1_next_idx,
-    \* the set of all_blocks
+    \* the latest block on chain 1
+    \* @type: $block;
+    chain1_tip,
+    \* the set of blocks on chain 2
     \* @type: Set($block);
     chain2,
+    \* the latest block on chain 2
+    \* @type: $block;
+    chain2_tip,
+    \* If chain2_fork_block_number is not -1,
+    \* then chain2 is a fork of chain1 starting at chain2_fork_block_number
     \* @type: Int;
-    chain2_tip_slot,
-    \* @type: Int;
-    chain2_next_idx,
-    \* @type: Bool;
-    chain2_forked,
+    chain2_fork_block_number,
     \* @type: Set($ffgVote);
     ffg_votes,
     \* @type: Set($vote);
@@ -65,30 +65,36 @@ GenesisBlock == Block(0, GenesisBlockBody)
 GenesisCheckpoint == Checkpoint(GenesisBlock, 0)
 
 \* @type: $block => Bool;
-IsOnChain1(b) == b \in chain1
+IsOnMainPath(b) == b.body >= 0
 
 \* @type: $block => Bool;
-IsOnChain2(b) == b \in chain2
+IsOnForkPath(b) == b.body < 0
+
+\* Has chain2 forked from chain1?
+IsForked == chain2_fork_block_number /= -1
+
+\* Compute the next body for a block and a path "main" or "fork".
+\* @type: ($block, Str) => $body;
+NextBody(b, path) ==
+    IF IsOnMainPath(b) /\ path = "main"
+    THEN b.body + 1           \* continue on the main path
+    ELSE IF IsOnForkPath(b)
+         THEN b.body - 1      \* continue on fork
+         ELSE (-b.body) - 1     \* switch from main to fork
 
 \* @type: ($block, $block) => Bool;
 IsLeftAncestorOfRight(before, after) ==
    /\ before.slot <= after.slot
-   /\ \/ IsOnChain1(before) /\ IsOnChain1(after)
-      \/ IsOnChain2(before) /\ IsOnChain2(after)
+   /\ \/ before.body >= 0 /\ after.body >= 0 /\ before.body <= after.body
+      \/ before.body < 0 /\ after.body < 0 /\ -before.body <= -after.body
 
 \* @type: ($block, $block) => Bool;
 AreConflictingBlocks(b1, b2) ==
-    LET b1_on_chain1 == IsOnChain1(b1)
-        b1_on_chain2 == IsOnChain2(b1)
-        b2_on_chain1 == IsOnChain1(b2)
-        b2_on_chain2 == IsOnChain2(b2)
-    IN
-    \/ b1_on_chain1 /\ ~b1_on_chain2 /\ b2_on_chain2 /\ ~b2_on_chain1
-    \/ b1_on_chain2 /\ ~b1_on_chain1 /\ b2_on_chain1 /\ ~b2_on_chain2
+    ~IsLeftAncestorOfRight(b1, b2) /\ ~IsLeftAncestorOfRight(b2, b1)
 
 \* @type: ($block) => Bool;
 IsValidBlock(block) ==
-    /\ block.body \in (ALL_BLOCK_BODIES \union {GenesisBlockBody})
+    /\ block.body \in (-MAX_BLOCK_BODY)..MAX_BLOCK_BODY
     /\ block.slot \in BlockSlots
 
 \* @type: ($checkpoint) => Bool;
@@ -156,36 +162,31 @@ SlashableNodes ==
 \* Append a block to chain 1.
 \* @type: Int => Bool;
 ProposeBlockOnChain1(slot) ==
-    LET body == BLOCK_BODIES1[chain1_next_idx] IN
-    LET new_block == Block(slot, body) IN
-    /\ chain1_next_idx <= Len(BLOCK_BODIES1)
-    /\ slot > chain1_tip_slot
+    LET new_block == Block(slot, NextBody(chain1_tip, "main")) IN
+    /\ IsValidBlock(new_block)
+    /\ slot > chain1_tip.slot
     /\ all_blocks' = all_blocks \union { new_block }
     /\ chain1' = chain1 \union { new_block }
-    /\ chain1_tip_slot' = slot
-    /\ chain1_next_idx' = chain1_next_idx + 1
-    /\ IF chain2_forked
-       THEN UNCHANGED <<chain2, chain2_tip_slot, chain2_next_idx>>
+    /\ chain1_tip' = new_block
+    /\ IF IsForked
+       THEN UNCHANGED <<chain2, chain2_tip>>
        ELSE
          /\ chain2' = chain2 \union { new_block }
-         /\ chain2_tip_slot' = slot
-         /\ chain2_next_idx' = chain2_next_idx + 1
-    /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints, chain2_forked>>
+         /\ chain2_tip' = new_block
+    /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints, chain2_fork_block_number>>
 
 \* Append a block to chain 2.
 \* @type: Int => Bool;
 ProposeBlockOnChain2(slot) ==
-    LET body == BLOCK_BODIES2[chain2_next_idx]
-        new_block == Block(slot, body)
-    IN
-    /\ chain2_forked' = TRUE
-    /\ chain2_next_idx <= Len(BLOCK_BODIES2)
-    /\ slot > chain2_tip_slot
+    LET new_block == Block(slot, NextBody(chain2_tip, "fork")) IN
+    /\ IsValidBlock(new_block)
+    /\ slot > chain2_tip.slot
+    /\ chain2_fork_block_number' =
+        IF IsForked THEN chain2_fork_block_number ELSE -new_block.body
     /\ all_blocks' = all_blocks \union { new_block }
     /\ chain2' = chain2 \union { new_block }
-    /\ chain2_tip_slot' = slot
-    /\ chain2_next_idx' = chain2_next_idx + 1
-    /\ UNCHANGED <<chain1, chain1_tip_slot, chain1_next_idx, ffg_votes, votes, justified_checkpoints>>
+    /\ chain2_tip' = new_block
+    /\ UNCHANGED <<chain1, chain1_tip, ffg_votes, votes, justified_checkpoints>>
 
 JustifiedCheckpoints(viewVotes) ==
     \* @type: Set($checkpoint) => Set($checkpoint);
@@ -203,7 +204,7 @@ CastVotes(source, target, validators) ==
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
     /\ justified_checkpoints' = JustifiedCheckpoints(votes')
-    /\ UNCHANGED <<all_blocks, chain1, chain1_tip_slot, chain2, chain2_tip_slot, chain1_next_idx, chain2_next_idx, chain2_forked>>
+    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number>>
 
 ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingBlocks(b1, b2)
 ExistTwoFinalizedConflictingBlocks ==
@@ -215,20 +216,18 @@ ExistTwoFinalizedConflictingBlocks ==
 
 AccountableSafety ==
     LET disagreement == \E c1, c2 \in justified_checkpoints: 
-            /\ IsFinalized(c1, votes, justified_checkpoints)
-            /\ IsFinalized(c2, votes, justified_checkpoints)
-            /\ AreConflictingBlocks(c1[1], c2[1])
+        /\ IsFinalized(c1, votes, justified_checkpoints)
+        /\ IsFinalized(c2, votes, justified_checkpoints)
+        /\ AreConflictingBlocks(c1[1], c2[1])
     IN ~disagreement \/ Cardinality(SlashableNodes) * 3 >= N
 
 Init == 
     /\ all_blocks = { GenesisBlock }
-    /\ chain1_tip_slot = 0
-    /\ chain2_tip_slot = 0
+    /\ chain1_tip = [ slot |-> 0, body |-> 0 ]
+    /\ chain2_tip = [ slot |-> 0, body |-> 0 ]
     /\ chain1 = { GenesisBlock }
     /\ chain2 = { GenesisBlock }
-    /\ chain1_next_idx = 2
-    /\ chain2_next_idx = 2
-    /\ chain2_forked = FALSE
+    /\ chain2_fork_block_number = -1
     /\ ffg_votes = {}
     /\ votes = {}
     /\ justified_checkpoints = { GenesisCheckpoint }
