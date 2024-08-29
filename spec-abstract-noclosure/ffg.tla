@@ -187,11 +187,11 @@ ProposeBlockOnChain2(slot) ==
     /\ chain2_next_idx' = chain2_next_idx + 1
     /\ UNCHANGED <<chain1, chain1_tip_slot, chain1_next_idx, ffg_votes, votes, justified_checkpoints>>
 
-JustifiedCheckpoints ==
+JustifiedCheckpoints(viewVotes) ==
     \* @type: Set($checkpoint) => Set($checkpoint);
     LET AccJustified(justifiedSoFar, justifiedCheckpointSlot) ==
         LET candidateCheckpoints == { Checkpoint(block, justifiedCheckpointSlot): block \in all_blocks } IN
-        LET newJustifiedCheckpoints == { c \in candidateCheckpoints: IsJustified(c, votes, justifiedSoFar) } IN
+        LET newJustifiedCheckpoints == { c \in candidateCheckpoints: IsJustified(c, viewVotes, justifiedSoFar) } IN
         justifiedSoFar \union newJustifiedCheckpoints
     IN ApaFoldSeqLeft(AccJustified, { GenesisCheckpoint }, MkSeq(MAX_BLOCK_SLOT+2, (* @type: Int => Int; *) LAMBDA i: i))
 
@@ -202,7 +202,7 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    /\ justified_checkpoints' = JustifiedCheckpoints
+    /\ justified_checkpoints' = JustifiedCheckpoints(votes')
     /\ UNCHANGED <<all_blocks, chain1, chain1_tip_slot, chain2, chain2_tip_slot, chain1_next_idx, chain2_next_idx, chain2_forked>>
 
 ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingBlocks(b1, b2)

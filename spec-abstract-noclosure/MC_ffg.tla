@@ -74,7 +74,6 @@ IndInit ==
     /\ \A vote \in votes:
         /\ vote.ffg_vote \in ffg_votes
         /\ vote.validator \in VALIDATORS
-    /\ justified_checkpoints = JustifiedCheckpoints
-
+    /\ justified_checkpoints = JustifiedCheckpoints(votes)
 
 =============================================================================
