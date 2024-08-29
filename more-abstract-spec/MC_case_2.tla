@@ -1,4 +1,5 @@
------------------------------ MODULE MC_case_2 -----------------------------
+----------------------------- MODULE MC_case_2_test_2
+ -----------------------------
 
 
 (*  (fork_idx + 1)..LEN_1
@@ -14,13 +15,13 @@ N == 4
 Validators == 1..N
 
 \* @type: Int;
-MAX_BLOCK_SLOT == 4
+MAX_BLOCK_SLOT == 6
 
 \* @type: Set(Int);
 Block_Slots == 0..MAX_BLOCK_SLOT
 
 \* @type: Int;
-MAX_BLOCK_BODY == 4
+MAX_BLOCK_BODY == 6
 
 \* @type: Set(Int);
 Block_Bodies == 0..MAX_BLOCK_BODY
@@ -35,7 +36,7 @@ Block(slot, body) ==
 Genesis_Block == Block(0, 0)
 All_Blocks == {Block(slot, body): slot \in Block_Slots, body \in Block_Bodies} 
 
-MAX_NUMBER_OF_CHECKPOINTS == 6
+NUMBER_OF_CHECKPOINTS == 9
 
 \* @type: Set(Int);
 Checkpoint_Slots == 0..MAX_BLOCK_SLOT+2
@@ -58,10 +59,10 @@ Vote(v, ffgVote) == [validator |-> v, ffg_vote |-> ffgVote]
 \* All_Votes == {Vote(v, ffgVote) : v \in Validators, ffgVote \in All_FFG_Votes} 
 
 \* @type: Int;
-LEN_1 == 3
+LEN_1 == 4
 
 \* @type: Int;
-LEN_2 == 2
+LEN_2 == 3
 
 VARIABLES
     \* @type: Int -> $block;
@@ -157,7 +158,7 @@ InitCheckpoints ==
     IN  /\ set_of_checkpoints \in SUBSET all_possible_checkpoints_from_two_chains
         /\ PrintT(<<"A", set_of_checkpoints>>)
         /\ Genesis_Checkpoint \in set_of_checkpoints
-        /\ Cardinality(set_of_checkpoints) <= MAX_NUMBER_OF_CHECKPOINTS
+        /\ Cardinality(set_of_checkpoints) <= NUMBER_OF_CHECKPOINTS
         /\ PrintT(<<"B">>)
         /\ \A c \in set_of_checkpoints : IsValidCheckpoint(c)
         /\ PrintT(<<"C">>)
@@ -165,7 +166,7 @@ InitCheckpoints ==
 InitCheckpoints ==
     /\ set_of_checkpoints \in SUBSET All_Checkpoints
     /\ Genesis_Checkpoint \in set_of_checkpoints
-    /\ Cardinality(set_of_checkpoints) = MAX_NUMBER_OF_CHECKPOINTS
+    /\ Cardinality(set_of_checkpoints) = NUMBER_OF_CHECKPOINTS
     /\ \A c \in set_of_checkpoints : 
             /\ IsValidCheckpoint(c)
             /\ \/ IsCheckpointForChain(chain_1, LEN_1, c)
@@ -221,7 +222,7 @@ IsFFGVoteForJustification(chain, LEN, checkpoint, ffg_vote) ==
     /\ IsValidFFGVote(chain, LEN, ffg_vote)
     /\ checkpoint.chkp_slot = ffg_vote.target.chkp_slot
     /\ \E i, j, k \in 1..LEN : 
-            /\ i <= j
+            /\ i < j        (*  Since the source was justified but checkpoint is not justified. *)
             /\ j <= k
             /\ checkpoint.chkp_block = chain[j]
             /\ ffg_vote.source.chkp_block = chain[i]
@@ -342,6 +343,10 @@ AtLeastOneThirdIsSlashable ==
                     vote_2 == Vote(v, ffg_vote_2)
                 IN  /\ IsFFGVoteForFinalization(chain_1, LEN_1, C_f_1, ffg_vote_1)
                     /\ IsFFGVoteForJustification(chain_2, LEN_2, C_j_2, ffg_vote_2)
+                    /\ ( s1.chkp_slot = s2.chkp_slot                                (*  This is case 1 *)
+                         => \/ IsAncestorCheckpoint(chain_1, LEN_1, s1, s2) 
+                            \/ IsAncestorCheckpoint(chain_2, LEN_2, s2, s1) 
+                        )
                     => IsSlashable(vote_1, vote_2)
                     
 Next == UNCHANGED <<    chain_1,
