@@ -1,1 +1,3 @@
 _apalache-out
+*.log
+*.aux
