@@ -87,7 +87,7 @@ IndInit ==
     /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
     /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
     /\ \E fork_number \in Int:
-        /\ fork_number \in 0..MAX_BLOCK_BODY
+        /\ fork_number \in -MAX_BLOCK_BODY..0
         /\ chain2_fork_block_number = fork_number
     /\ IndInv
 
