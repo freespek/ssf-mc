@@ -44,17 +44,17 @@ We assume the following precondition: There exists a map $\gamma: a \to \nat$, w
 For example, $\gamma(x) = x.\text{slot}$.
 
 
-\begin{lemma}\label{lemma1}
-Let $x$ be any value of type $a$, s.t. $P(x)$ holds. Then, $h(V(x)) = \emptyset$
-\end{lemma}
+% \begin{lemma}\label{lemma1}
+% Let $x$ be any value of type $a$, s.t. $P(x)$ holds. Then, $h(V(x)) = \emptyset$
+% \end{lemma}
 
-\begin{proof}
-By definition $h(V(x))$ is defined s.t. computing $\op(x)$ requires us to recursively compute $Op(v)$ for each $v \in h(V(x))$. Since for $x$ it is the case that $P(x)$ holds, and $\op$ is defined as:
-\[
-\iteDef{\op(x)}{e}{P(x)}{G(x, F(h(V(x)), \op))}
-\]
-we do not need to consider the second branch of the definition to compute $\op(x)$. Thus, we do not need to recursively compute $\op(v)$ for any $v$, and $h(V(x))$ is empty.
-\end{proof}
+% \begin{proof}
+% By definition $h(V(x))$ is defined s.t. computing $\op(x)$ requires us to recursively compute $Op(v)$ for each $v \in h(V(x))$. Since for $x$ it is the case that $P(x)$ holds, and $\op$ is defined as:
+% \[
+% \iteDef{\op(x)}{e}{P(x)}{G(x, F(h(V(x)), \op))}
+% \]
+% we do not need to consider the second branch of the definition to compute $\op(x)$. Thus, we do not need to recursively compute $\op(v)$ for any $v$, and $h(V(x))$ is empty.
+% \end{proof}
 
 We define an auxiliary function $\alpha$ that assigns every function of the type $a \to Set(c)$ a value in $\nat \cup \{-\infty\}$, defined as:
 \[
@@ -139,27 +139,13 @@ As a trivial corollary to this lemma, we observe that $\alpha(b(f)) = \alpha(f)$
 % \end{proof}
 
 \begin{theorem}
-Let $f$ be a function, s.t. for any $x \in D_f$ it is the case that $f[x] = V(x)$. Then
+Let $f$ be a function, s.t. for any $x \in D_f$ it is the case that $f[x] = V(x)$. Then, for
+$g \coloneqq \mop(f)$
 \[
-\forall x \in D_f \ .\ \mop(f)[x] = \op(x)
+\forall x \in D_g \ .\ g[x] = \op(x)
 \]
 \end{theorem}
-
-\begin{proof}
-We prove this by using induction over $\alpha(f)$.
-
-Base case $\alpha(f) = -\infty$: This can only be true if $D_f$ is empty. In that case, any universally quantified statement over $D_f$ vacuously holds.
-
-General case: Let $\alpha(f) = N \ge 0$ and assume the theorem holds for any $f'$, for which $\alpha(f') < N$.
-We observe that $f' \coloneqq b(f)$ satisfies all of the requirements. By definition, 
-\[
-b(f)[y] \coloneqq V(y)
-\]
-for every element in its domain, so the precondition of the theorem is met. Additionally, by Lemma \ref{lemma2}, we know that $\alpha(f') < N$, so we can use the induction assumption to conclude 
-\[
-\forall x \in D_{f'} \ .\ \mop(f')[x] = \op(x)
-\]
-We now look to the definition of $\mop$, to see how it is expressed in terms of $f'$:
+Recall the following definitions:
 \[
 \iteDef{\mop(f)}{[ x \in D_f \mapsto e ]}{\forall x \in D_f \ .\ P(x)}{\mapg(f, \mop(f'))}
 \]
@@ -169,25 +155,57 @@ and
 \mapg(f, m)[x] \coloneqq \left\{
 \begin{array}{ll}
       m[x] &; x \in D_m \\
-      e &; P(x) \\
+      e &; x \notin D_m \land P(x) \\
       G(x, F(h(f[x]), m)) &; \text{otherwise}\\
 \end{array} 
 \right. 
 \]
-If it is the case that $\forall x \in D_f \ .\ P(x)$, then $\mop(f)[x] = e$ for all domain elements.
-Similarly, for each such $x$, $\op(x) = e$ by the definition of $\op$, since $P(x)$ holds.
 
-Next, we look at the case split in $\mapg$:
-\begin{itemize}
+\begin{proof}
+We prove this by using induction over $\alpha(f)$.
+
+Base case $\alpha(f) = -\infty$: This can only be true if $D_f$ is empty. However, it is then vacuously true that 
+\[
+\forall x \in D_f \ .\ P(x)
+\]
+and it follows from the definition of $\mop(f)$ that $D_g$ is empty too. In that case, any universally quantified statement over $D_g$ vacuously holds.
+
+General case: Let $\alpha(f) = N \ge 0$ and assume the theorem holds for any $f'$, for which $\alpha(f') < N$.
+We observe that $f' \coloneqq b(f)$ satisfies all of the requirements. By definition, 
+\[
+b(f)[y] \coloneqq V(y)
+\]
+for every element in its domain, so the precondition of the theorem is met. Additionally, by Lemma \ref{lemma2}, we know that $\alpha(f') < N$, so we can use the induction assumption to conclude 
+\[
+\forall x \in D_{\mop(f')} \ .\ \mop(f')[x] = \op(x)
+\]
+% We now look to the definition of $\mop$, to see how it is expressed in terms of $f'$:
+% \[
+% \iteDef{\mop(f)}{[ x \in D_f \mapsto e ]}{\forall x \in D_f \ .\ P(x)}{\mapg(f, \mop(f'))}
+% \]
+% and
+% \[
+% % \iteDef{\mapg(f, m)[x]}{m[x]}{x \in D_m}{G(x, F(h(f[x]), m))}
+% \mapg(f, m)[x] \coloneqq \left\{
+% \begin{array}{ll}
+%       m[x] &; x \in D_m \\
+%       e &; P(x) \\
+%       G(x, F(h(f[x]), m)) &; \text{otherwise}\\
+% \end{array} 
+% \right. 
+% \]
+If it is the case that $\forall x \in D_f \ .\ P(x)$, then $\mop(f)[x] = e$ for all domain elements, since 
+$D_f = D_{\mop(f)}$, by the same reasoning we used in the case where $D_f$ was empty. Similarly, for each such $x$, $\op(x) = e$ by the definition of $\op$, since $P(x)$ holds.
+
+Next, we select an arbitrary $x \in D_{\mop(f)}$. We look at the case split in $\mapg$:
+\begin{enumerate}
 \item If $x \in D_{\mop(f')}$, by the induction hypothesis, we know that $\mop(f')[x] = \op(x)$.
-\item 
-
-
- Otherwise, it remains to be shown that
+\item If $x \notin D_{\mop(f')}$, but $P(x)$ holds, we know $\op(x) = e$. Here, $\mapg(f, \mop(f'))$ trivially evaluates to $e$ as well.
+\item Otherwise, it remains to be shown that
 \[
 G(x, F(h(f[x]), \mop(f'))) = \op(x)
 \]
-For the final case split, we look at whether $P(x)$ holds or not. If it does not, then 
+Since we know $P(x)$ does not hold for this $x$, it follows that
 \[
 \op(x) = G(x, F(h(V(x)), Op))
 \]
@@ -195,25 +213,10 @@ so it suffices to see that
 \[
 F(h(f[x]), \mop(f')) = F(h(V(x)), Op)
 \]
-By the property of $f$, $h(f[x]) = h(V(x))$. As $x \in D_f$, $h(f[x]) \subseteq D_{f'}$, so for every element $v \in h(V(x))$ it is the case that $Op(v) = \mop(f')[v]$. Since $F$ is either a map or a filter, the equality above follows.
+By the property of $f$, $h(f[x]) = h(V(x))$. As $x \in D_f$, $h(f[x]) \subseteq D_{f'} \subseteq D_{\mop(f')}$, so for every element $v \in h(V(x))$ it is the case that $Op(v) = \mop(f')[v]$. Since $F$ is either a map or a filter, the equality above follows.
 
-The last case is when $P(x)$ holds, but $x \in D_{\mop(f')} \setminus D_f$. We know that $\op(x) = e$, and by Lemma \ref{lemma1}, $h(f[x]) = \emptyset$.
-Then, 
-
+\end{enumerate}
 
 \end{proof}
-
-
-
-\begin{mathpar}
-\inferrule*[right=(\textsc{TupCtor})]
-  {%
-    Top 
-}
-  { 
-    bottom
-  }
-\end{mathpar}
-
 \end{document}
 
