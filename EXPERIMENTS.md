@@ -155,7 +155,7 @@ We evaluated 3 startegies for expressing these precomputed state variables and
 continued with the most efficient one. For details on these experiments, see the
 [description of PR #38][PR #38].
 
-#### 4.2.1. Bounded model checking of Accountable Safety
+#### 4.2.1. Model checking Accountable Safety
 
 In this experiment, we are checking whether Accountable Safety holds true for
 the flattened version of `Spec 2`.
@@ -173,7 +173,7 @@ steps, we only have to check properties on the initial states (`--length=0`).
 
 Since `Spec 2` has high complexity, this experiment times out after 40 hours.
 
-#### 4.2.2. Bounded model checking to find reachable protocol states
+#### 4.2.2. Model checking reachable protocol states
 
 Given the result above, we evaluate `Spec 2` on finding reachable protocol states.
 To this end, we introduce falsy invariants describing reachable protocol states
@@ -200,7 +200,7 @@ $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=Finalized_And_Conflicting_
 
 Since `Spec 2` has high complexity, even these experiments time out after 40 hours.
 
-### 4.3. Bounded model checking on fixed graphs
+### 4.3. Model checking fixed graphs
 
 The results above are not surprising – the solver has to consider both
 reachability properties for all possible block graphs, and all possible FFG
