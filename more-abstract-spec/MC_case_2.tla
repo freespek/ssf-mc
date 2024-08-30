@@ -1,11 +1,6 @@
------------------------------ MODULE MC_case_2_test_2
- -----------------------------
+----------------------------- MODULE MC_case_2 -----------------------------
 
 
-(*  (fork_idx + 1)..LEN_1
-    1..fork_idx 
- *)
- 
 EXTENDS FiniteSets, Integers, typedefs, TLC
 
 \* @type: Int;
@@ -47,7 +42,6 @@ Checkpoint(block, checkpoint_slot) == [ chkp_block |-> block, chkp_slot |-> chec
 Genesis_Checkpoint == Checkpoint(Genesis_Block, 0)
 All_Checkpoints == {Checkpoint(block, i): block \in All_Blocks, i \in Checkpoint_Slots}
 
-
 \* @type: ($checkpoint, $checkpoint) => $ffgVote;
 FFGVote(source, target) == [ source |-> source, target |-> target ]
 
@@ -78,18 +72,17 @@ VARIABLES
     \* @type: $block;
     B_f_1,
     \* @type: $checkpoint;
-    C_f_1,
+    C_f_1,                      (*  C_f in Lemma 1. Assume C_f_1 in chain_1  *)
     \* @type: Int;
     idx_of_B_j_2,
     \* @type: $block;
-    B_j_2,
+    B_j_2,                      (*  B' in Lemma 1. Assume B_j_2 in chain 2.  *)
     \* @type: $checkpoint;
     C_j_2, 
     \* @type: Set(Int);
-    voters_of_C_f_1,
+    voters_of_C_f_1,            (*  Validators votes for the finalization of C_f_1.     *)
     \* @type: Set(Int);
-    voters_of_C_j_2
-
+    voters_of_C_j_2             (*  Validators votes for the justification of B_f_1.    *)
 
 (*  1.  The first block is Genesis_Checkpoint.
     2.  Block slots are strictly increasing.
@@ -150,18 +143,11 @@ IsValidCheckpoint(checkpoint) ==
 IsCheckpointForChain(chain, LEN, c) ==
     /\ \E i \in 1..LEN : c.chkp_block = chain[i]
 
-(*
-InitCheckpoints ==
-    LET all_blocks_in_two_chains == {chain_1[i] : i \in 1..LEN_1} \cup {chain_2[i] : i \in 1..LEN_2}
-        checkpoints == {Checkpoint(block, i): block \in all_blocks_in_two_chains, i \in Checkpoint_Slots}
-        all_possible_checkpoints_from_two_chains == {chkp \in checkpoints : chkp.chkp_block.slot < chkp.chkp_slot}
-    IN  /\ set_of_checkpoints \in SUBSET all_possible_checkpoints_from_two_chains
-        /\ PrintT(<<"A", set_of_checkpoints>>)
-        /\ Genesis_Checkpoint \in set_of_checkpoints
-        /\ Cardinality(set_of_checkpoints) <= NUMBER_OF_CHECKPOINTS
-        /\ PrintT(<<"B">>)
-        /\ \A c \in set_of_checkpoints : IsValidCheckpoint(c)
-        /\ PrintT(<<"C">>)
+(*  -   Initialize a set_of_checkpoints for blocks in chain_1 and chain_2
+        whose cardinality is NUMBER_OF_CHECKPOINTS.
+    -   For every valid checkpoint, its block is in chain_1 or chain_2.
+    -   For every block b in chain_1, at least one checkpoint has b as its block.
+        Similar thing for blocks in chain_2.
  *)
 InitCheckpoints ==
     /\ set_of_checkpoints \in SUBSET All_Checkpoints
@@ -181,7 +167,6 @@ IsFFGVoteOnChain(chain, LEN, vote) ==
         /\ vote.source.chkp_block = chain[i]
         /\ vote.target.chkp_block = chain[j]
 
-
 \* @type: (Int -> $block, Int, $ffgVote) => Bool;
 IsValidFFGVote(chain, LEN, vote) ==
     /\ IsValidCheckpoint(vote.source)
@@ -196,11 +181,13 @@ IsFFGVoteForFinalization(chain, LEN, checkpoint, ffg_vote) ==
     /\ ffg_vote.target.chkp_slot = ffg_vote.source.chkp_slot + 1
            
 
-(*  -   B_f_1 is a block in chain_1 after fork, and we just assume B_f_1 is finalized.
-    -   There exists a valid checkpoint C_f_1_source such that C_f_1_source can become 
-        a source checkpoint of an FFG vote for the finalization of C_f_1.
-    -   There exists a valid checkpoint C_f_1_target after C_f_1 such that C_target 
-        can become a target checkpoint of an FFG vote for the finalization of C_f_1. 
+(*  -   B_f_1 is a block in chain_1 after fork, and C_f_1 is a corresponding checkpoing 
+        for B_f_1.
+    -   We just assume C_f_1 and B_f_1 are finalized.
+    -   Note that C_f_1 can be used as a source checkpoint for FFG votes which supports 
+        the finalization of C_f_1.
+    -   There exists a valid checkpoint C_f_1_target after C_f_1 such that C_f_1_target 
+        can become a target checkpoint of an FFG vote supporting the finalization of C_f_1. 
     -   Formally, we have 
             C_f_1_source.chkp_block = B_f_1
             C_f_1_target.chkp_slot = C_f_1_source.chkp_slot + 1
@@ -222,7 +209,7 @@ IsFFGVoteForJustification(chain, LEN, checkpoint, ffg_vote) ==
     /\ IsValidFFGVote(chain, LEN, ffg_vote)
     /\ checkpoint.chkp_slot = ffg_vote.target.chkp_slot
     /\ \E i, j, k \in 1..LEN : 
-            /\ i < j        (*  Since the source was justified but checkpoint is not justified. *)
+            /\ i < j        (*  Since the source checkpoint was justified but checkpoint is not justified. *)
             /\ j <= k
             /\ checkpoint.chkp_block = chain[j]
             /\ ffg_vote.source.chkp_block = chain[i]
@@ -231,8 +218,6 @@ IsFFGVoteForJustification(chain, LEN, checkpoint, ffg_vote) ==
 \* @type: (Int -> $block, Int, $checkpoint, $checkpoint) => Bool;
 IsAncestorCheckpoint(chain, LEN, chkp1, chkp2) ==
     \E i, j \in 1..LEN : i <= j /\ chkp1.chkp_block = chain[i] /\ chkp2.chkp_block = chain[j]
-
-    
 
 
 (*  Let C_j_2 be a checkpoint such that
@@ -271,14 +256,12 @@ InitConflictingJustifiedCheckpoint ==
                \/ /\ c.chkp_slot = C_j_2.chkp_slot
                   /\ \/ IsAncestorCheckpoint(chain_1, LEN_1, C_j_2, c)
                      \/ IsAncestorCheckpoint(chain_2, LEN_2, C_j_2, c)
-    (*
-            \/ c.chkp_slot <= C_f_1.chkp_slot
-            \/ c.chkp_slot > C_j_2.chkp_slot
-            \/ /\ c.chkp_slot = C_j_2.chkp_slot (*  This constraint is missing in the current proof *)  
                /\ c.chkp_block.body > C_j_2.chkp_block.body
             \/ /\ c.chkp_slot < C_j_2.chkp_slot
                /\ \E i \in 1..LEN_1 : i >= idx_of_B_f_1 /\ chain_1[i] = c.chkp_block  
-               *)
+    (*  While the following constraint allows C_j_2 is in chain_1, we will later check
+        only the case where C_j_2 is in chain_2.
+    *)
     /\ \E source, target \in set_of_checkpoints : 
             LET ffg_vote == FFGVote(source, target)
             IN  \/ IsFFGVoteForJustification(chain_2, LEN_2, C_j_2, ffg_vote)
@@ -333,6 +316,14 @@ IsSlashable(vote_1, vote_2) ==
        \/ ViolatesE2(vote_1.ffg_vote, vote_2.ffg_vote) 
        \/ ViolatesE2(vote_2.ffg_vote, vote_1.ffg_vote) 
 
+
+(*  -   This property checks the intersection set called voters has at least one third of validators.
+    -   Moreover, let v be an arbitrary validator in voters, ffg_vote_1 be an arbitrary FFG vote
+        that can support the finalization of C_f_1, and ffg_vote_2 be an arbitrary FFG vote
+        that can support the justification of C_j_2.
+    -   This property also checks that ffg_vote_1 and ffg_vote_2 are always slashable.
+    -   Votes vote_1 and vote_2 are used only to make the specification similar to the Python spec.
+ *)
 AtLeastOneThirdIsSlashable ==
     LET voters == voters_of_C_f_1 \cap voters_of_C_j_2
     IN  /\ 3 * Cardinality(voters) >= N
