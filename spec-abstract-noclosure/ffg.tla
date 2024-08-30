@@ -87,6 +87,7 @@ IsLeftAncestorOfRight(before, after) ==
    /\ before.slot <= after.slot
    /\ \/ before.body >= 0 /\ after.body >= 0 /\ before.body <= after.body
       \/ before.body < 0 /\ after.body < 0 /\ -before.body <= -after.body
+      \/ before.body >= 0 /\ after.body < 0 /\ before.body <= -after.body /\ chain2_fork_block_number <= after.body
 
 \* @type: ($block, $block) => Bool;
 AreConflictingBlocks(b1, b2) ==
