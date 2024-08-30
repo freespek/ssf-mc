@@ -67,6 +67,8 @@ IndInv ==
     \* there are no gaps in the block numbers (some of them are negative)
     /\ \A i \in 0..MAX_BLOCK_BODY:
         i <= Abs(chain2_tip.body) => \E b \in chain2: Abs(b.body) = i
+    \* chain2_fork_block_number has to be in chain2
+    /\ \E b \in chain2: b.body = chain2_fork_block_number
     \* when there is no fork, the tips coincide
     /\ ~IsForked => chain2_tip = chain1_tip
     /\ GenesisBlock \in chain1
