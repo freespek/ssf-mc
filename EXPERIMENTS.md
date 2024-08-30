@@ -165,7 +165,7 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=AccountableSafety MC_ffg.tla
 ```
 
-> [!NOTE]
+> [!TIP]
 > Since `Spec 2` presents a snapshot of a single validator and does not make any
 steps, we only have to check properties on the initial states (`--length=0`).
 >
@@ -215,7 +215,7 @@ We consider
   - a short chain with a fork (`ShortFork`)
   - a forest of disconnected chains (`Forest`)
 
-> [!NOTE]
+> [!TIP]
 > We supply these alternative initial states to Apalache via `--init`.
 
 #### 4.3.1. Conflicting blocks
@@ -227,11 +227,12 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=Conflicting_Example MC_ffg_examples.tla
 ```
 
-This experiment took 1 min  3 sec.
-
 > [!NOTE]
-> There cannot be any conflicting blocks in a single linear chain, so the solver
-> (correctly) does not report a counterexample with `Init_SingleChain`.
+> The model checker (correctly) does not report a counterexample with
+> `Init_SingleChain`, as there cannot be any conflicting blocks on a single
+> linear chain.
+
+This experiment took 1 min  3 sec.
 
 ```sh
 $ cd ./spec
@@ -255,11 +256,12 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
 ```
 
-This experiment took 1 min  5 sec.
-
 > [!NOTE]
-> There cannot be any conflicting blocks in a single linear chain, so the solver
-> (correctly) does not report a counterexample with `Init_SingleChain`.
+> The model chcker (correctly) does not report a counterexample with
+> `Init_SingleChain`, as there cannot be any conflicting blocks on a single
+> linear chain.
+
+This experiment took 1 min  5 sec.
 
 ```sh
 $ cd ./spec
@@ -284,11 +286,11 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=AccountableSafety MC_ffg_examples.tla
 ```
 
-This experiment took 1 min 13 sec.
-
 > [!NOTE]
 > Accountable safety trivially holds on this example, as there are no
-> conflicting blocks.
+> conflicting blocks on a single linear chain.
+
+This experiment took 1 min 13 sec.
 
 ```sh
 $ cd ./spec
