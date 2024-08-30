@@ -115,6 +115,9 @@ IsValidFFGVote(vote) ==
     /\ IsValidCheckpoint(vote.target)
     /\ vote.source[2] < vote.target[2]
     /\ IsLeftAncestorOfRight(vote.source[1], vote.target[1])
+    \* similar to has_block_hash
+    /\ vote.source \in all_blocks
+    /\ vote.target \in all_blocks
 
 \* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
 IsJustified(checkpoint, viewVotes, fixpoint) == 
