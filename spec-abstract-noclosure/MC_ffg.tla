@@ -45,7 +45,7 @@ INSTANCE ffg
 Abs(x) == IF x >= 0 THEN x ELSE -x
 
 IndInv ==
-    /\ chain2_fork_block_number \in -MAX_BLOCK_BODY..0
+    /\ -MAX_BLOCK_BODY <= chain2_fork_block_number /\ chain2_fork_block_number <= 0
     /\ all_blocks = chain1 \union chain2
     \* chain1_tip is the maximum block in chain 1
     /\ \A b \in chain1: b.body <= chain1_tip.body
