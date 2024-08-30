@@ -101,37 +101,45 @@ which was popularized by tools such as [Alloy][].
 
 The following table summarizes the experimental figures in one place:
 
-| Experiment | Specification | Property             | Time    | Memory     |
-|-----------:|---------------|----------------------|---------|------------|
-| 4.        | `Spec 2` (w/o [PR #38]) | any                  | n/a     | OOM (>20GB)[^1]    |
-| 4.1        | `Spec 2`               | `Conflicting_Example`                      | TBD     | TBD    |
-| 4.1        | `Spec 2`               | `Finalized_And_Conflicting_Blocks_Example` | TBD     | TBD    |
-| 4.2        | `Spec 2`               | `AccountableSafety`  | TBD     | TBD    |
-| 5.1        | `Spec 3`               | Row 2                | TBD     | TBD    |
-| 5.2        | `Spec 3`               | Row 3                | TBD     | TBD    |
-| 6.1        | `Spec 4`               | Row 4                | TBD     | TBD    |
-| 6.2        | `Spec 4`               | Row 5                | TBD     | TBD    |
+| Experiment | Specification            | Property             | Time    |
+|-----------:|--------------------------|----------------------|---------|
+| 4.1        | `Spec 2` (w/o [PR #38])  | `AccountableSafety`  | out of memory (>20GB)[^1] |
+| 4.2.1.     | `Spec 2` (with [PR #38]) | `AccountableSafety`  | timeout (>40h) |
+| 4.2.2.     | `Spec 2` (with [PR #38]) | reachable states     | timeout (>40h) |
+| 5.1        | `Spec 3`                 | Row 2                | TBD     |
+| 5.2        | `Spec 3`                 | Row 3                | TBD     |
+| 6.1        | `Spec 4`                 | Row 4                | TBD     |
+| 6.2        | `Spec 4`                 | Row 5                | TBD     |
+
+Incomplete results on fixed chains:
+
+| Experiment | Specification            | Graph         | Property              | Time          |
+|-----------:|--------------------------|---------------| ----------------------|---------------|
+| 4.2.3.1.   | `Spec 2` (with [PR #38]) | `SingleChain` | `Conflicting_Example` | 1 min 3 sec   |
+| 4.2.3.1.   | `Spec 2` (with [PR #38]) | `ShortFork`   | `Conflicting_Example` | 52s           |
+| 4.2.3.1.   | `Spec 2` (with [PR #38]) | `Forest`      | `Conflicting_Example` | 2 min 21 sec  |
 
 ## 4. Model checking Spec 2
 
 We describe model checking experiments with `Spec 2`, that is [spec/ffg.tla][].
 
+### 4.1. Model checking the initial Python translation
+
 `Spec 2` is a manual adaptation of `Spec 1`, that introduces (equivalent) fold
-operations instead of recursion.
+operations instead of recursion (which is not supported by Apalache).
 
 Initial experiments showed that this naive translation quickly[^1] goes out of
-memory even with the JVM heap size set to 20GB (from Apalche's default of 4GB),
-due to the number of constraints emitted for nested folds (originating from
-nested recursion in the Python specification). In our experience, it does not
-help to increase the JVM heap size further, since for that many constraints,
-solving time would be prohibitive.
+memory even with the JVM heap size increased to 20GB (from Apalche's default of
+4GB), due to the number of constraints emitted for nested folds (originating
+from nested recursion in the Python specification). In our experience, it does
+not help to increase the JVM heap size even further, since for that many
+constraints, solving time would be prohibitive.
 
-#### Flattening nested folds
+### 4.2. Flattening nested folds
 
 Therefore, we introduced a further manual optimization that flattens nested fold
-operations, and allows Apalache to run within 20GB of JVM heap memory.
-
-To flatten nested folds, we introduce TLA+ state variables that "precompute" the
+operations, and allows Apalache to run within 20GB of JVM heap memory.  To
+flatten nested folds, we introduce TLA+ state variables that memorize the
 fold-based operations `is_ancestor_descendant_relationship` and
 `is_justified_checkpoint` (`is_complete_chain` is expressed in terms of ancestry
 of genesis).
@@ -140,13 +148,15 @@ We evaluated 3 startegies for expressing these precomputed state variables and
 continued with the most efficient one. For details on these experiments, see the
 [description of PR #38][PR #38].
 
-### 4.1. Bounded model checking to find reachable protocol states
+#### 4.2.1. Bounded model checking of Accountable Safety
 
-This specification can already be used to discover examples of reachable
-protocol states: We introduce falsy invariants (to check for reachable protocol
-states) and concrete chains (to manage complexity) in
-[spec/MC_ffg_examples.tla]. Apalache reports these example states as
-counterexamples to the supplied property.
+In this experiment, we are checking whether Accountable Safety holds true for
+the flattened version of `Spec 2`.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=AccountableSafety MC_ffg.tla
+```
 
 > [!NOTE]
 > Since `Spec 2` presents a snapshot of a single validator and does not make any
@@ -154,38 +164,84 @@ steps, we only have to check properties on the initial states (`--length=0`).
 >
 > Also, note that we have to extend the default JVM heap size from 4G to 20G (`JVM_ARGS=-Xmx20G`).
 
+Since `Spec 2` has high complexity, this experiment times out after 40 hours.
 
-For example, to find a protocol state with two conflicting blocks, run:
+#### 4.2.2. Bounded model checking to find reachable protocol states
+
+Given the result above, we decided to further evaluate `Spec 2` on a simpler
+problem: finding reachable protocol states.
+
+This serves two purposes:
+ - to check the correctness of the specification (protocol states that we know to be reachable should be found),
+ - to evaluate `Spec 2` on a simpler problem (the underlying SMT query is SAT, not UNSAT).
+
+To this end, we introduce falsy invariants describing reachable protocol states
+in [spec/MC_ffg_examples.tla]. Apalache should report these example states as
+counterexamples to the supplied property.
+
+For example, to find a protocol state with two conflicting blocks, we can run:
 
 ```sh
 $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=Conflicting_Example MC_ffg_examples.tla
 ```
 
-This experiment took **TODO**.
-
-To find a protocol state with two conflicting finalized blocks, run:
+To find a protocol state with two conflicting finalized blocks, we can run:
 
 ```sh
 $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
 ```
 
-This experiment took **TODO**.
+Since `Spec 2` has high complexity, even these experiments time out after 40 hours.
 
-### 4.2. Bounded model checking of Accountable Safety
+#### 4.2.3. Bounded model checking on fixed graphs
 
-In this experiment, we are checking whether Accountable Safety holds true for
-`Spec 2`.
+The results above are not surprising – the solver has to consider both
+reachability properties for all possible block graphs, and all possible FFG
+voting scenarios on top of these graphs.
+
+To further evaluate `Spec 2`, we fixed the block graph – this way the solver
+only has to reason about voting. Example fixed block graphs are encoded in
+[spec/MC_ffg_examples.tla].
+
+We consider
+  - a single, linear chain (`SingleChain`)
+  - a short chain with a fork (`ShortFork`)
+  - a forest of disconnected chains (`Forest`)
+
+> [!NOTE]
+> We supply these alternative states to Apalache via `--init`.
+
+##### 4.2.3.1. Conflicting blocks
+
+To find a protocol state with two conflicting blocks, run:
 
 ```sh
 $ cd ./spec
-$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 \
-  --inv=AccountableSafety MC_ffg.tla
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_ShortFork --inv=Conflicting_Example MC_ffg_examples.tla
 ```
 
-Since `Spec 2` has high complexity, this experiment takes long. **TODO:** how
-long.
+This experiment took 52 sec.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=Conflicting_Example MC_ffg_examples.tla
+```
+This experiment took 2 min 21 sec.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=Conflicting_Example MC_ffg_examples.tla
+```
+
+This experiment took 1 min  3 sec.
+
+> [!NOTE]
+> There cannot be any conflicting blocks in a single linear chain, so the solver
+> (correctly) does not report a counterexample with `Init_SingleChain`.
+
+##### 4.2.3.1. Conflicting blocks
 
 ## 5. Model checking Spec 3
 
@@ -276,4 +332,5 @@ This experiment took 19 hours 48 min 29 sec.
 [PR #38]: https://github.com/freespek/ssf-mc/pull/38
 [recursive]: https://apalache-mc.org/docs/apalache/principles/recursive.html
 [fold]: https://en.wikipedia.org/wiki/Fold_(higher-order_function)
+
 [^1]: Apalache runs out of memory after 49 minutes, but heavy CPU use due to excessive JVM garbage collection already starts after 10 minutes of runtime.
