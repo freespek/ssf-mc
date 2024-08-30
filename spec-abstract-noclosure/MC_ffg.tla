@@ -77,7 +77,12 @@ IndInv ==
     /\ \A vote \in votes:
         /\ vote.ffg_vote \in ffg_votes
         /\ vote.validator \in VALIDATORS
-    /\ justified_checkpoints = JustifiedCheckpoints(votes)
+    /\ LET allCheckpoints == {Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots}
+       IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
+        /\ justified_checkpoints' = allJustifiedCheckpoints
+        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
+        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+    \*/\ justified_checkpoints = JustifiedCheckpoints(votes)
 
 IndInit ==
     \* We choose two different bounds for creating chain1 and chain2 with Gen.
