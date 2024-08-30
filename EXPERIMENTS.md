@@ -101,23 +101,30 @@ which was popularized by tools such as [Alloy][].
 
 The following table summarizes the experimental figures in one place:
 
-| Experiment | Specification            | Property             | Time    |
-|-----------:|--------------------------|----------------------|---------|
-| 4.1        | `Spec 2` (w/o [PR #38])  | `AccountableSafety`  | out of memory (>20GB)[^1] |
-| 4.2.1.     | `Spec 2` (with [PR #38]) | `AccountableSafety`  | timeout (>40h) |
-| 4.2.2.     | `Spec 2` (with [PR #38]) | reachable states     | timeout (>40h) |
-| 5.1        | `Spec 3`                 | Row 2                | TBD     |
-| 5.2        | `Spec 3`                 | Row 3                | TBD     |
-| 6.1        | `Spec 4`                 | Row 4                | TBD     |
-| 6.2        | `Spec 4`                 | Row 5                | TBD     |
+| Experiment | Specification            | Property              | Time                      |
+|-----------:|--------------------------|-----------------------|--------------------------:|
+| 4.1        | `Spec 2` (w/o [PR #38])  | `AccountableSafety`   | out of memory (>20GB)[^1] |
+| 4.2.1      | `Spec 2` (with [PR #38]) | `AccountableSafety`   | timeout (>40h)            |
+| 4.2.2      | `Spec 2` (with [PR #38]) | `Conflicting_Example` | timeout (>40h)            |
+| 4.2.2      | `Spec 2` (with [PR #38]) | `Finalized_And_Conflicting_Blocks_Example` | timeout (>40h) |
+| 5.1        | `Spec 3`                 | `AccountableSafety`   | TBD ([Milestone 4][])     |
+| 5.2        | `Spec 3`                 | `AccountableSafety`   | TBD ([Milestone 4][])     |
+| 6.1        | `Spec 4`                 | `AccountableSafety`   | TBD ([Milestone 4][])     |
+| 6.2        | `Spec 4`                 | `AccountableSafety`   | TBD ([Milestone 4][])     |
 
-Incomplete results on fixed chains:
+Incomplete results on fixed block graphs (§ 4.3):
 
-| Experiment | Specification            | Graph         | Property              | Time          |
-|-----------:|--------------------------|---------------| ----------------------|---------------|
-| 4.2.3.1.   | `Spec 2` (with [PR #38]) | `SingleChain` | `Conflicting_Example` | 1 min 3 sec   |
-| 4.2.3.1.   | `Spec 2` (with [PR #38]) | `ShortFork`   | `Conflicting_Example` | 52s           |
-| 4.2.3.1.   | `Spec 2` (with [PR #38]) | `Forest`      | `Conflicting_Example` | 2 min 21 sec  |
+| Experiment | Specification            | Block graph   | Property              | Time          |
+|-----------:|--------------------------|---------------| ----------------------|--------------:|
+| 4.3.1      | `Spec 2` (with [PR #38]) | `SingleChain` | `Conflicting_Example` | 1 min 3 sec   |
+| 4.3.1      | `Spec 2` (with [PR #38]) | `ShortFork`   | `Conflicting_Example` | 52 sec        |
+| 4.3.1      | `Spec 2` (with [PR #38]) | `Forest`      | `Conflicting_Example` | 2 min 21 sec  |
+| 4.3.2      | `Spec 2` (with [PR #38]) | `SingleChain` | `Finalized_And_Conflicting_Blocks_Example` | 1 min 5 sec |
+| 4.3.2      | `Spec 2` (with [PR #38]) | `ShortFork`   | `Finalized_And_Conflicting_Blocks_Example` | **TODO** |
+| 4.3.2      | `Spec 2` (with [PR #38]) | `Forest`      | `Finalized_And_Conflicting_Blocks_Example` | **TODO** |
+| 4.3.3      | `Spec 2` (with [PR #38]) | `SingleChain` | `AccountableSafety`   | 1 min 13 sec  |
+| 4.3.3      | `Spec 2` (with [PR #38]) | `ShortFork`   | `AccountableSafety`   | **TODO** |
+| 4.3.3      | `Spec 2` (with [PR #38]) | `Forest`      | `AccountableSafety`   | **TODO** |
 
 ## 4. Model checking Spec 2
 
@@ -193,13 +200,13 @@ $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=Finalized_And_Conflicting_
 
 Since `Spec 2` has high complexity, even these experiments time out after 40 hours.
 
-#### 4.2.3. Bounded model checking on fixed graphs
+### 4.3. Bounded model checking on fixed graphs
 
 The results above are not surprising – the solver has to consider both
 reachability properties for all possible block graphs, and all possible FFG
 voting scenarios on top of these graphs.
 
-To further evaluate `Spec 2`, we fixed the block graph – this way the solver
+To further evaluate `Spec 2`, we fix the block graph – this way the solver
 only has to reason about voting. Example fixed block graphs are encoded in
 [spec/MC_ffg_examples.tla].
 
@@ -209,11 +216,22 @@ We consider
   - a forest of disconnected chains (`Forest`)
 
 > [!NOTE]
-> We supply these alternative states to Apalache via `--init`.
+> We supply these alternative initial states to Apalache via `--init`.
 
-##### 4.2.3.1. Conflicting blocks
+#### 4.3.1. Conflicting blocks
 
 To find a protocol state with two conflicting blocks, run:
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=Conflicting_Example MC_ffg_examples.tla
+```
+
+This experiment took 1 min  3 sec.
+
+> [!NOTE]
+> There cannot be any conflicting blocks in a single linear chain, so the solver
+> (correctly) does not report a counterexample with `Init_SingleChain`.
 
 ```sh
 $ cd ./spec
@@ -228,18 +246,63 @@ $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=Conflic
 ```
 This experiment took 2 min 21 sec.
 
+#### 4.3.2. Finalized conflicting blocks
+
+To find a protocol state with two conflicting blocks, run:
+
 ```sh
 $ cd ./spec
-$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=Conflicting_Example MC_ffg_examples.tla
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
 ```
 
-This experiment took 1 min  3 sec.
+This experiment took 1 min  5 sec.
 
 > [!NOTE]
 > There cannot be any conflicting blocks in a single linear chain, so the solver
 > (correctly) does not report a counterexample with `Init_SingleChain`.
 
-##### 4.2.3.1. Conflicting blocks
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_ShortFork --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
+```
+
+This experiment took **TODO**
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
+```
+
+This experiment took **TODO**
+
+#### 4.3.3. Accountable Safety
+
+To check accountable safety on these fixed block graphs, run:
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=AccountableSafety MC_ffg_examples.tla
+```
+
+This experiment took 1 min 13 sec.
+
+> [!NOTE]
+> Accountable safety trivially holds on this example, as there are no
+> conflicting blocks.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_ShortFork --inv=AccountableSafety MC_ffg_examples.tla
+```
+
+This experiment took **TODO**
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=AccountableSafety MC_ffg_examples.tla
+```
+
+This experiment took **TODO**
 
 ## 5. Model checking Spec 3
 
