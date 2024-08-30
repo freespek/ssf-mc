@@ -2,17 +2,22 @@
 
 **August 2024**
 
-This page summarizes the experiments conducted in the project. While running times may vary between machines, we expect these experiments to be reproducible. More precisely, this means that if you run the experiments with the same parameters, you should obtain the same results.
+This page summarizes the experiments conducted throughout the project.
 
-The above statement about reproducibility comes with a caveat: When using
-randomized symbolic execution, there is still a chance that you might find an
+## 1. Experimental setup
+
+### Reproducibility
+
+We expect all our experiments to be reproducible in a qualitative sense.
+This means that if you run them with the same parameters, you should
+obtain the same results; running times may however vary between machines.
+
+The above statement comes with a caveat: When using randomized symbolic
+execution (`apalache simulate`), there is still a chance that you might find an
 invariant violation later, unless we support the invariant with an inductive
 proof in another experiment.
 
-If you have any questions about our experimental setup and the experiments, feel
-free to ask [Igor Konnov][].
-
-## 1. Experimental setup
+### Environment
 
 **Hardware**. We conducted the experiments on a dedicated AMD Ryzen 9 5950X
 16-Core Processor with 128GB of RAM. This powerful machine allowed us to run
@@ -51,24 +56,30 @@ We have produced the following specifications in the project:
  recursion. We expect `Spec 2` to be equivalent to `Spec 1`, although we do not
  have a formal proof of this equivalence. This specification has high
  model-checking complexity, roughly speaking, as it contains multiple nested
- folds. In Milestone 2, we have introduced an optimization that avoids
+ folds. In [Milestone 2][], we have introduced an optimization that avoids
  repetitive recursive computations by memorization in the initial states, see
  [PR #38][].  This specification also contains a preliminary construction that
  could help us in proving `AccountableSafety`. Even considering all the
  optimization, the model checker is still consuming a lot of resources (>40G)
- and computing for over 24h. This specification is the result of our work in
+ and computing for over 40h. This specification is the result of our work in
  [Milestone 1][] and [Milestone 2][].
  
  - **Spec 3**. This is the specification [abstract-spec/ffg.tla][]. It is a
- manual abstraction of `Spec 2` that is highly optimized for constraint solving,
- especially with Apalache. In addition to that, Spec 3 describes a state machine
- that adds blocks and votes in every step, and thus enables bounded
- model-checking. Spec 3 contains a preliminary inductive construction in the
- initial-state predicate. This is ongoing work in [Milestone 4][].
+ manual abstraction of `Spec 2` that is further optimized for constraint solving,
+ especially with Apalache. `Spec 3` describes a state machine that adds blocks
+ and votes in every step, and thus enables bounded model-checking. `Spec 3`
+ contains a preliminary inductive construction in the initial-state predicate.
+ This is ongoing work in [Milestone 4][].
 
- - **Spec 4**. This is a spec that allows us to prove `AccountableSafety` inductively.
-   Actually, we are producing several specifications in TLA+, Alloy, and SMT.
-   This is ongoing work in [Milestone 4][].
+ - **Spec 4**. Our experiments in [Milestone 2][] and [Milestone 4][] have shown
+ that all specs to this point encode a graph problem of intractable complexity.
+ We experimentally support this claim by providing specifications in Alloy and
+ SMT, which are both are geared at proving relational properties over (small)
+ finite sets and relations.
+ `Spec 4` is a manual reformulation of the problem that avoids expensive graph
+ constructions and is highly optimized for model checking. We expect that this
+ specification allows us to us to prove `AccountableSafety` inductively.
+ This is ongoing work in [Milestone 4][].
  
 The specifications `Spec 2` and `Spec 3` come with model checking instances
 [spec/MC_ffg.tla] and [abstract-spec/MC_ffg.tla], respectively. These instances
