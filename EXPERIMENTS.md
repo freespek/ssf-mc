@@ -60,7 +60,7 @@ We have produced the following specifications in the project:
  repetitive recursive computations by memorization in the initial states, see
  [PR #38][].  This specification also contains a preliminary construction that
  could help us in proving `AccountableSafety`. Even considering all the
- optimization, the model checker is still consuming a lot of resources (>40G)
+ optimizations, the model checker is still consuming a lot of resources (>40G)
  and computing for over 40h. This specification is the result of our work in
  [Milestone 1][] and [Milestone 2][].
  
@@ -125,7 +125,7 @@ We describe model checking experiments with `Spec 2`, that is [spec/ffg.tla][].
 
 ### 4.1. Model checking the initial Python translation
 
-`Spec 2` is a manual adaptation of `Spec 1`, that introduces (equivalent) fold
+`Spec 2` is a manual adaptation of `Spec 1` that introduces (equivalent) fold
 operations instead of recursion (which is not supported by Apalache).
 
 Initial experiments showed that this naive translation quickly[^1] goes out of
@@ -168,16 +168,14 @@ Since `Spec 2` has high complexity, this experiment times out after 40 hours.
 
 #### 4.2.2. Bounded model checking to find reachable protocol states
 
-Given the result above, we decided to further evaluate `Spec 2` on a simpler
-problem: finding reachable protocol states.
-
-This serves two purposes:
- - to check the correctness of the specification (protocol states that we know to be reachable should be found),
- - to evaluate `Spec 2` on a simpler problem (the underlying SMT query is SAT, not UNSAT).
-
+Given the result above, we evaluate `Spec 2` on finding reachable protocol states.
 To this end, we introduce falsy invariants describing reachable protocol states
 in [spec/MC_ffg_examples.tla]. Apalache should report these example states as
 counterexamples to the supplied property.
+
+This serves two purposes:
+ - it ascertains the correctness of the specification (protocol states that we know to be reachable should be found),
+ - it evaluates `Spec 2` on a simpler problem (the underlying SMT query is SAT, not UNSAT).
 
 For example, to find a protocol state with two conflicting blocks, we can run:
 
