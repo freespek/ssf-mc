@@ -243,22 +243,19 @@ InitConflictingJustifiedCheckpoint ==
     /\ C_j_2 \in set_of_checkpoints 
     /\ B_j_2 = C_j_2.chkp_block
     /\ C_f_1.chkp_slot < C_j_2.chkp_slot
-    /\ \/ /\ idx_of_B_j_2 \in 1..LEN_2          (*  B_j_2 conflicts with B_f_1          *)
+    /\ \/ /\ idx_of_B_j_2 \in 1..LEN_2              (*  B_j_2 conflicts with B_f_1          *)
           /\ B_j_2  = chain_2[idx_of_B_j_2]
           /\ idx_of_B_j_2 > fork_idx
-       \/ /\ idx_of_B_j_2 \in 1..LEN_1          (*  B_j_2 is a strict ancestor of B_f_1 *)
+       \/ /\ idx_of_B_j_2 \in 1..LEN_1              (*  B_j_2 is a strict ancestor of B_f_1 *)
           /\ B_j_2  = chain_1[idx_of_B_j_2]
           /\ idx_of_B_j_2 < idx_of_B_f_1
     /\ \A c \in set_of_checkpoints :
             ~IsAncestorCheckpoint(chain_1, LEN_1, C_f_1, c)
             => \/ c.chkp_slot <= C_f_1.chkp_slot
                \/ c.chkp_slot > C_j_2.chkp_slot
-               \/ /\ c.chkp_slot = C_j_2.chkp_slot
+               \/ /\ c.chkp_slot = C_j_2.chkp_slot      (*  This constraint is missing in the current proof *)  
                   /\ \/ IsAncestorCheckpoint(chain_1, LEN_1, C_j_2, c)
                      \/ IsAncestorCheckpoint(chain_2, LEN_2, C_j_2, c)
-               /\ c.chkp_block.body > C_j_2.chkp_block.body
-            \/ /\ c.chkp_slot < C_j_2.chkp_slot
-               /\ \E i \in 1..LEN_1 : i >= idx_of_B_f_1 /\ chain_1[i] = c.chkp_block  
     (*  While the following constraint allows C_j_2 is in chain_1, we will later check
         only the case where C_j_2 is in chain_2.
     *)
@@ -321,7 +318,7 @@ IsSlashable(vote_1, vote_2) ==
     -   Moreover, let v be an arbitrary validator in voters, ffg_vote_1 be an arbitrary FFG vote
         that can support the finalization of C_f_1, and ffg_vote_2 be an arbitrary FFG vote
         that can support the justification of C_j_2.
-    -   This property also checks that ffg_vote_1 and ffg_vote_2 are always slashable.
+    -   This property also checks that ffg_vote_1 and ffg_vote_2 are alway slashable.
     -   Votes vote_1 and vote_2 are used only to make the specification similar to the Python spec.
  *)
 AtLeastOneThirdIsSlashable ==
