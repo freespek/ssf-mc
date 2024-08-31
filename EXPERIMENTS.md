@@ -120,7 +120,7 @@ Incomplete results on fixed block graphs (§ 4.3):
 | 4.3.1      | `Spec 2` (with [PR #38]) | `ShortFork`   | `Conflicting_Example` | 52 sec        |
 | 4.3.1      | `Spec 2` (with [PR #38]) | `Forest`      | `Conflicting_Example` | 2 min 21 sec  |
 | 4.3.2      | `Spec 2` (with [PR #38]) | `SingleChain` | `Finalized_And_Conflicting_Blocks_Example` | 1 min 5 sec |
-| 4.3.2      | `Spec 2` (with [PR #38]) | `ShortFork`   | `Finalized_And_Conflicting_Blocks_Example` | **TODO** |
+| 4.3.2      | `Spec 2` (with [PR #38]) | `ShortFork`   | `Finalized_And_Conflicting_Blocks_Example` | 10 hours 49 min 47 sec |
 | 4.3.2      | `Spec 2` (with [PR #38]) | `Forest`      | `Finalized_And_Conflicting_Blocks_Example` | **TODO** |
 | 4.3.3      | `Spec 2` (with [PR #38]) | `SingleChain` | `AccountableSafety`   | 1 min 13 sec  |
 | 4.3.3      | `Spec 2` (with [PR #38]) | `ShortFork`   | `AccountableSafety`   | **TODO** |
@@ -268,7 +268,7 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_ShortFork --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
 ```
 
-This experiment took **TODO**
+This experiment took 10 hours 49 min 47 sec.
 
 ```sh
 $ cd ./spec
