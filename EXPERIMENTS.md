@@ -396,4 +396,4 @@ This experiment took 19 hours 48 min 29 sec.
 [recursive]: https://apalache-mc.org/docs/apalache/principles/recursive.html
 [fold]: https://en.wikipedia.org/wiki/Fold_(higher-order_function)
 
-[^1]: Apalache runs out of memory after 49 minutes, but heavy CPU use due to excessive JVM garbage collection already starts after 10 minutes of runtime.
+[^1]: Apalache runs out of memory after 49 minutes, but heavy CPU load due to excessive JVM garbage collection starts already after 10 minutes of runtime.
