@@ -121,10 +121,10 @@ Incomplete results on fixed block graphs (§ 4.3):
 | 4.3.1      | `Spec 2` (with [PR #38]) | `Forest`      | `Conflicting_Example` | 2 min 21 sec  |
 | 4.3.2      | `Spec 2` (with [PR #38]) | `SingleChain` | `Finalized_And_Conflicting_Blocks_Example` | 1 min 5 sec |
 | 4.3.2      | `Spec 2` (with [PR #38]) | `ShortFork`   | `Finalized_And_Conflicting_Blocks_Example` | 10 hours 49 min 47 sec |
-| 4.3.2      | `Spec 2` (with [PR #38]) | `Forest`      | `Finalized_And_Conflicting_Blocks_Example` | **TODO** |
+| 4.3.2      | `Spec 2` (with [PR #38]) | `Forest`      | `Finalized_And_Conflicting_Blocks_Example` | timeout (>40h) |
 | 4.3.3      | `Spec 2` (with [PR #38]) | `SingleChain` | `AccountableSafety`   | 1 min 13 sec  |
-| 4.3.3      | `Spec 2` (with [PR #38]) | `ShortFork`   | `AccountableSafety`   | **TODO** |
-| 4.3.3      | `Spec 2` (with [PR #38]) | `Forest`      | `AccountableSafety`   | **TODO** |
+| 4.3.3      | `Spec 2` (with [PR #38]) | `ShortFork`   | `AccountableSafety`   | timeout (>40h)|
+| 4.3.3      | `Spec 2` (with [PR #38]) | `Forest`      | `AccountableSafety`   | timeout (>40h)|
 
 ## 4. Model checking Spec 2
 
@@ -171,7 +171,8 @@ steps, we only have to check properties on the initial states (`--length=0`).
 >
 > Also, note that we have to extend the default JVM heap size from 4G to 20G (`JVM_ARGS=-Xmx20G`).
 
-Since `Spec 2` has high complexity, this experiment times out after 40 hours.
+Resulting from the high complexity of `Spec 2`, this experiment takes a long time to complete.  
+We declare it timed out after 40 hours of runtime.
 
 #### 4.2.2. Model checking reachable protocol states
 
@@ -198,7 +199,7 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
 ```
 
-Since `Spec 2` has high complexity, even these experiments time out after 40 hours.
+Due to the high complexity of `Spec 2`, even these experiments result in a time out after 40 hours.
 
 ### 4.3. Model checking fixed graphs
 
@@ -275,7 +276,7 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
 ```
 
-This experiment took **TODO**
+This experiment timed out after 40 hours.
 
 #### 4.3.3. Accountable Safety
 
@@ -297,14 +298,14 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_ShortFork --inv=AccountableSafety MC_ffg_examples.tla
 ```
 
-This experiment took **TODO**
+This experiment timed out after 40 hours.
 
 ```sh
 $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=AccountableSafety MC_ffg_examples.tla
 ```
 
-This experiment took **TODO**
+This experiment timed out after 40 hours.
 
 ## 5. Model checking Spec 3
 
