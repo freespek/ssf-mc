@@ -51,8 +51,8 @@ def check_sat():
     return (time, output)
 
 print(f'blocks,checkpoints,result,time')
-for blocks in range (3, 6):
-    for checkpoints in range(5, 8):
+for checkpoints in range(5, 8):
+    for blocks in range (3, 6):
         write_benchmark(blocks, checkpoints)
         time, output = check_sat()
         print(f'{blocks},{checkpoints},{output},{time}')
