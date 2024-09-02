@@ -58,11 +58,12 @@ IndInv ==
         i <= chain1_tip.body => \E b \in chain1: b.body = i
     \* chain2_tip is the maximum block in chain 2
     /\ \A b \in chain2: Abs(b.body) <= Abs(chain2_tip.body)
-    \* block numbers on chain 2 go from 0 to (chain2_for_block_number - 1),
-    \* then chain2_tip.body to chain2_fork_block_number
+    \* Positive block numbers on chain 2 go from 0 to -chain2_fork_block_number - 1, if there was a fork.
+    \* Negative block numbers on chain 2 go from -chain2_fork_block_number to chain2_tip.body, if there was a fork.
+    \* If there was no fork, all block numbers on chain 2 are non-negative.
     /\ \A b1, b2 \in chain2:
         /\ (b1.body >= 0) => (b1.body < -chain2_fork_block_number) \/ ~IsForked
-        /\ (b1.body < 0)  => (chain2_tip.body <= chain2_fork_block_number)
+        /\ (b1.body < 0)  => (b1.body <= chain2_fork_block_number) /\ IsForked
         /\ (Abs(b1.body) >= Abs(b2.body)) <=> (b1.slot >= b2.slot)
     \* there are no gaps in the block numbers (some of them are negative)
     /\ \A i \in 0..MAX_BLOCK_BODY:
