@@ -9,6 +9,7 @@
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
 
 \newcommand{\iteDef}[4]{
   #1 \coloneqq \left\{
@@ -30,11 +31,9 @@
 
 \begin{document}
 
-\section{Notation}
+\section{Preliminaries}
 Let $f$ be any \tlap function. We use the shorthand $D_f \coloneqq \text{\bf DOMAIN } f$.
 We use $\nat$ to refer to the set of all natural numbers (i.e. nonnegative integers).
-
-\section{Proofs}
 
 We assume the following precondition: There exists a map $\gamma: a \to \nat$, with the following property:
 \[
@@ -42,6 +41,42 @@ We assume the following precondition: There exists a map $\gamma: a \to \nat$, w
 \]
 
 For example, $\gamma(x) = x.\text{slot}$.
+
+Recall the following definitions:
+\[
+\iteDef{\mop(f)}{[ x \in D_f \mapsto e ]}{\forall x \in D_f \ .\ P(x)}{\mapg(f, \mop(b(f))}
+\]
+and
+\[
+% \iteDef{\mapg(f, m)[x]}{m[x]}{x \in D_m}{G(x, F(h(f[x]), m))}
+\mapg(f, m)[x] \coloneqq \left\{
+\begin{array}{ll}
+      m[x] &; x \in D_m \\
+      e &; x \notin D_m \land P(x) \\
+      G(x, F(h(f[x]), m)) &; \text{otherwise}\\
+\end{array} 
+\right. 
+\]
+with $D_{\mapg(f,m)} = D_f \cup D_m$.
+
+\section{Proofs}
+
+\begin{lemma}\label{lemma1}
+Let $f$ be any function of type $a \to Set(c)$. Then
+\[
+D_f \subseteq D_{\mop(f)}
+\]
+\end{lemma}
+\begin{proof}
+Let $g \coloneqq \mop(f)$. To prove the first part, we have two options to consider, based on the definition of $\op$. If $\forall x \in D_f \ .\ P(x)$, then $D_f = D_g$.
+Otherwise, $g = \mop(f,\mop(b(f)))$. By definition, $D_{\mapg(f,m)} = D_f \cup D_m$, so it follows that $D_f \subseteq D_{\mapg(f,m)}$, for any $m$. 
+\end{proof}
+\begin{corollary}
+If $D_f = \emptyset$, then $D_{g} = \emptyset$.
+\end{corollary}
+\begin{proof}
+If $D_f$ is empty, then it is vacuously true that $\forall x \in D_f \ .\ P(x)$, and so $D_f = D_g$ by definition.
+\end{proof}
 
 
 % \begin{lemma}\label{lemma1}
@@ -138,28 +173,13 @@ As a trivial corollary to this lemma, we observe that $\alpha(b(f)) = \alpha(f)$
 % \]
 % \end{proof}
 
-\begin{theorem}
+\begin{theorem}\label{thm}
 Let $f$ be a function, s.t. for any $x \in D_f$ it is the case that $f[x] = V(x)$. Then, for
 $g \coloneqq \mop(f)$
 \[
 \forall x \in D_g \ .\ g[x] = \op(x)
 \]
 \end{theorem}
-Recall the following definitions:
-\[
-\iteDef{\mop(f)}{[ x \in D_f \mapsto e ]}{\forall x \in D_f \ .\ P(x)}{\mapg(f, \mop(f'))}
-\]
-and
-\[
-% \iteDef{\mapg(f, m)[x]}{m[x]}{x \in D_m}{G(x, F(h(f[x]), m))}
-\mapg(f, m)[x] \coloneqq \left\{
-\begin{array}{ll}
-      m[x] &; x \in D_m \\
-      e &; x \notin D_m \land P(x) \\
-      G(x, F(h(f[x]), m)) &; \text{otherwise}\\
-\end{array} 
-\right. 
-\]
 
 \begin{proof}
 We prove this by using induction over $\alpha(f)$.
@@ -168,7 +188,7 @@ Base case $\alpha(f) = -\infty$: This can only be true if $D_f$ is empty. Howeve
 \[
 \forall x \in D_f \ .\ P(x)
 \]
-and it follows from the definition of $\mop(f)$ that $D_g$ is empty too. In that case, any universally quantified statement over $D_g$ vacuously holds.
+and it follows from the corollary to Lemma \ref{lemma1} that $D_g$ is empty too. In that case, any universally quantified statement over $D_g$ vacuously holds.
 
 General case: Let $\alpha(f) = N \ge 0$ and assume the theorem holds for any $f'$, for which $\alpha(f') < N$.
 We observe that $f' \coloneqq b(f)$ satisfies all of the requirements. By definition, 
@@ -213,10 +233,29 @@ so it suffices to see that
 \[
 F(h(f[x]), \mop(f')) = F(h(V(x)), Op)
 \]
-By the property of $f$, $h(f[x]) = h(V(x))$. As $x \in D_f$, $h(f[x]) \subseteq D_{f'} \subseteq D_{\mop(f')}$, so for every element $v \in h(V(x))$ it is the case that $Op(v) = \mop(f')[v]$. Since $F$ is either a map or a filter, the equality above follows.
+By the property of $f$, $h(f[x]) = h(V(x))$. As $x \in D_f$, $h(f[x]) \subseteq D_{f'}$ by definition and $D_{f'} \subseteq D_{\mop(f')}$ by Lemma \ref{lemma1}, so for every element $v \in h(V(x))$ it is the case that $Op(v) = \mop(f')[v]$. Since $F$ is either a map or a filter, the equality above follows.
 
 \end{enumerate}
 
 \end{proof}
+
+\begin{corollary}
+For any $x\colon a$
+\[
+\op(x) = \mop([ v \in \{x\} \mapsto V(x) ])[x]
+\]
+\end{corollary}
+\begin{proof}
+\[
+f \coloneqq [ v \in \{x\} \mapsto V(x) ]
+\]
+obviously satisfies the precondition of Theorem \ref{thm}:
+\[
+\forall y \in D_f \ .\ f[y] = V(y)
+\]
+Since $x \in D_f \subseteq D_{\mop(f)}$, we conclude that $\mop(f)[x] = \op(x)$.
+\end{proof}
+
+
 \end{document}
 

@@ -505,8 +505,11 @@ NonrecursiveOpForAssociative(x, N) ==
 
 ### One-to-many recursion
 
-Suppose we are given, for each value `x: a`, a set `V(x): Set(c)`, and an arbitrary operator `h: Set(c) => Set(a)`,
-s.t. computing `Op(x)` requires us to recursively compute `Op(v)` for each `v \in h(V(x))`.
+Suppose we are given, for each value `x: a`, a set `V(x): Set(c)`, and an operator `h: Set(c) => Set(a)`,
+s.t. `h(V(x)` is exactly the set of values `v`, for which we are required to recursively compute `Op(v)`, in order to compute `O(x)`. Further, assume that there exists a mapping `gamma` from `a` to nonnegative integers, with the property that, for any `x` of type `a` the following holds:
+```tla
+\A y \in h(V(x)): gamma(y) < gamma(x) 
+```
 
 Let `Op` have the following shape:
 
@@ -542,9 +545,11 @@ mapG(currentRecursionStepMap, partialValueMap) ==
       IN G(k, F(h(currentRecursionStepMap[k]), OpSubstitute))
   IN [
     x \in (domainExtension \union DOMAIN partialValueMap) |->
-      IF x \in domainExtension
-      THEN evalOneKey(x)
-      ELSE partialValueMap[x]
+      IF x \in DOMAIN partialValueMap
+      THEN partialValueMap[x]
+      ELSE IF P(x)
+           THEN e
+           ELSE evalOneKey(x)
   ]
 
 RECURSIVE mapOp(_)
@@ -555,90 +560,11 @@ mapOp(map) ==
   ELSE mapG(map, mapOp(b(map)))
 ``` 
 
-Instead of the above equality, we are going to prove a more general property, from which the above equality trivially follows:
-```
-Op(s) = mapOp(m)[s]
-```
-for any `s` for which `Op` terminates, and any map `m` with `s` in its domain, s.t. `m[s] = V(s)` (in particular also when `DOMAIN m = {s}`).
-
-Let `x` be an arbitrary value, for which `Op(x)` terminates, with a recursion-tree height of `N`, and `m` any map containing `x`, for which `m[x] = V(x)`
-To prove that  `Op(x) = mapOp(m)[x]`, we use induction on `N`:
-
-If `N=0`, then `P(x)` holds. By definition `Op(x) = e`. Further, `DOMAIN [ v \in {x} |-> V(x) ] = {x}`, and it trivially follows that `\A y \in {x} map: P(y)`. Therefore, `mapOp([ v \in {x} |-> V(x) ]) = [ y \in {x} |-> e ]`, and 
-`mapOp([ v \in {x} |-> V(x) ])[x] = e = Op(x)`
-
-Assume now that `Op(y) = mapOp([ v \in {y} |-> V(y) ])[y]` for any value of `y`, for which `Op(y)` terminates with a recursion-tree height at most `(N-1)`, and `N > 0`.
-By definition, 
-`Op(x) == G(x, F(h(V(x)), Op))`
-, since `N > 0` and `Op` doesn't terminate immediately, and
-`mapOp([ v \in {x} |-> V(x) ]) = mapG([ v \in {x} |-> V(x) ], mapOp(b([ v \in {x} |-> V(x) ])))`,
-since `\A x \in DOMAIN map: P(x)` doesn't hold, by the same token.
-
-Expanding the definition of `mapG` and `b`, we see that
-```
-b([ v \in {x} |-> V(x) ])) 
-= LET newDomain == UNION {h([ v \in {x} |-> V(x) ][v]): v \in DOMAIN [ v \in {x} |-> V(x) ]}
-  IN [ newDomainElem \in newDomain |-> V(newDomainElem) ]
-= LET newDomain == UNION {h([ v \in {x} |-> V(x) ][x])}
-  IN [ newDomainElem \in newDomain |-> V(newDomainElem) ]
-= LET newDomain == h(V(x))
-  IN [ newDomainElem \in newDomain |-> V(newDomainElem) ]
-= [ s \in h(V(x)) |-> V(s) ]
-```
-and
-```
-mapG([ v \in {x} |-> V(x) ], mapOp(b([ v \in {x} |-> V(x) ]))) 
-= LET domainExtension == DOMAIN [ v \in {x} |-> V(x) ] IN
-  LET 
-    evalOneKey(k) ==
-      LET OpSubstitute(y) == mapOp(b([ v \in {x} |-> V(x) ]))[y] 
-      IN G(k, F([ v \in {x} |-> V(x) ][k], OpSubstitute))
-  IN [
-    y \in (domainExtension \union DOMAIN mapOp(b([ v \in {x} |-> V(x) ]))) |->
-      IF y \in domainExtension
-      THEN evalOneKey(y)
-      ELSE mapOp(b([ v \in {x} |-> V(x) ]))[y]
-  ]
-= LET domainExtension == {x} IN
-  LET 
-    evalOneKey(k) ==
-      LET OpSubstitute(y) == mapOp([ s \in h(V(x)) |-> V(s) ])[y] 
-      IN G(k, F([ v \in {x} |-> V(x) ][k], OpSubstitute))
-  IN [
-    y \in (domainExtension \union DOMAIN mapOp([ s \in h(V(x)) |-> V(s) ]) |->
-      IF y \in domainExtension
-      THEN evalOneKey(y)
-      ELSE mapOp([ s \in h(V(x)) |-> V(s) ])[y]
-  ]
-= [
-    y \in ({x} \union DOMAIN mapOp([ s \in h(V(x)) |-> V(s) ]) |->
-      IF y \in {x}
-      THEN 
-        LET OpSubstitute(y) == mapOp([ s \in h(V(x)) |-> V(s) ])[y] 
-        IN G(k, F(V(x), OpSubstitute))
-      ELSE mapOp([ s \in h(V(x)) |-> V(s) ])[y]
-  ]
-```
-
-
-
-
-To evaluate `F(h(V(x)), Op)`, we must compute `Op(s)`, for each `s \in h(V(x))`. Since `O(x)` terminates, it must be the case that `O(s)` terminates for each such `s`, with a recursion-tree height of at most `N-1`, therefore, for each such `s`, we know that 
-`Op(s) = mapOp([ v \in {s} |-> V(s) ])[s]`.
-
-We have two options. `If \A s \in h(V(x)): P(s)` holds (i.o.w., `Op(s)` terminates with no recursion), then 
-`F(h(V(x)), Op) = { s \in h(V(x)) : e }` (if `F` is a filter) or `F(h(V(x)), Op) = { e }` (if `F` is a map)
-By definition, `mapOp([ v \in {s} |-> V(s) ])[s]` equals to 
-
-
-
-
-
-We can see that `mapOp` matches the shape required by our translation rule, so we can evaluate it with folds, using `b` and `mapG` as defined above. To prove termination, we need to show that there exists a sequence of maps
-`[ v \in {x} |-> V(x) ] = v_1, ..., v_n`, such that
-  - `\A v \in DOMAIN v_n: P(v)`
-  - `v_{i+1} = b(v_i)` for all `1 <= i < n`
-  - `\E v \in DOMAIN v_i: ~P(v)` `1 <= i < n` (i.o.w., this is the shortest sequence with the above two properties)
+The proof that (under the assumption of termination), it is the case that
+```tla
+Op(x) = mapOp([ v \in {x} |-> V(x) ])[x]
+``` 
+can be found [here](reports/milestone3.tex).
 
 The termination proof must be made on a case-by-case basis, as it depends on `h(_)` and `V(_)`.
 
