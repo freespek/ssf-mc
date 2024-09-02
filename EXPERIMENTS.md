@@ -112,6 +112,20 @@ The following table summarizes the experimental figures in one place:
 | 6.1        | `Spec 4`                 | `AccountableSafety`   | TBD ([Milestone 4][])     |
 | 6.2        | `Spec 4`                 | `AccountableSafety`   | TBD ([Milestone 4][])     |
 
+Incomplete results on fixed block graphs (§ 4.3):
+
+| Experiment | Specification            | Block graph   | Property              | Time          |
+|-----------:|--------------------------|---------------| ----------------------|--------------:|
+| 4.3.1      | `Spec 2` (with [PR #38]) | `SingleChain` | `Conflicting_Example` | 1 min 3 sec   |
+| 4.3.1      | `Spec 2` (with [PR #38]) | `ShortFork`   | `Conflicting_Example` | 52 sec        |
+| 4.3.1      | `Spec 2` (with [PR #38]) | `Forest`      | `Conflicting_Example` | 2 min 21 sec  |
+| 4.3.2      | `Spec 2` (with [PR #38]) | `SingleChain` | `Finalized_And_Conflicting_Blocks_Example` | 1 min 5 sec |
+| 4.3.2      | `Spec 2` (with [PR #38]) | `ShortFork`   | `Finalized_And_Conflicting_Blocks_Example` | 10 hours 49 min 47 sec |
+| 4.3.2      | `Spec 2` (with [PR #38]) | `Forest`      | `Finalized_And_Conflicting_Blocks_Example` | timeout (>40h) |
+| 4.3.3      | `Spec 2` (with [PR #38]) | `SingleChain` | `AccountableSafety`   | 1 min 13 sec  |
+| 4.3.3      | `Spec 2` (with [PR #38]) | `ShortFork`   | `AccountableSafety`   | timeout (>40h)|
+| 4.3.3      | `Spec 2` (with [PR #38]) | `Forest`      | `AccountableSafety`   | timeout (>40h)|
+
 ## 4. Model checking Spec 2
 
 We describe model checking experiments with `Spec 2`, that is [spec/ffg.tla][].
@@ -157,7 +171,8 @@ steps, we only have to check properties on the initial states (`--length=0`).
 >
 > Also, note that we have to extend the default JVM heap size from 4G to 20G (`JVM_ARGS=-Xmx20G`).
 
-Since `Spec 2` has high complexity, this experiment times out after 40 hours.
+Resulting from the high complexity of `Spec 2`, this experiment takes a long time to complete.  
+We declare it timed out after 40 hours of runtime.
 
 #### 4.2.2. Model checking reachable protocol states
 
@@ -184,7 +199,113 @@ $ cd ./spec
 $ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
 ```
 
-Since `Spec 2` has high complexity, even these experiments time out after 40 hours.
+Due to the high complexity of `Spec 2`, even these experiments result in a time out after 40 hours.
+
+### 4.3. Model checking fixed graphs
+
+The results above are not surprising – the solver has to consider both
+reachability properties for all possible block graphs, and all possible FFG
+voting scenarios on top of these graphs.
+
+To further evaluate `Spec 2`, we fix the block graph – this way the solver
+only has to reason about voting. Example fixed block graphs are encoded in
+[spec/MC_ffg_examples.tla].
+
+We consider
+  - a single, linear chain (`SingleChain`)
+  - a short chain with a fork (`ShortFork`)
+  - a forest of disconnected chains (`Forest`)
+
+> [!TIP]
+> We supply these alternative initial states to Apalache via `--init`.
+
+#### 4.3.1. Conflicting blocks
+
+To find a protocol state with two conflicting blocks, run:
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=Conflicting_Example MC_ffg_examples.tla
+```
+
+> [!NOTE]
+> The model checker (correctly) does not report a counterexample with
+> `Init_SingleChain`, as there cannot be any conflicting blocks on a single
+> linear chain.
+
+This experiment took 1 min  3 sec.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_ShortFork --inv=Conflicting_Example MC_ffg_examples.tla
+```
+
+This experiment took 52 sec.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=Conflicting_Example MC_ffg_examples.tla
+```
+This experiment took 2 min 21 sec.
+
+#### 4.3.2. Finalized conflicting blocks
+
+To find a protocol state with two conflicting blocks, run:
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
+```
+
+> [!NOTE]
+> The model chcker (correctly) does not report a counterexample with
+> `Init_SingleChain`, as there cannot be any conflicting blocks on a single
+> linear chain.
+
+This experiment took 1 min  5 sec.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_ShortFork --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
+```
+
+This experiment took 10 hours 49 min 47 sec.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=Finalized_And_Conflicting_Blocks_Example MC_ffg_examples.tla
+```
+
+This experiment timed out after 40 hours.
+
+#### 4.3.3. Accountable Safety
+
+To check accountable safety on these fixed block graphs, run:
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_SingleChain --inv=AccountableSafety MC_ffg_examples.tla
+```
+
+> [!NOTE]
+> Accountable safety trivially holds on this example, as there are no
+> conflicting blocks on a single linear chain.
+
+This experiment took 1 min 13 sec.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_ShortFork --inv=AccountableSafety MC_ffg_examples.tla
+```
+
+This experiment timed out after 40 hours.
+
+```sh
+$ cd ./spec
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=0 --init=Init_Forest --inv=AccountableSafety MC_ffg_examples.tla
+```
+
+This experiment timed out after 40 hours.
 
 ## 5. Model checking Spec 3
 
@@ -276,4 +397,4 @@ This experiment took 19 hours 48 min 29 sec.
 [recursive]: https://apalache-mc.org/docs/apalache/principles/recursive.html
 [fold]: https://en.wikipedia.org/wiki/Fold_(higher-order_function)
 
-[^1]: Apalache runs out of memory after 49 minutes, but heavy CPU use due to excessive JVM garbage collection already starts after 10 minutes of runtime.
+[^1]: Apalache runs out of memory after 49 minutes, but heavy CPU load due to excessive JVM garbage collection starts already after 10 minutes of runtime.
