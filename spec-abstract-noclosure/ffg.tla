@@ -242,8 +242,8 @@ AccountableSafety ==
 
 Init == 
     /\ all_blocks = { GenesisBlock }
-    /\ chain1_tip = [ slot |-> 0, body |-> 0 ]
-    /\ chain2_tip = [ slot |-> 0, body |-> 0 ]
+    /\ chain1_tip = GenesisBlock
+    /\ chain2_tip = GenesisBlock
     /\ chain1 = { GenesisBlock }
     /\ chain2 = { GenesisBlock }
     /\ chain2_fork_block_number = 0
