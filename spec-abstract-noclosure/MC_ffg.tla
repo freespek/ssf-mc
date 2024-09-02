@@ -72,6 +72,9 @@ IndInv ==
     /\ \E b \in chain2: b.body = chain2_fork_block_number
     \* when there is no fork, the tips coincide
     /\ ~IsForked => chain2_tip = chain1_tip
+    \* before the fork point, chain2 and chain1 coincide
+    /\ \A b \in chain2:
+        b.body >= 0 => b \in chain1
     /\ GenesisBlock \in chain1
     /\ GenesisBlock \in chain2
     /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
