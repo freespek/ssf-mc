@@ -4,7 +4,9 @@
 ; using SMT constraints. In particular, we make use of the decision procedure
 ; for finite sets and cardinality constraints in CVC5.
 ; This allows us to check accountable safety for small models of the protocol.
-
+;
+; Thomas Pani, 2024
+;
 ; Run with
 ;   $ cvc5 ssf.smt
 ;

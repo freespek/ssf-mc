@@ -6,6 +6,8 @@
 # checkpoints, and times CVC5 on each of them. The output is written to
 # stdout in CSV format.
 #
+# Thomas Pani, 2024
+#
 # WARNING!  This simply replaces a few lines in the model file by offsets.
 # BRITTLE!  If the model file has changed, this script will break!
 
