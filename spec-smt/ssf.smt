@@ -307,10 +307,10 @@
 ; ============================
 
 ; We want to check
-;     \E b1, b2 : b1 and b2 are conflicting and finalized  => \E node : node is slashable
+;     \E b1, b2 : b1 and b2 are conflicting and finalized  =>  >=1/3 of nodes are slashable
 ;
 ; This formula is valid iff its negation
-;     \E b1, b2 : b1 and b2 are conflicting and finalized  /\  ~ (\E node : node is not slashable)
+;     \E b1, b2 : b1 and b2 are conflicting and finalized  /\  <1/3 of nodes are slashable
 ; is unsatisfiable.
 (assert
     (and
@@ -321,7 +321,7 @@
                 (set.member block2 finalized_blocks)
             )
         )
-        (not (exists ((node Node)) (set.member node slashable_nodes)))
+        (< (* 3 (set.card slashable_nodes)) N)
     )
 )
 

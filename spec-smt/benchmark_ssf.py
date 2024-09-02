@@ -13,7 +13,7 @@
 
 MODEL_FILENAME = 'ssf.smt'
 BENCHMARK_FILENAME = 'benchmark.smt'
-DATATYPE_LINE_OFFSETS = (28, 32)    # (last line to print, last line to exclude)
+DATATYPE_LINE_OFFSETS = (29, 34)    # (last line to print, last line to exclude)
 
 NODE_NAMES = ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace',
               'Hank', 'Ivy', 'Jill', 'Karl', 'Liam', 'Mona', 'Nora', 'Omar',
