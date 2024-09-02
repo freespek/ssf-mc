@@ -85,9 +85,13 @@ NextBody(b, path) ==
 \* @type: ($block, $block) => Bool;
 IsLeftAncestorOfRight(before, after) ==
    /\ before.slot <= after.slot
+   /\ \/ before \in chain1 /\ after \in chain1
+      \/ before \in chain2 /\ after \in chain2
+   (*
    /\ \/ before.body >= 0 /\ after.body >= 0 /\ before.body <= after.body
       \/ before.body < 0 /\ after.body < 0 /\ -before.body <= -after.body
       \/ before.body >= 0 /\ after.body < 0 /\ before.body <= -after.body /\ after.body <= chain2_fork_block_number
+    *)
 
 \* @type: ($block, $block) => Bool;
 AreConflictingBlocks(b1, b2) ==
