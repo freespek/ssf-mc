@@ -1,0 +1,27 @@
+\usepackage{mathpartir}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\newcommand{\iteDef}[4]{
+  #1 \coloneqq \left\{
+\begin{array}{ll}
+      #2 &; #3 \\
+      #4 &; \text{otherwise}\\
+\end{array} 
+\right. 
+}
+
+\newcommand{\tlap}{$\textsc{TLA}^{+}$}
+
+\newcommand{\nat}{\mathbb N_0}
+
+\newcommand{\op}{\textsc{Op}}
+
+\newcommand{\mop}{\textsc{mapOp}}
+\newcommand{\mapg}{\textsc{mapG}}

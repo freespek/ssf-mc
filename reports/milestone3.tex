@@ -1,37 +1,6 @@
-\documentclass{article}
-\usepackage[english]{babel}
-\usepackage[utf8]{inputenc}
-\usepackage{mathpartir}
-\usepackage{amsthm}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{mathtools}
+\section{Milestone 3}
 
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{corollary}[theorem]{Corollary}
-
-\newcommand{\iteDef}[4]{
-  #1 \coloneqq \left\{
-\begin{array}{ll}
-      #2 &; #3 \\
-      #4 &; \text{otherwise}\\
-\end{array} 
-\right. 
-}
-
-\newcommand{\tlap}{$\textsc{TLA}^{+}$}
-
-\newcommand{\nat}{\mathbb N_0}
-
-\newcommand{\op}{\textsc{Op}}
-
-\newcommand{\mop}{\textsc{mapOp}}
-\newcommand{\mapg}{\textsc{mapG}}
-
-\begin{document}
-
-\section{Preliminaries}
+\subsection{Preliminaries}
 Let $f$ be any \tlap function. We use the shorthand $D_f \coloneqq \text{\bf DOMAIN } f$.
 We use $\nat$ to refer to the set of all natural numbers (i.e. nonnegative integers).
 
@@ -59,7 +28,7 @@ and
 \]
 with $D_{\mapg(f,m)} = D_f \cup D_m$.
 
-\section{Proofs}
+\subsection{Proofs}
 
 \begin{lemma}\label{lemma1}
 Let $f$ be any function of type $a \to Set(c)$. Then
@@ -255,7 +224,4 @@ obviously satisfies the precondition of Theorem \ref{thm}:
 \]
 Since $x \in D_f \subseteq D_{\mop(f)}$, we conclude that $\mop(f)[x] = \op(x)$.
 \end{proof}
-
-
-\end{document}
 
