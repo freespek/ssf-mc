@@ -13,7 +13,7 @@ CONSTANT
     \* the maximal slot number
     \* @type: Int;
     MAX_BLOCK_SLOT,
-    \* the maximal number in the block body
+    \* the maximal block number in the block body
     \* @type: Int;
     MAX_BLOCK_BODY,
     \* the set of all validators (that can cast votes)
@@ -50,6 +50,10 @@ VARIABLES
     ffg_votes,
     \* @type: Set($vote);
     votes,
+    \* The set of the checkpoints that were announced so far.
+    \* @type: Set($checkpoint);
+    checkpoints,
+    \* The maximal subset of checkpoints that are justified.
     \* @type: Set($checkpoint);
     justified_checkpoints
 
@@ -187,7 +191,7 @@ ProposeBlockOnChain1(slot) ==
        ELSE
          /\ chain2' = chain2 \union { new_block }
          /\ chain2_tip' = new_block
-    /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints, chain2_fork_block_number>>
+    /\ UNCHANGED <<ffg_votes, votes, checkpoints, justified_checkpoints, chain2_fork_block_number>>
 
 \* Append a block to chain 2.
 \* @type: Int => Bool;
@@ -200,13 +204,20 @@ ProposeBlockOnChain2(slot) ==
     /\ all_blocks' = all_blocks \union { new_block }
     /\ chain2' = chain2 \union { new_block }
     /\ chain2_tip' = new_block
-    /\ UNCHANGED <<chain1, chain1_tip, ffg_votes, votes, justified_checkpoints>>
+    /\ UNCHANGED <<chain1, chain1_tip, ffg_votes, votes, checkpoints, justified_checkpoints>>
+
+\* Add a checkpoint to the set of announced checkpoints.
+\* @type: ($block, Int) => Bool;
+AddCheckpoint(block, slot) ==
+    LET checkpoint == Checkpoint(block, slot) IN
+    /\ IsValidCheckpoint(checkpoint)
+    /\ checkpoints' = checkpoints \union { checkpoint }
+    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number, ffg_votes, votes, justified_checkpoints>>
 
 JustifiedCheckpoints(viewVotes) ==
     \* @type: Set($checkpoint) => Set($checkpoint);
     LET AccJustified(justifiedSoFar, justifiedCheckpointSlot) ==
-        LET candidateCheckpoints == { Checkpoint(block, justifiedCheckpointSlot): block \in all_blocks } IN
-        LET newJustifiedCheckpoints == { c \in candidateCheckpoints: IsJustified(c, viewVotes, justifiedSoFar) } IN
+        LET newJustifiedCheckpoints == { c \in checkpoints: IsJustified(c, viewVotes, justifiedSoFar) } IN
         justifiedSoFar \union newJustifiedCheckpoints
     IN ApaFoldSeqLeft(AccJustified, { GenesisCheckpoint }, MkSeq(MAX_BLOCK_SLOT+2, (* @type: Int => Int; *) LAMBDA i: i))
 
@@ -217,13 +228,14 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    /\ LET allCheckpoints == {Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots}
-       IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
+    (*
+    /\ \E allJustifiedCheckpoints \in SUBSET checkpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
         /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
-    \*/\ justified_checkpoints' = JustifiedCheckpoints(votes')
-    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number>>
+        /\ \A c \in (checkpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+     *)
+    /\ justified_checkpoints' = JustifiedCheckpoints(votes')
+    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number, checkpoints>>
 
 ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingBlocks(b1, b2)
 ExistTwoFinalizedConflictingBlocks ==
@@ -249,17 +261,16 @@ Init ==
     /\ chain2_fork_block_number = 0
     /\ ffg_votes = {}
     /\ votes = {}
+    /\ checkpoints = { GenesisCheckpoint }
     /\ justified_checkpoints = { GenesisCheckpoint }
 
 Next == 
     \/ \E slot \in BlockSlots:
         \/ ProposeBlockOnChain1(slot)
         \/ ProposeBlockOnChain2(slot)
-    \/ \E sourceBlock, targetBlock \in all_blocks, srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
-        CastVotes(
-            Checkpoint(sourceBlock, srcSlot), 
-            Checkpoint(targetBlock, tgtSlot),
-            validators
-        )
+    \/ \E block \in all_blocks, slot \in CheckpointSlots:
+        AddCheckpoint(block, slot)
+    \/ \E source \in checkpoints, target \in checkpoints, validators \in SUBSET VALIDATORS: 
+        CastVotes(source, target, validators)
 
 =============================================================================
