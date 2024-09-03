@@ -212,7 +212,12 @@ AddCheckpoint(block, slot) ==
     LET checkpoint == Checkpoint(block, slot) IN
     /\ IsValidCheckpoint(checkpoint)
     /\ checkpoints' = checkpoints \union { checkpoint }
-    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number, ffg_votes, votes, justified_checkpoints>>
+    /\ \E allJustifiedCheckpoints \in SUBSET checkpoints':
+        /\ justified_checkpoints' = allJustifiedCheckpoints
+        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes, allJustifiedCheckpoints)
+        /\ \A c \in (checkpoints' \ allJustifiedCheckpoints): ~IsJustified(c, votes, allJustifiedCheckpoints)
+    \*/\ justified_checkpoints' = JustifiedCheckpoints(votes')
+    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number, ffg_votes, votes>>
 
 JustifiedCheckpoints(viewVotes) ==
     \* @type: Set($checkpoint) => Set($checkpoint);
@@ -228,13 +233,11 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    (*
     /\ \E allJustifiedCheckpoints \in SUBSET checkpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
         /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
         /\ \A c \in (checkpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
-     *)
-    /\ justified_checkpoints' = JustifiedCheckpoints(votes')
+    \*/\ justified_checkpoints' = JustifiedCheckpoints(votes')
     /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number, checkpoints>>
 
 ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingBlocks(b1, b2)

@@ -43,12 +43,12 @@ IndInv ==
     /\ \A vote \in votes:
         /\ vote.ffg_vote \in ffg_votes
         /\ vote.validator \in VALIDATORS
+	/\ GenesisCheckpoint \in checkpoints
+    /\ GenesisCheckpoint \in checkpoints
     /\ \A c \in checkpoints: IsValidCheckpoint(c)
-    /\ justified_checkpoints = JustifiedCheckpoints(votes)
-    (*/\ \E allJustifiedCheckpoints \in SUBSET checkpoints:
-        /\ justified_checkpoints' = allJustifiedCheckpoints
-        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
-     *)
+    \*/\ justified_checkpoints = JustifiedCheckpoints(votes)
+    /\ GenesisCheckpoint \in justified_checkpoints
+    /\ \A c \in justified_checkpoints: IsJustified(c, votes, justified_checkpoints)
+    /\ \A c \in (checkpoints \ justified_checkpoints): ~IsJustified(c, votes, justified_checkpoints)
 
 ===============================================================================

@@ -48,6 +48,7 @@ INSTANCE ffg_inductive
 IndInit ==
     \* We choose two different bounds for creating chain1 and chain2 with Gen.
     \* See Apalache issue #2973.
+    /\ all_blocks = Gen(5)
     /\ chain1 = Gen(3)
     /\ chain1_tip \in chain1
     /\ chain2 = Gen(4)
@@ -58,6 +59,7 @@ IndInit ==
         /\ fork_number \in -MAX_BLOCK_BODY..0
         /\ chain2_fork_block_number = fork_number
     /\ checkpoints = Gen(5)
+    /\ justified_checkpoints = Gen(5)
     /\ IndInv
 
 =============================================================================
