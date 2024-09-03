@@ -18,10 +18,59 @@
 }
 
 \newcommand{\tlap}{$\textsc{TLA}^{+}$}
+\newcommand{\defeq}{\;\mathrel{\smash   %% keep this symbol from being too tall
+    {{\stackrel{\scriptscriptstyle\Delta}{=}}}}\;}
 
 \newcommand{\nat}{\mathbb N_0}
 
 \newcommand{\op}{\textsc{Op}}
-
 \newcommand{\mop}{\textsc{mapOp}}
 \newcommand{\mapg}{\textsc{mapG}}
+
+\newcommand{\tup}[1]{\left<\left<#1\right>\right>}
+\newcommand{\htau}{\hat{\tau}}
+
+\newcommand{\List}{\mathrm{List}}
+\newcommand{\Seq}{\mathrm{Seq}}
+\newcommand{\Set}{\mathrm{Set}}
+\newcommand{\PVec}{\mathrm{PVec}}
+\newcommand{\PSet}{\mathrm{PSet}}
+\newcommand{\PMap}{\mathrm{PMap}}
+\newcommand{\Concat}{\mathrm{Concat}}
+\newcommand{\Callable}{\mathrm{Callable}}
+\newcommand{\Le}{\mathrm{Le}}
+\newcommand{\bool}{\mathrm{bool}}
+\newcommand{\Bool}{\mathrm{Bool}}
+\newcommand{\pyint}{\mathrm{int}}
+\newcommand{\Int}{\mathrm{Int}}
+\newcommand{\ApaFoldSet}{\mathrm{ApaFoldSet}}
+\newcommand{\SetAsFun}{\mathrm{SetAsFun}}
+\newcommand{\Push}{\mathrm{Push}}
+\newcommand{\At}{\mathrm{At}}
+\newcommand{\Indices}{\mathrm{Indices}}
+\newcommand{\UNION}{\mathrm{UNION}}
+\newcommand{\CHOOSE}{\mathrm{CHOOSE}}
+\newcommand{\TRUE}{\mathrm{TRUE}}
+\newcommand{\FALSE}{\mathrm{FALSE}}
+\newcommand{\IF}{\mathrm{IF}}
+\newcommand{\THEN}{\mathrm{THEN}}
+\newcommand{\ELSE}{\mathrm{ELSE}}
+\newcommand{\LET}{\mathrm{LET}}
+\newcommand{\IN}{\mathrm{IN}}
+\newcommand{\DOMAIN}{\mathrm{DOMAIN}}
+\newcommand{\EXCEPT}{\mathrm{EXCEPT}}
+
+
+
+% recall a theorem mentioned before with the same label
+\newcommand{\recallthm}[2]{%
+  {\medskip\noindent\bfseries Theorem~\ref{#1}.~}{\itshape #2}
+}
+% recall a proposition mentioned before with the same label
+\newcommand{\recallproposition}[2]{%
+  {\medskip\noindent\bfseries Proposition~\ref{#1}.~}{\itshape #2}
+}
+% recall a lemma mentioned before with the same label
+\newcommand{\recalllemma}[2]{%
+  {\medskip\noindent\bfseries Lemma~\ref{#1}.~}{\itshape #2}
+}

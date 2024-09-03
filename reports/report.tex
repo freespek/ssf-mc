@@ -2,11 +2,23 @@
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 
+\usepackage{hyperref}
+
 \input{preambule}
 
 \begin{document}
 
-% Milestone 3
-\input{milestone3}
+\newcommand{\thmBody}{
+cake
+}
+ 
+\begin{theorem}\label{thmLabel}
+\thmBody
+\end{theorem}
+
+% Milestone 3 - Translation rules
+\input{rules}
+
+% \input{appendix}
 
 \end{document}
