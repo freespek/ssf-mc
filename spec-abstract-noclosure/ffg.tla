@@ -21,7 +21,10 @@ CONSTANT
     VALIDATORS,
     \* N = Cardinality(VALIDATORS)
     \* @type: Int;
-    N
+    N,
+    \* One third of the validators, N = 3 * T + 1
+    \* @type: Int;
+    T
 
 BlockSlots == 0..MAX_BLOCK_SLOT
 CheckpointSlots == 0..(MAX_BLOCK_SLOT+2)
@@ -147,7 +150,7 @@ IsJustified(checkpoint, viewVotes, fixpoint) ==
                 /\ IsLeftAncestorOfRight(ffgVote.source[1], checkpoint[1])
                 \* L8:
                 /\ ffgVote.target[2] = checkpoint[2] }    
-        IN 3 * Cardinality(validatorsWhoCastJustifyingVote) >= 2 * N
+        IN Cardinality(validatorsWhoCastJustifyingVote) >= 2 * T + 1
 
 \* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
 IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
@@ -161,7 +164,7 @@ IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
                     /\ ffgVote.source = checkpoint
                     \* L15:
                     /\ ffgVote.target[2] = checkpoint[2] + 1 }
-        IN 3 * Cardinality(validatorsWhoCastFinalizingVote) >= 2 * N
+        IN Cardinality(validatorsWhoCastFinalizingVote) >= 2 * T + 1
 
 SlashableNodesOld ==
     LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
@@ -270,7 +273,7 @@ ExistTwoFinalizedConflictingBlocks ==
     IN ~disagreement
 
 AccountableSafety ==
-    \/ SlashableNodesOver(LAMBDA k: 3 * k >= N) \*Cardinality(SlashableNodes) * 3 >= N
+    \/ SlashableNodesOver(LAMBDA k: k >= T + 1) \*Cardinality(SlashableNodes) * 3 >= N
     \/ \A c1, c2 \in justified_checkpoints:
         \/ ~IsFinalized(c1, votes, justified_checkpoints)
         \/ ~IsFinalized(c2, votes, justified_checkpoints)

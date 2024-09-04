@@ -11,6 +11,7 @@ MAX_BLOCK_BODY == 3
 VALIDATORS == {"V1", "V2", "V3", "V4"}
 
 N == 4
+T == 1
 
 VARIABLES
     \* the set of all_blocks
