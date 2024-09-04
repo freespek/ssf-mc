@@ -163,7 +163,7 @@ IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
                     /\ ffgVote.target[2] = checkpoint[2] + 1 }
         IN 3 * Cardinality(validatorsWhoCastFinalizingVote) >= 2 * N
 
-SlashableNodes ==
+SlashableNodesOld ==
     LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
         \* equivocation
         \/ /\ vote1.validator = vote2.validator
@@ -176,6 +176,27 @@ SlashableNodes ==
                  /\ vote1.ffg_vote.source[1].slot < vote2.ffg_vote.source[1].slot
            /\ vote2.ffg_vote.target[2] < vote1.ffg_vote.target[2]
     } IN { v.validator: v \in slashable_votes }
+
+\* @type: (Int => Bool) => Bool;
+SlashableNodesOver(isMinCardinality(_)) ==
+    LET \* @type: ($vote, $vote) => Bool;
+        IsEquivocation(vote1, vote2) ==
+        /\ vote1 /= vote2
+        /\ vote1.ffg_vote.target[2] = vote2.ffg_vote.target[2]
+    IN
+    LET \* @type: ($vote, $vote) => Bool;
+        IsSurroundVoting(vote1, vote2) ==
+        /\ \/ vote1.ffg_vote.source[2] < vote2.ffg_vote.source[2]
+           \/ /\ vote1.ffg_vote.source[2] = vote2.ffg_vote.source[2]
+              /\ vote1.ffg_vote.source[1].slot < vote2.ffg_vote.source[1].slot
+        /\ vote2.ffg_vote.target[2] < vote1.ffg_vote.target[2]
+    IN
+    \E Slashable \in SUBSET VALIDATORS:
+        /\ isMinCardinality(Cardinality(Slashable))
+        /\ \E vote1, vote2 \in votes:
+            /\ vote1.validator = vote2.validator
+            /\ vote1.validator \in Slashable
+            /\ IsEquivocation(vote1, vote2) \/ IsSurroundVoting(vote1, vote2)
 
 \* Append a block to chain 1.
 \* @type: Int => Bool;
@@ -249,11 +270,11 @@ ExistTwoFinalizedConflictingBlocks ==
     IN ~disagreement
 
 AccountableSafety ==
-    LET disagreement == \E c1, c2 \in justified_checkpoints: 
-        /\ IsFinalized(c1, votes, justified_checkpoints)
-        /\ IsFinalized(c2, votes, justified_checkpoints)
-        /\ AreConflictingBlocks(c1[1], c2[1])
-    IN ~disagreement \/ Cardinality(SlashableNodes) * 3 >= N
+    \/ SlashableNodesOver(LAMBDA k: 3 * k >= N) \*Cardinality(SlashableNodes) * 3 >= N
+    \/ \A c1, c2 \in justified_checkpoints:
+        \/ ~IsFinalized(c1, votes, justified_checkpoints)
+        \/ ~IsFinalized(c2, votes, justified_checkpoints)
+        \/ ~AreConflictingBlocks(c1[1], c2[1])
 
 Init == 
     /\ all_blocks = { GenesisBlock }
