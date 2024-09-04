@@ -2,10 +2,10 @@
 \section{Translation rules}
 
 \subsection{Preliminaries}
-Let $f$ be any \tlap function. We use the shorthand $D_f \coloneqq \DOMAIN\; f$.
+Let $f$ be any \tlap function. We use the shorthand $D_f \coloneqq \DOMAIN f$.
 We use $\nat$ to refer to the set of all natural numbers (i.e. nonnegative integers).
 
-We assume the following precondition: There exists a map $\gamma: a \to \nat$, with the following property:
+We assume the following precondition: There exists a map $\gamma\colon a \to \nat$, with the following property:
 \[
 \forall x\colon a \ .\ \forall y \in h(V(x)) \ .\ \gamma(y) < \gamma(x) 
 \]
@@ -18,7 +18,6 @@ Recall the following definitions:
 \]
 and
 \[
-% \iteDef{\mapg(f, m)[x]}{m[x]}{x \in D_m}{G(x, F(h(f[x]), m))}
 \mapg(f, m)[x] \coloneqq \left\{
 \begin{array}{ll}
       m[x] &; x \in D_m \\
@@ -105,52 +104,7 @@ Since all sets in question are finite, $D_{b(f)}$ is either empty, in which case
 \end{proof}
 As a trivial corollary to this lemma, we observe that $\alpha(b(f)) = \alpha(f)$ iff $\alpha(f) = -\infty$.
 
-
-% \begin{theorem}
-% \[
-% \op(x) = \mop([ v \in \{x\} \mapsto V(x) ])[x]
-% \]
-% \end{theorem}
-% \begin{proof}
-% We prove this theorem in two steps below: first for $x$ where $P(x)$ holds, and then for the general case.
-% \end{proof}
-
-% Let us recall some definitions:
-% \[
-% \iteDef{\mop(f)}{[ x \in D_f \mapsto e ]}{\forall x \in D_f \ .\ P(x)}{\mapg(f, \mop(f'))}
-% \]
-% and
-% \[
-% \iteDef{\mapg(f, m)[x]}{m[x]}{x \in D_m}{G(x, F(h(f[x]), m))}
-% \]
-
-
-% \begin{lemma}
-% Assume $P(x)$ holds. Then, 
-% \[
-% \op(x) = \mop([ v \in \{x\} \mapsto V(x) ])[x]
-% \]
-% \end{lemma}
-
-% \begin{proof}
-% By definition, $\op(x) = e$. If we take $f = [ v \in \{x\} \mapsto V(x) ]$, it satisfies the condition
-% \[
-% \forall x \in D_f \ .\ P(x)
-% \]
-% so $\mop(f) = [ y \in \{x\} \mapsto e ]$ and it trivially follows that
-% \[
-% \op(x) = e = [ x \in D_f \mapsto e ] \mop([ v \in {x} \mapsto V(x) ])[x]
-% \]
-% \end{proof}
-
-\begin{theorem}\label{thm}
-Let $f$ be a function, s.t. for any $x \in D_f$ it is the case that $f[x] = V(x)$. Then, for
-$g \coloneqq \mop(f)$
-\[
-\forall x \in D_g \ .\ g[x] = \op(x)
-\]
-\end{theorem}
-
+\recallthm{thm}{\thmBody}
 \begin{proof}
 We prove this by using induction over $\alpha(f)$.
 
@@ -169,21 +123,7 @@ for every element in its domain, so the precondition of the theorem is met. Addi
 \[
 \forall x \in D_{\mop(f')} \ .\ \mop(f')[x] = \op(x)
 \]
-% We now look to the definition of $\mop$, to see how it is expressed in terms of $f'$:
-% \[
-% \iteDef{\mop(f)}{[ x \in D_f \mapsto e ]}{\forall x \in D_f \ .\ P(x)}{\mapg(f, \mop(f'))}
-% \]
-% and
-% \[
-% % \iteDef{\mapg(f, m)[x]}{m[x]}{x \in D_m}{G(x, F(h(f[x]), m))}
-% \mapg(f, m)[x] \coloneqq \left\{
-% \begin{array}{ll}
-%       m[x] &; x \in D_m \\
-%       e &; P(x) \\
-%       G(x, F(h(f[x]), m)) &; \text{otherwise}\\
-% \end{array} 
-% \right. 
-% \]
+
 If it is the case that $\forall x \in D_f \ .\ P(x)$, then $\mop(f)[x] = e$ for all domain elements, since 
 $D_f = D_{\mop(f)}$, by the same reasoning we used in the case where $D_f$ was empty. Similarly, for each such $x$, $\op(x) = e$ by the definition of $\op$, since $P(x)$ holds.
 
@@ -209,12 +149,7 @@ By the property of $f$, $h(f[x]) = h(V(x))$. As $x \in D_f$, $h(f[x]) \subseteq 
 
 \end{proof}
 
-\begin{corollary}
-For any $x\colon a$
-\[
-\op(x) = \mop([ v \in \{x\} \mapsto V(x) ])[x]
-\]
-\end{corollary}
+\recallcorollary{corollary}{\corollaryBody}
 \begin{proof}
 \[
 f \coloneqq [ v \in \{x\} \mapsto V(x) ]
@@ -223,6 +158,6 @@ obviously satisfies the precondition of Theorem \ref{thm}:
 \[
 \forall y \in D_f \ .\ f[y] = V(y)
 \]
-Since $x \in D_f \subseteq D_{\mop(f)}$, we conclude that $\mop(f)[x] = \op(x)$.
+Since $x \in D_f \subseteq D_{\mop(f)}$ by Lemma~\ref{lemma1}, we can use Theorem~\ref{thm}, to conclude that $\mop(f)[x] = \op(x)$.
 \end{proof}
 
