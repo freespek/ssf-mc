@@ -129,6 +129,40 @@ NonrecursiveOpForAssociative(x, N) ==
     IN ApaFoldSeqLeft( step, <<x, x>>, MkSeq(N, LAMBDA i: i) )[1]
 \end{lstlisting}
 
+\subsubsection{ Mutual recursion cycles}
+
+Assume we are given a collection of $n$ operators $\op_1, \dots, \op_n$ (using the convention $\op_{n+1} = \op_1$), with types $\op_i\colon (a_i) \Rightarrow a_{i+1}$ s.t. $a_{n+1} = a_1$, in the following pattern:
+
+\begin{lstlisting}[language=tla,columns=fullflexible]
+RECURSIVE Op_i(_)
+\* $@$type (a_i) => a_{i+1};
+Op_i(x) == G_i(x, Op_{i+1}(b_i(x)))
+\end{lstlisting}
+%
+Then, we can inline any one of these operators, w.l.o.g. $Op_1$, s.t. we obtain a primitive-recursive operator:
+\begin{lstlisting}[language=tla,columns=fullflexible]
+RECURSIVE Op(_)
+\* $@$type: (a_1) => a_1;
+Op(x) ==
+  G_1(
+    x, 
+    G_2( 
+      b_1(x),
+      G_3(
+        b_2(b_1(x)),
+        G_4(
+          ...
+          G_n( 
+            b_{n-1}(b_{n-2}(...(b_1(x)))),
+            Op(b_n(b_{n-1}(...(b_1(x)))))
+            )
+          )
+        )
+      )
+    )
+\end{lstlisting}
+for which $\op(x) = \op_1(x)$ for all $x$, and $\op$ terminates iff $\op_1$ terminates.
+
 \subsubsection{One-to-many recursion}
 
 Suppose we are given, for each value $x: a$, a set $V(x)\colon \Set(c)$, and an operator $h\colon \Set(c) \Rightarrow Set(a)$, s.t. $h(V(x)$ is exactly the set of values $v$, for which we are required to recursively compute $\op(v)$, in order to compute $\op(x)$. 
@@ -155,9 +189,9 @@ We can translate this type of recursion, to the one above, by introducing a map-
 \[
 \op(x) = \mop([ v \in \{x\} \mapsto V(x) ])[x]
 \] 
-if $\op(x)$ terminates. We define the necessary operators in Figure \ref{fig1}.
-\begin{figure}
-\caption{Auxiliary operators \label{fig1}}
+if $\op(x)$ terminates. We define the necessary operators in Figure \ref{fig1}. Using these operator definitions, we can show the following theorem:
+\begin{figure}[ht]
+\caption{$\mop$ and auxiliary operators \label{fig1}}
 \begin{lstlisting}[language=tla,columns=fullflexible]
 \* $@$type: (a -> Set(c)) => a -> Set(c);
 b(map) ==
@@ -189,8 +223,6 @@ mapOp(map) ==
   ELSE mapG(map, mapOp(b(map)))
 \end{lstlisting}
 \end{figure}
-%
-Using these operator definitions, we can show the following theorem:
 
 \newcommand{\thmBody}{
 Let $f$ be a function, s.t. for any $x \in D_f$ it is the case that $f[x] = V(x)$. Then, for
@@ -215,40 +247,6 @@ For any $x\colon a$
 \corollaryBody
 \end{corollary}
 The equivalence proofs are available in the appendix. The termination proof must still be made on a case-by-case basis, as it depends on $h$ and $V$.
-
-% ### Mutual recursion cycles
-
-% Assume we are given a collection of `n` operators `Op_1, ..., Op_n` (using the convention `Op_{n+1} = Op_1`), with types `Op_i: (a_i) => a_{i+1}` s.t. `a_{n+1} = a_1`, in the following pattern:
-
-% ```tla
-% RECURSIVE Op_i(_)
-% \* @type (a_i) => a_{i+1};
-% Op_i(x) == G_i(x, Op_{i+1}(b_i(x)))
-% ```
-
-% Then, we can inline any one of these operators, w.l.o.g. `Op_1`, s.t. we obtain a primitive-recursive operator:
-% ```tla
-% RECURSIVE Op(_)
-% \* @type: (a_1) => a_1;
-% Op(x) ==
-%   G_1(
-%     x, 
-%     G_2( 
-%       b_1(x),
-%       G_3(
-%         b_2(b_1(x)),
-%         G_4(
-%           ...
-%           G_n( 
-%             b_{n-1}(b_{n-2}(...(b_1(x)))),
-%             Op(b_n(b_{n-1}(...(b_1(x)))))
-%             )
-%           )
-%         )
-%       )
-%     )
-% ```
-% for which `Op(x) = Op_1(x)` for all `x`, and `Op` terminates iff `Op_1` terminates.
 
 
 
