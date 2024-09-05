@@ -4,20 +4,20 @@
 EXTENDS FiniteSets, Integers, typedefs, TLC
 
 CONSTANTS
-            \* @type: Int;
-            N,
-            \* @type: Set(Int);
-            Validators,
-            \* @type: Int;
-            MAX_BLOCK_SLOT,
-            \* @type: Int;
-            MAX_BLOCK_BODY,
-            \* @type: Int;
-            NUMBER_OF_CHECKPOINTS,
-            \* @type: Int;
-            LEN_1,
-            \* @type: Int;
-            LEN_2
+    \* @type: Int;
+    N,
+    \* @type: Set(Int);
+    Validators,
+    \* @type: Int;
+    MAX_BLOCK_SLOT,
+    \* @type: Int;
+    MAX_BLOCK_BODY,
+    \* @type: Int;
+    NUMBER_OF_CHECKPOINTS,
+    \* @type: Int;
+    LEN_1,
+    \* @type: Int;
+    LEN_2
 
 \* @type: Set(Int);
 Block_Slots == 0..MAX_BLOCK_SLOT
@@ -412,8 +412,8 @@ OtherCases ==
                             /\ IsSlashable(vote_1, vote_2)
                     
 AtLeastOneThirdIsSlashable ==
-    \/  C_f_1.chkp_slot = C_j_2.chkp_slot => Case1
-    \/  C_f_1.chkp_slot < C_j_2.chkp_slot => OtherCases
+    /\  C_f_1.chkp_slot = C_j_2.chkp_slot => Case1
+    /\  C_f_1.chkp_slot < C_j_2.chkp_slot => OtherCases
                     
 Next == UNCHANGED <<    chain_1,
                         chain_2,
