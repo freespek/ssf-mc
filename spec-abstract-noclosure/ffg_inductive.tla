@@ -43,12 +43,11 @@ IndInv ==
     /\ \A vote \in votes:
         /\ vote.ffg_vote \in ffg_votes
         /\ vote.validator \in VALIDATORS
-	/\ GenesisCheckpoint \in checkpoints
-    /\ GenesisCheckpoint \in checkpoints
-    /\ \A c \in checkpoints: IsValidCheckpoint(c)
     \*/\ justified_checkpoints = JustifiedCheckpoints(votes)
     /\ GenesisCheckpoint \in justified_checkpoints
     /\ \A c \in justified_checkpoints: IsJustified(c, votes, justified_checkpoints)
-    /\ \A c \in (checkpoints \ justified_checkpoints): ~IsJustified(c, votes, justified_checkpoints)
+    /\ LET allCheckpoints == {Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots} IN
+       \A c \in (allCheckpoints \ justified_checkpoints):
+         ~IsJustified(c, votes, justified_checkpoints)
 
 ===============================================================================

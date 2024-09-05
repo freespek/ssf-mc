@@ -29,6 +29,13 @@ CONSTANT
 BlockSlots == 0..MAX_BLOCK_SLOT
 CheckpointSlots == 0..(MAX_BLOCK_SLOT+2)
 
+\* instead of computing the cardinalities of votes, we simply check intersections with these quorum sets
+\*LargeQuorums == { v \in SUBSET VALIDATORS : Cardinality(v) > 2 * T }
+\*SmallQuorums == { v \in SUBSET VALIDATORS : Cardinality(v) > T }
+
+SmallQuorums == { {"V1", "V2"}, {"V1", "V3"}, {"V1", "V4"}, {"V2", "V3"}, {"V2", "V4"}, {"V3", "V4"} }
+LargeQuorums == { {"V1", "V2", "V3"}, {"V1", "V2", "V4"}, {"V1", "V3", "V4"}, {"V2", "V3", "V4"}, {"V1", "V2", "V3", "V4"} }
+
 VARIABLES
     \* the set of all_blocks
     \* @type: Set($block);
@@ -53,9 +60,6 @@ VARIABLES
     ffg_votes,
     \* @type: Set($vote);
     votes,
-    \* The set of the checkpoints that were announced so far.
-    \* @type: Set($checkpoint);
-    checkpoints,
     \* The maximal subset of checkpoints that are justified.
     \* @type: Set($checkpoint);
     justified_checkpoints
@@ -150,7 +154,8 @@ IsJustified(checkpoint, viewVotes, fixpoint) ==
                 /\ IsLeftAncestorOfRight(ffgVote.source[1], checkpoint[1])
                 \* L8:
                 /\ ffgVote.target[2] = checkpoint[2] }    
-        IN Cardinality(validatorsWhoCastJustifyingVote) >= 2 * T + 1
+        IN validatorsWhoCastJustifyingVote \in LargeQuorums
+        \*Cardinality(validatorsWhoCastJustifyingVote) >= 2 * T + 1
 
 \* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
 IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
@@ -164,7 +169,8 @@ IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
                     /\ ffgVote.source = checkpoint
                     \* L15:
                     /\ ffgVote.target[2] = checkpoint[2] + 1 }
-        IN Cardinality(validatorsWhoCastFinalizingVote) >= 2 * T + 1
+        IN validatorsWhoCastFinalizingVote \in LargeQuorums
+        \* Cardinality(validatorsWhoCastFinalizingVote) >= 2 * T + 1
 
 SlashableNodesOld ==
     LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
@@ -180,8 +186,7 @@ SlashableNodesOld ==
            /\ vote2.ffg_vote.target[2] < vote1.ffg_vote.target[2]
     } IN { v.validator: v \in slashable_votes }
 
-\* @type: (Int => Bool) => Bool;
-SlashableNodesOver(isMinCardinality(_)) ==
+SlashableNodesOver ==
     LET \* @type: ($vote, $vote) => Bool;
         IsEquivocation(vote1, vote2) ==
         /\ vote1 /= vote2
@@ -194,8 +199,8 @@ SlashableNodesOver(isMinCardinality(_)) ==
               /\ vote1.ffg_vote.source[1].slot < vote2.ffg_vote.source[1].slot
         /\ vote2.ffg_vote.target[2] < vote1.ffg_vote.target[2]
     IN
-    \E Slashable \in SUBSET VALIDATORS:
-        /\ isMinCardinality(Cardinality(Slashable))
+    \E Slashable \in SmallQuorums:
+        \*/\ isMinCardinality(Cardinality(Slashable))
         /\ \E vote1, vote2 \in votes:
             /\ vote1.validator = vote2.validator
             /\ vote1.validator \in Slashable
@@ -215,7 +220,7 @@ ProposeBlockOnChain1(slot) ==
        ELSE
          /\ chain2' = chain2 \union { new_block }
          /\ chain2_tip' = new_block
-    /\ UNCHANGED <<ffg_votes, votes, checkpoints, justified_checkpoints, chain2_fork_block_number>>
+    /\ UNCHANGED <<ffg_votes, votes, justified_checkpoints, chain2_fork_block_number>>
 
 \* Append a block to chain 2.
 \* @type: Int => Bool;
@@ -228,25 +233,13 @@ ProposeBlockOnChain2(slot) ==
     /\ all_blocks' = all_blocks \union { new_block }
     /\ chain2' = chain2 \union { new_block }
     /\ chain2_tip' = new_block
-    /\ UNCHANGED <<chain1, chain1_tip, ffg_votes, votes, checkpoints, justified_checkpoints>>
-
-\* Add a checkpoint to the set of announced checkpoints.
-\* @type: ($block, Int) => Bool;
-AddCheckpoint(block, slot) ==
-    LET checkpoint == Checkpoint(block, slot) IN
-    /\ IsValidCheckpoint(checkpoint)
-    /\ checkpoints' = checkpoints \union { checkpoint }
-    /\ \E allJustifiedCheckpoints \in SUBSET checkpoints':
-        /\ justified_checkpoints' = allJustifiedCheckpoints
-        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes, allJustifiedCheckpoints)
-        /\ \A c \in (checkpoints' \ allJustifiedCheckpoints): ~IsJustified(c, votes, allJustifiedCheckpoints)
-    \*/\ justified_checkpoints' = JustifiedCheckpoints(votes')
-    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number, ffg_votes, votes>>
+    /\ UNCHANGED <<chain1, chain1_tip, ffg_votes, votes, justified_checkpoints>>
 
 JustifiedCheckpoints(viewVotes) ==
     \* @type: Set($checkpoint) => Set($checkpoint);
     LET AccJustified(justifiedSoFar, justifiedCheckpointSlot) ==
-        LET newJustifiedCheckpoints == { c \in checkpoints: IsJustified(c, viewVotes, justifiedSoFar) } IN
+        LET candidateCheckpoints == { Checkpoint(block, justifiedCheckpointSlot): block \in all_blocks } IN
+        LET newJustifiedCheckpoints == { c \in candidateCheckpoints: IsJustified(c, viewVotes, justifiedSoFar) } IN
         justifiedSoFar \union newJustifiedCheckpoints
     IN ApaFoldSeqLeft(AccJustified, { GenesisCheckpoint }, MkSeq(MAX_BLOCK_SLOT+2, (* @type: Int => Int; *) LAMBDA i: i))
 
@@ -257,23 +250,64 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    /\ \E allJustifiedCheckpoints \in SUBSET checkpoints:
+    /\ LET allCheckpoints == { Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots } IN
+       \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
         /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        /\ \A c \in (checkpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
     \*/\ justified_checkpoints' = JustifiedCheckpoints(votes')
-    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number, checkpoints>>
+    /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number>>
 
-ExistTwoConflictingBlocks == \A b1, b2 \in all_blocks: ~AreConflictingBlocks(b1, b2)
-ExistTwoFinalizedConflictingBlocks ==
+\* Check this property to see an example of two conflicting blocks.
+TwoConflictingBlocks ==
+    \A b1, b2 \in all_blocks: ~AreConflictingBlocks(b1, b2)
+
+(*
+ Check this property to see an example of two finalized conflicting blocks.
+
+ Scenario 1:
+
+ slot 0  slot 1  slot 2  slot 3  slot 4  slot 5
+
+ genesis  b1      c1     c1 [f]  
+         -b1                       -c1   -c1 [f]
+ *)
+TwoFinalizedConflictingBlocks ==
     LET disagreement == \E c1, c2 \in justified_checkpoints: 
         /\ IsFinalized(c1, votes, justified_checkpoints)
         /\ IsFinalized(c2, votes, justified_checkpoints)
         /\ AreConflictingBlocks(c1[1], c2[1])
     IN ~disagreement
 
+(*
+ Check this property to see an example of two finalized conflicting blocks,
+ which are not caused by equivocation.
+
+ Scenario 2:
+
+ slot 0    slot 1    slot 2   slot 3    slot 4  slot 5   slot 6   slot 7
+                        
+ genesis    b1         c1
+                       b2                 c2     c2 [f]
+            -b1        -b2     -c1                         -c2     -c2 [f]
+ *)
+TwoFinalizedConflictingBlocksNoEquivocation ==
+    LET \* @type: ($vote, $vote) => Bool;
+        IsEquivocation(vote1, vote2) ==
+        /\ vote1 /= vote2
+        /\ vote1.ffg_vote.target[2] = vote2.ffg_vote.target[2]
+    IN
+    LET disagreement == \E c1, c2 \in justified_checkpoints: 
+        /\ IsFinalized(c1, votes, justified_checkpoints)
+        /\ IsFinalized(c2, votes, justified_checkpoints)
+        /\ AreConflictingBlocks(c1[1], c2[1])
+    IN \/ ~disagreement
+       \/ \E vote1, vote2 \in votes:
+            /\ vote1.validator = vote2.validator
+            /\ IsEquivocation(vote1, vote2)
+
 AccountableSafety ==
-    \/ SlashableNodesOver(LAMBDA k: k >= T + 1) \*Cardinality(SlashableNodes) * 3 >= N
+    \/ SlashableNodesOver \*Cardinality(SlashableNodes) * 3 >= N
     \/ \A c1, c2 \in justified_checkpoints:
         \/ ~IsFinalized(c1, votes, justified_checkpoints)
         \/ ~IsFinalized(c2, votes, justified_checkpoints)
@@ -288,16 +322,16 @@ Init ==
     /\ chain2_fork_block_number = 0
     /\ ffg_votes = {}
     /\ votes = {}
-    /\ checkpoints = { GenesisCheckpoint }
     /\ justified_checkpoints = { GenesisCheckpoint }
 
 Next == 
     \/ \E slot \in BlockSlots:
         \/ ProposeBlockOnChain1(slot)
         \/ ProposeBlockOnChain2(slot)
-    \/ \E block \in all_blocks, slot \in CheckpointSlots:
-        AddCheckpoint(block, slot)
-    \/ \E source \in checkpoints, target \in checkpoints, validators \in SUBSET VALIDATORS: 
-        CastVotes(source, target, validators)
-
+    \/ \E sourceBlock, targetBlock \in all_blocks, srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
+        CastVotes(
+            Checkpoint(sourceBlock, srcSlot), 
+            Checkpoint(targetBlock, tgtSlot),
+            validators
+        )
 =============================================================================

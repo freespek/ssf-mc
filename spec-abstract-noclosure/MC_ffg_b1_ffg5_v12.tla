@@ -1,4 +1,4 @@
-------------------------- MODULE MC_ffg_b3_ffg5_v12 ----------------------------
+------------------------- MODULE MC_ffg_b1_ffg5_v12 ----------------------------
 
 EXTENDS FiniteSets
 
@@ -7,7 +7,7 @@ EXTENDS FiniteSets
 \* @type: Int;
 MAX_BLOCK_SLOT == 3
 \* @type: Int;
-MAX_BLOCK_BODY == 3
+MAX_BLOCK_BODY == 1
 
 \* @type: Set(Str);
 VALIDATORS == {"V1", "V2", "V3", "V4"}

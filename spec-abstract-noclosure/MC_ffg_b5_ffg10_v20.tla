@@ -37,9 +37,6 @@ VARIABLES
     ffg_votes,
     \* @type: Set($vote);
     votes,
-    \* The set of the checkpoints that were announced so far.
-    \* @type: Set($checkpoint);
-    checkpoints,
     \* @type: Set($checkpoint);
     justified_checkpoints
 
@@ -59,7 +56,6 @@ IndInit ==
     /\ \E fork_number \in Int:
         /\ fork_number \in -MAX_BLOCK_BODY..0
         /\ chain2_fork_block_number = fork_number
-    /\ checkpoints = Gen(10)
     /\ justified_checkpoints = Gen(10)
     /\ IndInv
 
