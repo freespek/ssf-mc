@@ -16,7 +16,7 @@ RECURSIVE R(_)
 R(x) ==
   IF P(x)
   THEN e
-  ELSE G(x, R(f(x))
+  ELSE G(x, R(next(x))
 \end{lstlisting}
 %
 i.o.w., we have:
@@ -44,7 +44,7 @@ Stack(x, N) ==
     step(seq, i) ==
       IF i > Len(seq) \/ P(seq[1])
       THEN seq
-      ELSE <<f(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
+      ELSE <<next(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
   IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
 \end{lstlisting}
 %
@@ -96,7 +96,7 @@ Stack(x, N) ==
 We can compute the above $\Chain$ with two different constants $N$, $2$ and $100$, and observe that $\Chain(4, 2) = \tup{2, 3, 4}$ and $\Chain(4, 100) = \tup{0, 1, 2, 3, 4}$. 
 We are able to tell whether we have chosen sufficiently large values for $N$ after the fact, by evaluating $P(\Chain(x,N)[1])$. 
 For our $P(x) = x \le 0$, we see $\neg P(\Chain(4, 2)[1])$, and $P(\Chain(4, 100)[1])$, so we can conclude that we should not pick $N=2$, but $N=100$ suffices. 
-Of course it is relatively easy to see, in this toy example, that the recursion depth is exactly $4$, but we could use this post-evaluation in cases where the recursion depth is harder to evaluate from the specification, to determine whether we need to increase the value of $N$.
+Of course it is relatively easy to see, in this toy example, that the recursion depth is exactly $4$, but we could use this post-evaluation in cases where the recursion depth is harder to evaluate from the specification, to determine whether we need to increase the value of $N$. \hfill $\triangleleft$
 
 \noindent Continuing with the next operator:
 \begin{lstlisting}[language=tla,columns=fullflexible]
@@ -135,7 +135,7 @@ IForAssociative(x, N) ==
           IF P(currentElemInSeq)
           THEN pair
           ELSE
-            LET nextElemInSeq == b(currentElemInSeq)
+            LET nextElemInSeq == next(currentElemInSeq)
             IN << G(partialAppChain, IF P(nextElemInSeq) e ELSE nextElemInSeq), nextElemInSeq >>
     IN ApaFoldSeqLeft( step, <<x, x>>, MkSeq(N, LAMBDA i: i) )[1]
 \end{lstlisting}
@@ -147,7 +147,7 @@ Assume we are given a collection of $n$ operators $\op_1, \dots, \op_n$ (using t
 \begin{lstlisting}[language=tla,columns=fullflexible]
 RECURSIVE R_i(_)
 \* $@$type (a_i) => a_{i+1};
-R_i(x) == G_i(x, R_{i+1}(f_i(x)))
+R_i(x) == G_i(x, R_{i+1}(next_i(x)))
 \end{lstlisting}
 %
 Then, we can inline any one of these operators, w.l.o.g. $\op_1$, s.t. we obtain a primitive-recursive operator:
@@ -156,11 +156,11 @@ RECURSIVE R(_)
 \* $@$type: (a_1) => a_1;
 R(x) ==
   G_1( x, 
-    G_2( f_1(x),
-      G_3( f_2(f_1(x)),
+    G_2( next_1(x),
+      G_3( next_2(next_1(x)),
         G_4( ...
-          G_n( f_{n-1}(f_{n-2}(...(f_1(x)))), 
-               R(f_n(f_{n-1}(...(f_1(x)))))
+          G_n( next_{n-1}(next_{n-2}(...(next_1(x)))), 
+               R(next_n(next_{n-1}(...(next_1(x)))))
             )
           )
         )
@@ -171,47 +171,51 @@ for which $\op(x) = \op_1(x)$ for all $x$, and $\op$ terminates iff $\op_1$ term
 
 \subsubsection{One-to-many recursion}
 
-Suppose we are given, for each value $x: a$, a set $V(x)\colon \Set(c)$, and an operator $h\colon \Set(c) \Rightarrow Set(a)$, s.t. $h(V(x)$ is exactly the set of values $v$, for which we are required to recursively compute $\op(v)$, in order to compute $\op(x)$. 
-Further, assume that there exists a mapping $\gamma$ from $a$ to nonnegative integers, with the property that, for any $x$ of type $a$ the following holds:
+Suppose we are given, for each value $x: a$, a finite set $V(x)\colon \Set(a)$ s.t. $V(x)$ is exactly the set of values $v$, for which we are required to recursively compute $\op(v)$, in order to compute $\op(x)$. 
+Further, assume that there exists a potential function $\gamma$ from $a$ to nonnegative integers, with the property that, for any $x$ of type $a$ the following holds:
 \[
-\forall y \in h(V(x))\colon \gamma(y) < \gamma(x) 
+\forall y \in V(x)\colon \gamma(y) < \gamma(x) 
 \]
 %
 If one cannot think of a more intuitive candidate for $\gamma$, one may always take $\gamma(t)$ to be the recursion stack-depth required to compute $\op(t)$ (assuming termination). It is easy to see that such a definition satisfies the above condition.
 
+\paragraph{Example.} In the 3SF example, for each checkpoint $x$, the set $V(x)$ would be the set of all source-checkpoints belonging to FFG votes, which could be used to justify $x$ (and those checkpoints need to be recursively justified, forming a chain all the way back to genesis). Additionally, $\gamma$ would assign each checkpoint $x$ the value $x.\text{slot}$. \hfill $\triangleleft$
+
 \noindent Let $\op$ have the following shape:
 \begin{lstlisting}[language=tla,columns=fullflexible]
-RECURSIVE Op(_)
+RECURSIVE R(_)
 \* $@$type (a) => b;
-Op(x) ==
+R(x) ==
   IF P(x)
   THEN e
-  ELSE G(x, F(h(V(x)), Op))
+  ELSE G(x, F(V(x), Op))
 \end{lstlisting}
 %
 where $F(S, T(\_)) \coloneqq \{s \in S\colon T(s)\}$ or $F(S, T(\_)) \coloneqq \{T(s)\colon s \in S\}$ (i.e. a map or a filter).
 %
-We can translate this type of recursion, to the one above, by introducing a map-base recursive operator $\mop$, for which we will ensure
+\paragraph{Example.} In the 3SF example, for $\mathrm{is\_justified\_checkpoint}$, $P$ checks whether $x$ is the genesis checkpoint, and $e = \TRUE$. $G$ is the main computation, which determines whether or not a non-genesis checkpoint is justified, by finding quorums of validators, wherein each validator cast an FFG vote justifying $x$, but where the source checkpoint was recursively justified (i.e. belonged to $V(x)$). \hfill $\triangleleft$
+\\
+\\
+We give a translation scheme, which reduces this more generalized form of recursion to the one given in the previous section, by defining a map-based recursive operator $\mop$, for which we will ensure
 \[
 \op(x) = \mop([ v \in \{x\} \mapsto V(x) ])[x]
 \] 
 if $\op(x)$ terminates. We define the necessary operators in Figure \ref{fig1}. Using these operator definitions, we can show the following theorem:
 \begin{figure}[ht]
-\caption{$\mop$ and auxiliary operators \label{fig1}}
 \begin{lstlisting}[language=tla,columns=fullflexible]
-\* $@$type: (a -> Set(c)) => a -> Set(c);
-b(map) ==
-  LET newDomain == UNION {h(map[v]): v \in DOMAIN map}
+\* $@$type: (a -> Set(a)) => a -> Set(a);
+next(map) ==
+  LET newDomain == UNION {map[v]: v \in DOMAIN map}
   IN [ newDomainElem \in newDomain |-> V(newDomainElem) ]
 
-\* $@$type: (a -> Set(c), a -> b) => a -> b;
-mapG(currentRecursionStepMap, partialValueMap) ==
+\* $@$type: (a -> Set(a), a -> b) => a -> b;
+Gm(currentRecursionStepMap, partialValueMap) ==
   LET domainExtension == DOMAIN currentRecursionStepMap IN
   LET 
     \* $@$type: (a) => b;
     evalOneKey(k) ==
       LET OpSubstitute(x) == partialValueMap[x] 
-      IN G(k, F(h(currentRecursionStepMap[k]), OpSubstitute))
+      IN G(k, F(currentRecursionStepMap[k], OpSubstitute))
   IN [
     x \in (domainExtension \union DOMAIN partialValueMap) |->
       IF x \in DOMAIN partialValueMap
@@ -221,20 +225,21 @@ mapG(currentRecursionStepMap, partialValueMap) ==
            ELSE evalOneKey(x)
   ]
 
-RECURSIVE mapOp(_)
-\* $@$type (a -> Set(c)) => a -> b;
-mapOp(map) ==
+RECURSIVE Rm(_)
+\* $@$type (a -> Set(a)) => a -> b;
+Rm(map) ==
   IF \A x \in DOMAIN map: P(x)
   THEN [ x \in DOMAIN map |-> e ]
-  ELSE mapG(map, mapOp(b(map)))
+  ELSE Gm(map, Rm(next(map)))
 \end{lstlisting}
+\caption{$\mop$ and auxiliary operators \label{fig1}}
 \end{figure}
 
 \newcommand{\thmBody}{
-Let $f$ be a function, s.t. for any $x \in D_f$ it is the case that $f[x] = V(x)$. Then, for
-$g \coloneqq \mop(f)$
+Let $f$ be a function, s.t. for any $x \in \DOMAIN f$ it is the case that $f[x] = V(x)$. Then, for
+$g \coloneqq \mop(f)$:
 \[
-\forall x \in D_g \ .\ g[x] = \op(x)
+\forall x \in \DOMAIN g \colon g[x] = \op(x)
 \]
 }
  
@@ -252,7 +257,8 @@ For any $x\colon a$
 \begin{corollary}\label{corollary}
 \corollaryBody
 \end{corollary}
-The equivalence proofs are available in the appendix. The termination proof must still be made on a case-by-case basis, as it depends on $h$ and $V$.
+The equivalence proofs are available in the appendix. 
+The termination proof must still be made on a case-by-case basis, as it depends on $h$ and $V$.
 
 
 
