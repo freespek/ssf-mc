@@ -67,9 +67,11 @@ Vector concatenation is translated to the list concatenation.
     {
         \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
         \\
+        s \coloneqq \tup{}\colon \Seq(\htau)
+        \\
         \mathrm{from\_set\_to\_pvector}(a)
     }{
-        \ApaFoldSet( \Push, \List(\tup{}\colon \Seq(\htau)), e ) \colon \List(\htau)
+        \ApaFoldSet( \Push, \List(s), e ) \colon \List(\htau)
     }
 \end{mathpar}
 We use fold, to create a sequence (in some order) from the set.
@@ -302,11 +304,12 @@ Set filtering is translated to the \tlap native filter operation.
         (\CHOOSE m \in e\colon \forall x \in e\colon \Le(f[x], f[m]))\colon \htau
     }
 \end{mathpar}
-Here, the translation depends on the type $T$ (resp. type $\hat{T}$), since there is no built-in notion of ordering in \tlap{}. If $\hat{T}$ is an integer type, then 
+Here, the translation depends on the type $T$ (resp. type $\hat{T}$), since there is no built-in notion of ordering in \tlap{}. 
+\paragraph{Instance 1:} If $\hat{T}$ is an integer type, then 
 \begin{lstlisting}[language=tla,columns=fullflexible]
 Le(x,y) $\defeq$ x $\le$ y
 \end{lstlisting}
-However, if $\hat{T}$ is a tuple type $\tup{\Int,\Int}$, it is instead 
+\paragraph{Instance 2:} If $\hat{T}$ is a tuple type $\tup{\Int,\Int}$, it is instead 
 % \begin{align*}
 % \Le(x,y) \defeq&\;\IF x[1] > y[1]\\
 %   &\THEN\FALSE\\
@@ -340,10 +343,10 @@ Le(x,y) $\defeq$
         \\
         \mathrm{pset\_sum}(a)
     }{
-        \LET \mathrm{Plus}(x,y) \defeq x + y \IN \ApaFoldSet(\mathrm{Plus}, 0, e) \colon \Int
+        \ApaFoldSet(+, 0, e) \colon \Int
     }
 \end{mathpar}
-We translate a set sum with an aggregator fold.
+We translate a set sum as a fold of the $+$ operator over the set.
 
 \subsubsection{ Set emptiness check}
 \href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L83-L84}{Source}.
@@ -426,13 +429,13 @@ Set mapping is translated to the \tlap{} native map operation.
 \begin{mathpar}
     \inferrule*[right=(\textsc{InDom})]
     {
-        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{e \colon \htau_1 \to \htau_2}
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
         \\
-        \inferrule{b\colon \tau_1}{f \colon \htau_1}
+        \inferrule{b\colon \tau_1}{e \colon \htau_1}
         \\
         \mathrm{pmap\_has}(a, b)
     }{
-        f \in \DOMAIN e\colon \Bool
+        e \in \DOMAIN f\colon \Bool
     }
 \end{mathpar}
 Function domain inclusion checking is translated to the \tlap{} native set-inclusion operation for $\DOMAIN$.
@@ -450,13 +453,13 @@ Function domain inclusion checking is translated to the \tlap{} native set-inclu
 \begin{mathpar}
     \inferrule*[right=(\textsc{App})]
     {
-        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{e \colon \htau_1 \to \htau_2}
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
         \\
-        \inferrule{b\colon \tau_1}{f \colon \htau_1}
+        \inferrule{b\colon \tau_1}{e \colon \htau_1}
         \\
         \mathrm{pmap\_get}(a, b)
     }{
-        e[f]\colon \htau_2
+        f[e]\colon \htau_2
     }
 \end{mathpar}
 Function application is translated to the \tlap{} native function application. We cannot account for the dynamic domain-membership requirement. Instead, in that scenario, the value of this expression is some unspecified element of the correct type.
@@ -474,11 +477,13 @@ Function application is translated to the \tlap{} native function application. W
     \inferrule*[right=(\textsc{EmptyFun})]
     {
         \mathrm{pmap\_get\_empty}()\colon \PMap[\tau_1,\tau_2]
+        \\
+        s \coloneqq \{\}\colon \Set(\tup{\htau_1, \htau_2}) 
     }{
-      	\SetAsFun(\{\}\colon \Set(\tup{\htau_1, \htau_2}))\colon \htau_1 \to \htau_2
+      	\SetAsFun(s)\colon \htau_1 \to \htau_2
     }
 \end{mathpar}
-We use Apalache's $\SetAsFun$, since we only need to annotate the empty set with the correct tuple type. The native construction via $[ \_ \mapsto \_]$ would require us to invent a codomain value, which we might not have access to if $\tau_1 \ne \tau_2$ (but could be e.g. $\mathrm{Gen}$'d since we know it will never be used).
+We use Apalache's $\SetAsFun$, since we only need to annotate the empty set with the correct tuple type. The native construction via $[ \_ \mapsto \_]$ would require us to invent a codomain value, which we might not have access to if $\tau_1 \ne \tau_2$.
 
 \subsubsection{ Function update}
 \href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L113-L114}{Source}.
@@ -493,18 +498,22 @@ We use Apalache's $\SetAsFun$, since we only need to annotate the empty set with
 \begin{mathpar}
     \inferrule*[right=(\textsc{Update})]
     {
-        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{e \colon \htau_1 \to \htau_2}
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
         \\
-        \inferrule{b\colon \tau_1}{f \colon \htau_1}
+        \inferrule{b\colon \tau_1}{x \colon \htau_1}
         \\
-        \inferrule{c\colon \tau_2}{g \colon \htau_2}
+        \inferrule{c\colon \tau_2}{y \colon \htau_2}
         \\
         \mathrm{pmap\_set}(a, b, c)
     }{
-        [e \EXCEPT ![f] = g] \colon \htau_1 \to \htau_2
+        [ v \in (\DOMAIN f \cup \{x\}) \mapsto \IF v = x \THEN y \ELSE f[x] ] \colon \htau_1 \to \htau_2
     }
 \end{mathpar}
-Function update is translated to the \tlap{} native $\EXCEPT$.
+While one might intuitively want to translate map updates using the \tlap{} native $\EXCEPT$, we cannot, since $\EXCEPT$ \href{https://lamport.azurewebsites.net/tla/book-21-07-04.pdf}{does not allow for domain extensions}, whereas $\mathrm{pmap\_set}$ \href{https://pyrsistent.readthedocs.io/en/latest/api.html#pyrsistent.PMap.set}{does}. By definition
+\[
+[f \EXCEPT ![x] = y] \defeq [v \in \DOMAIN f \mapsto \IF v = x \THEN y \ELSE f[x] ]
+\]
+where, most notably, the domain of $[f \EXCEPT ![x] = y]$ is exactly the domain of $f$. We adapt the above definition to (possibly) extend the domain.
 
 \subsubsection{ Function combination}
 \href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L117-L118}{Source}.
@@ -519,16 +528,16 @@ Function update is translated to the \tlap{} native $\EXCEPT$.
 \begin{mathpar}
     \inferrule*[right=(\textsc{FnMerge})]
     {
-        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{e \colon \htau_1 \to \htau_2}
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
         \\
-        \inferrule{b\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
+        \inferrule{b\colon \PMap[\tau_1, \tau_2]}{g \colon \htau_1 \to \htau_2}
         \\
         \mathrm{pmap\_merge}(a,b)
     }{
-        [x \in (\DOMAIN e \cup \DOMAIN f) \mapsto \IF x \in \DOMAIN f \THEN f[x] \ELSE e[x]]\colon \htau_1\to\htau_2
+        [x \in (\DOMAIN f \cup \DOMAIN g) \mapsto \IF x \in \DOMAIN g \THEN g[x] \ELSE f[x]]\colon \htau_1\to\htau_2
     }
 \end{mathpar}
-Function combination is translated to a new function, defined over the union of both domains. Note that the second map dominates in the case of key/domain collisions.
+Function combination is translated to a new function, defined over the union of both domains. Note that the second map/function dominates in the case of key/domain collisions.
 
 
 \subsubsection{ Function domain}

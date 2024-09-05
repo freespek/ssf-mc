@@ -9,33 +9,42 @@ In order to facilitate translation to the \tlap{} fragment supported by Apalache
 \subsubsection{Bounded recursion rule}
 
 Assume we are given a $\RECURSIVE$ operator $\op$. W.l.o.g. we can take the arity to be $1$, since any operator of higher arity can be expressed as an arity $1$ operator over tuples or records.
+We assume $\op$ has the following shape:
 \begin{lstlisting}[language=tla,columns=fullflexible]
-RECURSIVE Op(_)
+RECURSIVE R(_)
 \* $@$type (a) => b;
-Op(x) ==
+R(x) ==
   IF P(x)
   THEN e
-  ELSE G(x, Op(b(x))
+  ELSE G(x, R(f(x))
 \end{lstlisting}
-The following needs to hold true, to ensure recursion termination: for every $x\colon a$, there exists a sequence $x = v_1, \dots, v_n$, such that
+%
+i.o.w., we have:
+\begin{itemize}
+  \item A termination condition $P$
+  \item A "default" value $e$, returned if the argument satisfies the termination condition
+  \item A general case operator $G$, which invokes a recursive computation of $R$ over a modified parameter given by the operator $\bb$.
+\end{itemize}
+%
+The following needs to hold true, to ensure recursion termination: for every $x\colon a$, there exists a finite sequence $x = v_1, \dots, v_n$, such that
 \begin{itemize}
 \item $P(v_n)$ holds
-\item $v_{i+1} = b(v_i)$ for all $1 \le i < n$
+\item $v_{i+1} = \bb(v_i)$ for all $1 \le i < n$
 \item $P(v_i)$ does not hold for any $1 \le i < n$ (i.o.w., this is the shortest sequence with the above two properties)
 \end{itemize}
 %
-We will attempt to express the recursive operator $\op$ with a non-recursive operator $\nrop$ of arity $2$, which takes an additional parameter: a constant $N$. The non-recursive operator will have the property that, for any particular choice of $x$, $\nrop(x, N)$ will evaluate to $\op(x)$ if $n < N$ (i.e. if the recursion stack of $\op$ has height of at most $N$).
+We will attempt to express the recursive operator $\op$ with a non-recursive "iterative" operator $\nrop$ of arity $2$, which takes an additional parameter: a constant $N$. The non-recursive operator will have the property that, for any particular choice of $x$, $\nrop(x, N)$ will evaluate to $\op(x)$ if $n < N$ (i.e. if the recursion stack of $\op$ has height of at most $N$).
 %
 To that end, we first define:
 \begin{lstlisting}[language=tla,columns=fullflexible]
 \* $@$type (a, Int) => Seq(a);
-Chain(x, N) ==
+Stack(x, N) ==
   LET 
     \* $@$type: (Seq(a), Int) => Seq(a);
     step(seq, i) ==
       IF i > Len(seq) \/ P(seq[1])
       THEN seq
-      ELSE <<b(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
+      ELSE <<f(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
   IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
 \end{lstlisting}
 %
@@ -43,36 +52,38 @@ We can see that $\Chain(x,N)$ returns the sequence $\tup{v_n, ..., x}$ if $N$ is
 
 \begin{lstlisting}[language=tla,columns=fullflexible]
 \* $@$type (a, Int) => b;
-NonrecursiveOp(x, N) ==
-  LET chain == Chain(x, N) IN
+I(x, N) ==
+  LET stack == Stack(x, N) IN
   LET step(cumul, v) == G(v, cumul) IN
-  ApaFoldSeqLeft( step, e, Tail(chain) )
+  ApaFoldSeqLeft( step, e, Tail(stack) )
 \end{lstlisting}
 %
-Then, $\op^*(x) = NonrecursiveOp(x, N_0)$ for some sufficiently large specification-level constant $N_0$. Alternatively,
+Then, $\op^*(x) = \nrop(x, N_0)$ for some sufficiently large specification-level constant $N_0$. Alternatively,
 \begin{lstlisting}[language=tla,columns=fullflexible]
 \* $@$type (a, Int) => b;
-NonrecursiveOp(x, N) $\defeq$
-  LET chain == Chain(x, N) IN
+I(x, N) ==
+  LET stack == Stack(x, N) IN
   LET step(cumul, v) == G(v, cumul) IN
-  IF P(chain[1])
-  THEN ApaFoldSeqLeft(step, e, Tail(chain))
+  IF P(stack[1])
+  THEN ApaFoldSeqLeft(step, e, Tail(stack))
   ELSE CHOOSE x \in {}: TRUE 
 \end{lstlisting}
 %
-In this form, we return $\CHOOSE x \in {}: \TRUE$, which is an idiom meaning "any value" (of the correct type), in the case where the $N$ chosen was not large enough. Tools can use this idiom to detect that $\nrop(x,N)$ did not evaluate to the expected value of $\op(x)$. Consider the following example:
+In this form, we return $\CHOOSE x \in {}: \TRUE$, which is an idiom meaning "any value" (of the correct type), in the case where the $N$ chosen was not large enough. Tools can use this idiom to detect that $\nrop(x,N)$ did not evaluate to the expected value of $\op(x)$. 
+
+\paragraph{Example.} Consider the following operator:
 \begin{lstlisting}[language=tla,columns=fullflexible]
-RECURSIVE Op(_)
+RECURSIVE R(_)
 \* $@$type (Int) => Int;
-Op(x) $\defeq$
+R(x) ==
   IF x <= 0
   THEN 0
-  ELSE x + Op(x-1)
+  ELSE x + R(x-1)
 \end{lstlisting}
-where $P(x) = x \le 0$, $G(a,b) = a + b$, and $b(x) = x - 1$. For this operator, we know that $Op(4) = 10$. By the above definitions:
+where $P(x) = x \le 0$, $G(a,b) = a + b$, and $\bb(x) = x - 1$. For this operator, we know that $\op(4) = 10$. By the above definitions:
 \begin{lstlisting}[language=tla,columns=fullflexible]
 \* $@$type (Int, Int) => Seq(Int);
-Chain(x, N) ==
+Stack(x, N) ==
   LET 
     \* $@$type: (Seq(Int), Int) => Seq(Int);
     step(seq, i) ==
@@ -87,12 +98,12 @@ We are able to tell whether we have chosen sufficiently large values for $N$ aft
 For our $P(x) = x \le 0$, we see $\neg P(\Chain(4, 2)[1])$, and $P(\Chain(4, 100)[1])$, so we can conclude that we should not pick $N=2$, but $N=100$ suffices. 
 Of course it is relatively easy to see, in this toy example, that the recursion depth is exactly $4$, but we could use this post-evaluation in cases where the recursion depth is harder to evaluate from the specification, to determine whether we need to increase the value of $N$.
 
-Continuing with the next operator:
+\noindent Continuing with the next operator:
 \begin{lstlisting}[language=tla,columns=fullflexible]
 \* $@$type (Int, Int) => Int;
-NonrecursiveOp(x, N) ==
-  LET chain == Chain(x, N)
-  IN ApaFoldSeqLeft( +, 0, Tail(chain) )
+I(x, N) ==
+  LET stack == Stack(x, N)
+  IN ApaFoldSeqLeft( +, 0, Tail(stack) )
 \end{lstlisting}
 %
 we see that $\nrop(4, 2) = 7 \ne 10 = \op(4)$, but $\nrop(4, 100) = 10 = \op(4)$.
@@ -109,9 +120,9 @@ and $G$ is associative by assumption, then computing
 G(G(G(G(v_1, v_2), ...), v_{n-1}), e)
 \]
 gives us the same value. This computation can be done in a single pass:
-% \newpage
+\newpage
 \begin{lstlisting}[language=tla,columns=fullflexible]
-NonrecursiveOpForAssociative(x, N) ==
+IForAssociative(x, N) ==
   IF P(x)
   THEN e
   ELSE
@@ -134,27 +145,22 @@ NonrecursiveOpForAssociative(x, N) ==
 Assume we are given a collection of $n$ operators $\op_1, \dots, \op_n$ (using the convention $\op_{n+1} = \op_1$), with types $\op_i\colon (a_i) \Rightarrow a_{i+1}$ s.t. $a_{n+1} = a_1$, in the following pattern:
 
 \begin{lstlisting}[language=tla,columns=fullflexible]
-RECURSIVE Op_i(_)
+RECURSIVE R_i(_)
 \* $@$type (a_i) => a_{i+1};
-Op_i(x) == G_i(x, Op_{i+1}(b_i(x)))
+R_i(x) == G_i(x, R_{i+1}(f_i(x)))
 \end{lstlisting}
 %
-Then, we can inline any one of these operators, w.l.o.g. $Op_1$, s.t. we obtain a primitive-recursive operator:
+Then, we can inline any one of these operators, w.l.o.g. $\op_1$, s.t. we obtain a primitive-recursive operator:
 \begin{lstlisting}[language=tla,columns=fullflexible]
-RECURSIVE Op(_)
+RECURSIVE R(_)
 \* $@$type: (a_1) => a_1;
-Op(x) ==
-  G_1(
-    x, 
-    G_2( 
-      b_1(x),
-      G_3(
-        b_2(b_1(x)),
-        G_4(
-          ...
-          G_n( 
-            b_{n-1}(b_{n-2}(...(b_1(x)))),
-            Op(b_n(b_{n-1}(...(b_1(x)))))
+R(x) ==
+  G_1( x, 
+    G_2( f_1(x),
+      G_3( f_2(f_1(x)),
+        G_4( ...
+          G_n( f_{n-1}(f_{n-2}(...(f_1(x)))), 
+               R(f_n(f_{n-1}(...(f_1(x)))))
             )
           )
         )
@@ -173,7 +179,7 @@ Further, assume that there exists a mapping $\gamma$ from $a$ to nonnegative int
 %
 If one cannot think of a more intuitive candidate for $\gamma$, one may always take $\gamma(t)$ to be the recursion stack-depth required to compute $\op(t)$ (assuming termination). It is easy to see that such a definition satisfies the above condition.
 
-\noindent Let `Op` have the following shape:
+\noindent Let $\op$ have the following shape:
 \begin{lstlisting}[language=tla,columns=fullflexible]
 RECURSIVE Op(_)
 \* $@$type (a) => b;
