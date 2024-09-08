@@ -30,15 +30,15 @@ unsat
 
 ### Performance evaluation
 
-We obtained the following runtimes on a Nov 2023 14" Macbook Pro (Apple M3 Pro):
+We obtained the following runtimes allocating 2 CPU cores of a 3.2 GHz Intel Xeon 8488C with 8GB RAM:
 
-| # blocks | # checkpoints |   runtime   |
-|----------|---------------|-------------|
-|   3      |      5        |    20sec    |
-|   4      |      5        |    96sec    |
-|   5      |      5        |     8min    |
-|   3      |      6        |    74min    |
-|   4      |      6        | TO (>60hrs) |
+| # blocks | # checkpoints |      runtime       |
+|----------|---------------|--------------------|
+|   3      |      5        |       8 min 11 sec |
+|   4      |      5        |      22 min 00 sec |
+|   5      |      5        |  1 h 40 min 19 sec |
+|   3      |      6        | 74 h  1 min 41 sec |
+|   4      |      6        |   timeout (>80hrs) |
 
 The script in [`./benchmark_ssf.py`](./benchmark_ssf.py) can be used to do a grid search over parameters.
 
