@@ -26,7 +26,9 @@ i.o.w., we have:
   \item A general case operator $G$, which invokes a recursive computation of $R$ over a modified parameter given by the operator $\bb$.
 \end{itemize}
 %
-The following needs to hold true, to ensure recursion termination: for every $x\colon a$, there exists a finite sequence $x = v_1, \dots, v_n$, such that
+The following needs to hold true, to ensure recursion termination: for every $x\colon a$, there exists a finite sequence $x = v_1, \dots, v_n$
+\tth{Should we use the same notation $\tup{v_n, \ldots, x}$ for sequences as on Page 10.}
+, such that
 \begin{itemize}
 \item $P(v_n)$ holds
 \item $v_{i+1} = \bb(v_i)$ for all $1 \le i < n$
@@ -48,7 +50,10 @@ Stack(x, N) ==
   IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
 \end{lstlisting}
 %
-We can see that $\Chain(x,N)$ returns the sequence $\tup{v_n, ..., x}$ if $N$ is sufficiently large. We can verify whether or not that is the case, by evaluating $P(\Chain(x, N)[1])$. If it does not hold, the $N$ chosen is not large enough, and needs to be increased. Using $\Chain$ we can define a fold-based non-recursive operator $\op^*$, such that $\op^*(x) = \op(x)$ under the above assumptions:
+We can see that $\Chain(x,N)$
+\tth{Some lines in \tlap{} are too long.} returns the sequence $\tup{v_n, ..., x}$ if $N$ is sufficiently large
+\tth{Can you please provide an intuition of functions \texttt{ApaFoldSeqLeft} and \texttt{MkSeq}>}. 
+We can verify whether or not that is the case, by evaluating $P(\Chain(x, N)[1])$. If it does not hold, the $N$ chosen is not large enough, and needs to be increased. Using $\Chain$ we can define a fold-based non-recursive operator $\op^*$, such that $\op^*(x) = \op(x)$ under the above assumptions:
 
 \begin{lstlisting}[language=tla,columns=fullflexible]
 \* $@$type (a, Int) => b;
@@ -152,7 +157,7 @@ R_i(x) == G_i(x, R_{i+1}(next_i(x)))
 %
 Then, we can inline any one of these operators, w.l.o.g. $\op_1$, s.t. we obtain a primitive-recursive operator:
 \begin{lstlisting}[language=tla,columns=fullflexible]
-RECURSIVE R(_)
+RECURSIVE R(_) 
 \* $@$type: (a_1) => a_1;
 R(x) ==
   G_1( x, 
@@ -167,7 +172,9 @@ R(x) ==
       )
     )
 \end{lstlisting}
-for which $\op(x) = \op_1(x)$ for all $x$, and $\op$ terminates iff $\op_1$ terminates.
+for which $\op(x) = \op_1(x)$ for all $x$, and $\op$ terminates iff $\op_1$ terminates
+\tth{Should we rename the funcdtion as \texttt{R(\_)} is already used on Pages 9 and 10?}
+.
 
 \subsubsection{One-to-many recursion}
 
