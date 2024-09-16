@@ -57,6 +57,7 @@ IndInit ==
         /\ fork_number \in -MAX_BLOCK_BODY..0
         /\ chain2_fork_block_number = fork_number
     /\ justified_checkpoints = Gen(5)
+    /\ InitAccountableSafety
     /\ IndInv
 
 =============================================================================

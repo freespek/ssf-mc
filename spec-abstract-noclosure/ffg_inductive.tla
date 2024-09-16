@@ -6,6 +6,16 @@ EXTENDS ffg
 
 LOCAL Abs(x) == IF x >= 0 THEN x ELSE -x
 
+\* inject an instance of AccountableSafety right in the initial state
+InitAccountableSafety ==
+    \* assume that there is a disagreement
+    /\ \E c1, c2 \in justified_checkpoints:
+        /\ IsFinalized(c1, votes, justified_checkpoints)
+        /\ IsFinalized(c2, votes, justified_checkpoints)
+        /\ AreConflictingBlocks(c1[1], c2[1])
+    \* there is no way to identify the violating validators
+    /\ ~SlashableNodesOver
+
 IndInv ==
     /\ -MAX_BLOCK_BODY <= chain2_fork_block_number /\ chain2_fork_block_number <= 0
     /\ all_blocks = chain1 \union chain2
