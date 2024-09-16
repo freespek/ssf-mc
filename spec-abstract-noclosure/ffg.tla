@@ -250,11 +250,15 @@ CastVotes(source, target, validators) ==
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
     /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
-    /\ LET allCheckpoints == { Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots } IN
-       \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
+    /\ LET allCheckpoints == { Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots }
+           validCheckpoints == { c \in allCheckpoints: IsValidCheckpoint(c) }
+       IN
+       \E allJustifiedCheckpoints \in SUBSET validCheckpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
-        /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+        /\ \A c \in allJustifiedCheckpoints:
+            IsJustified(c, votes', allJustifiedCheckpoints)
+        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints):
+            ~IsJustified(c, votes', allJustifiedCheckpoints)
     \*/\ justified_checkpoints' = JustifiedCheckpoints(votes')
     /\ UNCHANGED <<all_blocks, chain1, chain1_tip, chain2, chain2_tip, chain2_fork_block_number>>
 
