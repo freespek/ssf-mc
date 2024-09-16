@@ -58,7 +58,7 @@ VARIABLES
     chain2_fork_block_number,
     \* @type: Set($ffgVote);
     ffg_votes,
-    \* @type: Set($vote);
+    \* @type: Str -> Set($ffgVote);
     votes,
     \* The maximal subset of checkpoints that are justified.
     \* @type: Set($checkpoint);
@@ -140,13 +140,13 @@ IsValidFFGVote(vote) ==
     /\ vote.source[1] \in all_blocks
     /\ vote.target[1] \in all_blocks
 
-\* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
+\* @type: ($checkpoint, Str -> Set($ffgVote), Set($checkpoint)) => Bool;
 IsJustified(checkpoint, viewVotes, fixpoint) == 
     \/ checkpoint = GenesisCheckpoint
     \/ LET validatorsWhoCastJustifyingVote == { 
-        v \in VALIDATORS: \E justifyingVote \in viewVotes:
-            /\ justifyingVote.validator = v
-            /\ LET ffgVote == justifyingVote.ffg_vote IN
+        v \in VALIDATORS:
+          \E justifyingVote \in viewVotes[v]:
+              LET ffgVote == justifyingVote IN
                 \* L6:
                 /\ ffgVote.source \in fixpoint
                 \* L7:
@@ -157,54 +157,39 @@ IsJustified(checkpoint, viewVotes, fixpoint) ==
         IN validatorsWhoCastJustifyingVote \in LargeQuorums
         \*Cardinality(validatorsWhoCastJustifyingVote) >= 2 * T + 1
 
-\* @type: ($checkpoint, Set($vote), Set($checkpoint)) => Bool;
+\* @type: ($checkpoint, Str -> Set($ffgVote), Set($checkpoint)) => Bool;
 IsFinalized(checkpoint, viewVotes, justifiedCheckpoints) ==
     \/ checkpoint = GenesisCheckpoint
     \/ /\ checkpoint \in justifiedCheckpoints
        /\ LET validatorsWhoCastFinalizingVote == { 
-            v \in VALIDATORS: \E finalizingVote \in viewVotes:
-                /\ finalizingVote.validator = v
-                /\ LET ffgVote == finalizingVote.ffg_vote IN
-                    \* L14:
-                    /\ ffgVote.source = checkpoint
-                    \* L15:
-                    /\ ffgVote.target[2] = checkpoint[2] + 1 }
-        IN validatorsWhoCastFinalizingVote \in LargeQuorums
-        \* Cardinality(validatorsWhoCastFinalizingVote) >= 2 * T + 1
-
-SlashableNodesOld ==
-    LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
-        \* equivocation
-        \/ /\ vote1.validator = vote2.validator
-           /\ vote1 /= vote2
-           /\ vote1.ffg_vote.target[2] = vote2.ffg_vote.target[2]
-        \* surround voting
-        \/ /\ vote1.validator = vote2.validator
-           /\ \/ vote1.ffg_vote.source[2] < vote2.ffg_vote.source[2]
-              \/ /\ vote1.ffg_vote.source[2] = vote2.ffg_vote.source[2]
-                 /\ vote1.ffg_vote.source[1].slot < vote2.ffg_vote.source[1].slot
-           /\ vote2.ffg_vote.target[2] < vote1.ffg_vote.target[2]
-    } IN { v.validator: v \in slashable_votes }
+            v \in VALIDATORS:
+              \E ffgVote \in viewVotes[v]:
+                  \* L14:
+                  /\ ffgVote.source = checkpoint
+                  \* L15:
+                  /\ ffgVote.target[2] = checkpoint[2] + 1
+          } IN
+          validatorsWhoCastFinalizingVote \in LargeQuorums
+          \* Cardinality(validatorsWhoCastFinalizingVote) >= 2 * T + 1
 
 SlashableNodesOver ==
-    LET \* @type: ($vote, $vote) => Bool;
+    LET \* @type: ($ffgVote, $ffgVote) => Bool;
         IsEquivocation(vote1, vote2) ==
-        /\ vote1 /= vote2
-        /\ vote1.ffg_vote.target[2] = vote2.ffg_vote.target[2]
+            /\ vote1 /= vote2
+            /\ vote1.target[2] = vote2.target[2]
     IN
-    LET \* @type: ($vote, $vote) => Bool;
+    LET \* @type: ($ffgVote, $ffgVote) => Bool;
         IsSurroundVoting(vote1, vote2) ==
-        /\ \/ vote1.ffg_vote.source[2] < vote2.ffg_vote.source[2]
-           \/ /\ vote1.ffg_vote.source[2] = vote2.ffg_vote.source[2]
-              /\ vote1.ffg_vote.source[1].slot < vote2.ffg_vote.source[1].slot
-        /\ vote2.ffg_vote.target[2] < vote1.ffg_vote.target[2]
+        /\ \/ vote1.source[2] < vote2.source[2]
+           \/ /\ vote1.source[2] = vote2.source[2]
+              /\ vote1.source[1].slot < vote2.source[1].slot
+        /\ vote2.target[2] < vote1.target[2]
     IN
     \E Slashable \in SmallQuorums:
         \*/\ isMinCardinality(Cardinality(Slashable))
-        /\ \E vote1, vote2 \in votes:
-            /\ vote1.validator = vote2.validator
-            /\ vote1.validator \in Slashable
-            /\ IsEquivocation(vote1, vote2) \/ IsSurroundVoting(vote1, vote2)
+        \A validator \in Slashable:
+            \E vote1, vote2 \in votes[validator]:
+                IsEquivocation(vote1, vote2) \/ IsSurroundVoting(vote1, vote2)
 
 \* Append a block to chain 1.
 \* @type: Int => Bool;
@@ -249,7 +234,11 @@ CastVotes(source, target, validators) ==
     /\ IsValidFFGVote(ffgVote)
     /\ validators /= {}
     /\ ffg_votes' = ffg_votes \union { ffgVote }
-    /\ votes' = votes \union { Vote(v, ffgVote): v \in validators }
+    /\ votes' = [ v \in VALIDATORS |->
+         IF v \in validators
+         THEN votes[v] \union { ffgVote }
+         ELSE votes[v]
+       ]
     /\ LET allCheckpoints == { Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots }
            validCheckpoints == { c \in allCheckpoints: IsValidCheckpoint(c) }
        IN
@@ -296,19 +285,20 @@ TwoFinalizedConflictingBlocks ==
             -b1        -b2     -c1                         -c2     -c2 [f]
  *)
 TwoFinalizedConflictingBlocksNoEquivocation ==
-    LET \* @type: ($vote, $vote) => Bool;
+    LET \* @type: ($ffgVote, $ffgVote) => Bool;
         IsEquivocation(vote1, vote2) ==
         /\ vote1 /= vote2
-        /\ vote1.ffg_vote.target[2] = vote2.ffg_vote.target[2]
+        /\ vote1.target[2] = vote2.target[2]
     IN
-    LET disagreement == \E c1, c2 \in justified_checkpoints: 
-        /\ IsFinalized(c1, votes, justified_checkpoints)
-        /\ IsFinalized(c2, votes, justified_checkpoints)
-        /\ AreConflictingBlocks(c1[1], c2[1])
+    LET disagreement ==
+        \E c1, c2 \in justified_checkpoints: 
+            /\ IsFinalized(c1, votes, justified_checkpoints)
+            /\ IsFinalized(c2, votes, justified_checkpoints)
+            /\ AreConflictingBlocks(c1[1], c2[1])
     IN \/ ~disagreement
-       \/ \E vote1, vote2 \in votes:
-            /\ vote1.validator = vote2.validator
-            /\ IsEquivocation(vote1, vote2)
+       \/ \E v \in VALIDATORS:
+              \E vote1, vote2 \in votes[v]:
+                  IsEquivocation(vote1, vote2)
 
 AccountableSafety ==
     \/ SlashableNodesOver \*Cardinality(SlashableNodes) * 3 >= N
@@ -325,7 +315,7 @@ Init ==
     /\ chain2 = { GenesisBlock }
     /\ chain2_fork_block_number = 0
     /\ ffg_votes = {}
-    /\ votes = {}
+    /\ votes = [ v \in VALIDATORS |-> {} ]
     /\ justified_checkpoints = { GenesisCheckpoint }
 
 Next == 

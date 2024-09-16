@@ -37,7 +37,7 @@ VARIABLES
     chain2_fork_block_number,
     \* @type: Set($ffgVote);
     ffg_votes,
-    \* @type: Set($vote);
+    \* @type: Str -> Set($ffgVote);
     votes,
     \* @type: Set($checkpoint);
     justified_checkpoints

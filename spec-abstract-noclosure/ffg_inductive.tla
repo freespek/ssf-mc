@@ -40,14 +40,18 @@ IndInv ==
     /\ GenesisBlock \in chain1
     /\ GenesisBlock \in chain2
     /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
-    /\ \A vote \in votes:
-        /\ vote.ffg_vote \in ffg_votes
-        /\ vote.validator \in VALIDATORS
+    /\ VALIDATORS = DOMAIN votes
+    /\ \A v \in VALIDATORS:
+         \A vote \in votes[v]:
+           vote \in ffg_votes
     \*/\ justified_checkpoints = JustifiedCheckpoints(votes)
     /\ GenesisCheckpoint \in justified_checkpoints
-    /\ \A c \in justified_checkpoints: IsJustified(c, votes, justified_checkpoints)
-    /\ LET allCheckpoints == {Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots} IN
+    /\ \A c \in justified_checkpoints:
+           IsJustified(c, votes, justified_checkpoints)
+    /\ LET allCheckpoints ==
+           { Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots }
+       IN
        \A c \in (allCheckpoints \ justified_checkpoints):
-         ~IsJustified(c, votes, justified_checkpoints)
+           ~IsJustified(c, votes, justified_checkpoints)
 
 ===============================================================================
