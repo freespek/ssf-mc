@@ -62,4 +62,23 @@ IndInit ==
     /\ InitAccountableSafety
     /\ IndInv
 
+IndInit_C1 ==
+    \E i, j \in 0..MAX_BLOCK_SLOT:
+      LET b1 == [ body |-> 1, slot |-> i ]
+          b2 == [ body |-> -1, slot |-> j ]
+      IN
+      /\ all_blocks = { GenesisBlock, b1, b2 }
+      /\ chain1 = { GenesisBlock, b1 }
+      /\ chain1_tip = b1
+      /\ chain2 = { GenesisBlock, b2 }
+      /\ chain2_tip = b2
+      /\ chain2_fork_block_number = -1
+      \* the rest has to be generated
+      /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
+      /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
+      /\ justified_checkpoints = Gen(5)
+      /\ InitAccountableSafety
+      /\ VotesInv
+      /\ CheckpointsInv
+
 =============================================================================

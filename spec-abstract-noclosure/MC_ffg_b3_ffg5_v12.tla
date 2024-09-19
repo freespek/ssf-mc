@@ -45,21 +45,105 @@ VARIABLES
 
 INSTANCE ffg_inductive
 
-IndInit ==
-    \* We choose two different bounds for creating chain1 and chain2 with Gen.
-    \* See Apalache issue #2973.
-    /\ all_blocks = Gen(6)
-    /\ chain1 = Gen(3)
-    /\ chain1_tip \in chain1
-    /\ chain2 = Gen(4)
-    /\ chain2_tip \in chain2
-    /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
-    /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
-    /\ \E fork_number \in Int:
-        /\ fork_number \in -MAX_BLOCK_BODY..0
-        /\ chain2_fork_block_number = fork_number
-    /\ justified_checkpoints = Gen(5)
-    /\ InitAccountableSafety
-    /\ IndInv
+IndInit_C1 ==
+    (*
+           / [+1] - [+2]
+        [0]
+           \ [-1] - [-2]
+     *)
+    \E i1_1, i1_2, i2_1, i2_2 \in 0..MAX_BLOCK_SLOT:
+      LET b1_1 == [ body |-> 1, slot |-> i1_1 ]
+          b1_2 == [ body |-> 2, slot |-> i1_2 ]
+          b2_1 == [ body |-> -1, slot |-> i2_1 ]
+          b2_2 == [ body |-> -2, slot |-> i2_2 ]
+      IN
+      /\ all_blocks = { GenesisBlock, b1_1, b1_2, b2_1, b2_2 }
+      /\ chain1 = { GenesisBlock, b1_1, b1_2 }
+      /\ chain1_tip = b1_2
+      /\ chain2 = { GenesisBlock, b2_1, b2_2 }
+      /\ chain2_tip = b2_2
+      /\ chain2_fork_block_number = -1
+      \* the rest has to be generated
+      /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
+      /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
+      /\ justified_checkpoints = Gen(5)
+      /\ InitAccountableSafety
+      /\ VotesInv
+      /\ CheckpointsInv
+
+IndInit_C2 ==
+    (*
+           / [+1]
+        [0]
+           \ [-1] - [-2]
+     *)
+    \E i1_1, i2_1, i2_2 \in 0..MAX_BLOCK_SLOT:
+      LET b1_1 == [ body |-> 1, slot |-> i1_1 ]
+          b2_1 == [ body |-> -1, slot |-> i2_1 ]
+          b2_2 == [ body |-> -2, slot |-> i2_2 ]
+      IN
+      /\ all_blocks = { GenesisBlock, b1_1, b2_1, b2_2 }
+      /\ chain1 = { GenesisBlock, b1_1 }
+      /\ chain1_tip = b1_1
+      /\ chain2 = { GenesisBlock, b2_1, b2_2 }
+      /\ chain2_tip = b2_2
+      /\ chain2_fork_block_number = -1
+      \* the rest has to be generated
+      /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
+      /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
+      /\ justified_checkpoints = Gen(5)
+      /\ InitAccountableSafety
+      /\ VotesInv
+      /\ CheckpointsInv
+
+IndInit_C3 ==
+    (*
+                  / [+2]
+        [0] - [+1] 
+                  \ [-2]
+     *)
+    \E i1, i1_2, i2_2 \in 0..MAX_BLOCK_SLOT:
+      LET b1 == [ body |-> 1, slot |-> i1 ]
+          b1_2 == [ body |-> 2, slot |-> i1_2 ]
+          b2_2 == [ body |-> -2, slot |-> i2_2 ]
+      IN
+      /\ all_blocks = { GenesisBlock, b1, b1, b1_2, b2_2 }
+      /\ chain1 = { GenesisBlock, b1, b1_2 }
+      /\ chain1_tip = b1_2
+      /\ chain2 = { GenesisBlock, b1, b2_2 }
+      /\ chain2_tip = b2_2
+      /\ chain2_fork_block_number = -2
+      \* the rest has to be generated
+      /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
+      /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
+      /\ justified_checkpoints = Gen(5)
+      /\ InitAccountableSafety
+      /\ VotesInv
+      /\ CheckpointsInv
+
+IndInit_C4 ==
+    (*
+           / [+1] - [+2]
+        [0]
+           \ [-1]
+     *)
+    \E i1_1, i2_1, i1_2 \in 0..MAX_BLOCK_SLOT:
+      LET b1_1 == [ body |-> 1, slot |-> i1_1 ]
+          b1_2 == [ body |-> 2, slot |-> i1_2 ]
+          b2_1 == [ body |-> -1, slot |-> i2_1 ]
+      IN
+      /\ all_blocks = { GenesisBlock, b1_1, b1_2, b2_1 }
+      /\ chain1 = { GenesisBlock, b1_1, b_1_2 }
+      /\ chain1_tip = b1_2
+      /\ chain2 = { GenesisBlock, b2_1 }
+      /\ chain2_tip = b2_1
+      /\ chain2_fork_block_number = -1
+      \* the rest has to be generated
+      /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
+      /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
+      /\ justified_checkpoints = Gen(5)
+      /\ InitAccountableSafety
+      /\ VotesInv
+      /\ CheckpointsInv
 
 =============================================================================

@@ -16,7 +16,7 @@ InitAccountableSafety ==
     \* there is no way to identify the violating validators
     /\ ~SlashableNodesOver
 
-IndInv ==
+BlocksInv ==
     /\ -MAX_BLOCK_BODY <= chain2_fork_block_number /\ chain2_fork_block_number <= 0
     /\ all_blocks = chain1 \union chain2
     \* chain1_tip is the maximum block in chain 1
@@ -49,15 +49,24 @@ IndInv ==
         b.body >= 0 => b \in chain1
     /\ GenesisBlock \in chain1
     /\ GenesisBlock \in chain2
+    
+VotesInv ==
     /\ \A ffgVote \in ffg_votes: IsValidFFGVote(ffgVote)
     /\ \A vote \in votes:
         /\ vote.ffg_vote \in ffg_votes
         /\ vote.validator \in VALIDATORS
+
+CheckpointsInv ==        
     \*/\ justified_checkpoints = JustifiedCheckpoints(votes)
     /\ GenesisCheckpoint \in justified_checkpoints
     /\ \A c \in justified_checkpoints: IsJustified(c, votes, justified_checkpoints)
     /\ LET allCheckpoints == {Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots} IN
        \A c \in (allCheckpoints \ justified_checkpoints):
          ~IsJustified(c, votes, justified_checkpoints)
+
+IndInv ==
+    /\ BlocksInv
+    /\ VotesInv
+    /\ CheckpointsInv
 
 ===============================================================================
