@@ -57,6 +57,7 @@ IndInit_C1 ==
           b2_1 == [ body |-> -1, slot |-> i2_1 ]
           b2_2 == [ body |-> -2, slot |-> i2_2 ]
       IN
+      /\ 0 < i1_1 /\ 0 < i2_1 /\ i1_1 < i1_2 /\ i2_1 < i2_2
       /\ all_blocks = { GenesisBlock, b1_1, b1_2, b2_1, b2_2 }
       /\ chain1 = { GenesisBlock, b1_1, b1_2 }
       /\ chain1_tip = b1_2
@@ -82,6 +83,7 @@ IndInit_C2 ==
           b2_1 == [ body |-> -1, slot |-> i2_1 ]
           b2_2 == [ body |-> -2, slot |-> i2_2 ]
       IN
+      /\ 0 < i1_1 /\ 0 < i2_1 /\ i2_1 < i2_2
       /\ all_blocks = { GenesisBlock, b1_1, b2_1, b2_2 }
       /\ chain1 = { GenesisBlock, b1_1 }
       /\ chain1_tip = b1_1
@@ -107,6 +109,7 @@ IndInit_C3 ==
           b1_2 == [ body |-> 2, slot |-> i1_2 ]
           b2_2 == [ body |-> -2, slot |-> i2_2 ]
       IN
+      /\ 0 < i1 /\ i1 < i1_2 /\ i1 < i2_2
       /\ all_blocks = { GenesisBlock, b1, b1, b1_2, b2_2 }
       /\ chain1 = { GenesisBlock, b1, b1_2 }
       /\ chain1_tip = b1_2
@@ -132,8 +135,9 @@ IndInit_C4 ==
           b1_2 == [ body |-> 2, slot |-> i1_2 ]
           b2_1 == [ body |-> -1, slot |-> i2_1 ]
       IN
+      /\ 0 < i1_1 /\ 0 < i2_1 /\ i1_1 < i1_2
       /\ all_blocks = { GenesisBlock, b1_1, b1_2, b2_1 }
-      /\ chain1 = { GenesisBlock, b1_1, b_1_2 }
+      /\ chain1 = { GenesisBlock, b1_1, b1_2 }
       /\ chain1_tip = b1_2
       /\ chain2 = { GenesisBlock, b2_1 }
       /\ chain2_tip = b2_1
