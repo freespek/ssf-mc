@@ -73,6 +73,32 @@ IndInit_C1 ==
       /\ CheckpointsApproxInv
       \*/\ CheckpointsInv
 
+IndInit_C1_1_2_3_4 ==
+    (*
+           / [+1] - [+2]
+        [0]
+           \ [-1] - [-2]
+     *)
+      LET b1_1 == [ body |-> 1, slot |-> 1 ]
+          b1_2 == [ body |-> 2, slot |-> 2 ]
+          b2_1 == [ body |-> -1, slot |-> 3 ]
+          b2_2 == [ body |-> -2, slot |-> 4 ]
+      IN
+      /\ all_blocks = { GenesisBlock, b1_1, b1_2, b2_1, b2_2 }
+      /\ chain1 = { GenesisBlock, b1_1, b1_2 }
+      /\ chain1_tip = b1_2
+      /\ chain2 = { GenesisBlock, b2_1, b2_2 }
+      /\ chain2_tip = b2_2
+      /\ chain2_fork_block_number = -1
+      \* the rest has to be generated
+      /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
+      /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
+      /\ justified_checkpoints = Gen(5)
+      /\ InitAccountableSafety
+      /\ VotesInv
+      /\ CheckpointsApproxInv
+      \*/\ CheckpointsInv
+
 IndInit_C2 ==
     (*
            / [+1]
