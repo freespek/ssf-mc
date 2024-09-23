@@ -63,6 +63,11 @@ IndInit ==
     /\ IndInv
 
 IndInit_C1 ==
+    (*
+           / [+1]
+        [0]
+           \ [-1]
+     *)
     \E i, j \in 0..MAX_BLOCK_SLOT:
       LET b1 == [ body |-> 1, slot |-> i ]
           b2 == [ body |-> -1, slot |-> j ]

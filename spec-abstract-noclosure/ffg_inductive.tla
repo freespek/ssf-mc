@@ -64,6 +64,16 @@ CheckpointsInv ==
        \A c \in (allCheckpoints \ justified_checkpoints):
          ~IsJustified(c, votes, justified_checkpoints)
 
+CheckpointsApproxInv ==
+    \*/\ justified_checkpoints = JustifiedCheckpoints(votes)
+    /\ GenesisCheckpoint \in justified_checkpoints
+    /\ \A c \in justified_checkpoints: IsJustified(c, votes, justified_checkpoints)
+    (*
+    /\ LET allCheckpoints == {Checkpoint(block, i): block \in all_blocks, i \in CheckpointSlots} IN
+       \A c \in (allCheckpoints \ justified_checkpoints):
+         ~IsJustified(c, votes, justified_checkpoints)
+    *)
+
 IndInv ==
     /\ BlocksInv
     /\ VotesInv

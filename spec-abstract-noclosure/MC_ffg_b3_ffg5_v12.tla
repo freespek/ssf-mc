@@ -70,7 +70,8 @@ IndInit_C1 ==
       /\ justified_checkpoints = Gen(5)
       /\ InitAccountableSafety
       /\ VotesInv
-      /\ CheckpointsInv
+      /\ CheckpointsApproxInv
+      \*/\ CheckpointsInv
 
 IndInit_C2 ==
     (*

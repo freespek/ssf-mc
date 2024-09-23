@@ -201,10 +201,11 @@ SlashableNodesOver ==
     IN
     \E Slashable \in SmallQuorums:
         \*/\ isMinCardinality(Cardinality(Slashable))
-        /\ \E vote1, vote2 \in votes:
-            /\ vote1.validator = vote2.validator
-            /\ vote1.validator \in Slashable
-            /\ IsEquivocation(vote1, vote2) \/ IsSurroundVoting(vote1, vote2)
+        \A validator \in Slashable:
+            \E vote1, vote2 \in votes:
+                /\ vote1.validator = vote2.validator
+                /\ vote1.validator = validator
+                /\ IsEquivocation(vote1, vote2) \/ IsSurroundVoting(vote1, vote2)
 
 \* Append a block to chain 1.
 \* @type: Int => Bool;
