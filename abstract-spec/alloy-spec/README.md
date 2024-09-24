@@ -58,14 +58,15 @@ conduct experiments for the same kinds of inputs:
 | [ffg-exp6] |    5    |      6       |      4      |      6     |   15   | 245 sec |  57 MB  |
 | [ffg-exp7] |    6    |      6       |      4      |      6     |   15   | 360 sec |  82 MB  |
 
-In addition to the above experiments, we ran a few experiments that would have the inputs
-comparable in size to those produced by our TLA+ specification:
+In addition to the above experiments, we ran a few experiments that would have
+the inputs of the size comparable to those produced by our TLA+ specification:
 
 | Input       | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime | memory  |
 |-------------|--------:|-------------:|------------:|-----------:|-------:|--------:|--------:|
-| [ffg-exp10] |    3    |      15      |      4      |      5     |   12   |  X sec  |  Y MB  |
-| [ffg-exp11] |    4    |      20      |      4      |      5     |   12   |  X sec  |  Y MB  |
-| [ffg-exp12] |    5    |      25      |      4      |      5     |   12   |  X sec  |  Y MB  |
+| [ffg-exp10] |    3    |      15      |      4      |      5     |   12   | 31 sec  | 56 MB   |
+| [ffg-exp11] |    4    |      20      |      4      |      5     |   12   | 152 sec | 94 MB   |
+| [ffg-exp12] |    5    |      25      |      4      |      5     |   12   | 234 sec | 117 MB  |
+| [ffg-exp13] |    7    |      35      |      4      |      10    |   40   | X sec | X MB  |
 
 
 <!-- References -->
