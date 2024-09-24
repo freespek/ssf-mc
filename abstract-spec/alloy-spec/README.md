@@ -48,16 +48,16 @@ Hence, we were not able to find a counterexample to `AccountableSafety`.
 Similar to the experiments with a [direct SMT encoding][smt-enc] for CVC5, we
 conduct experiments for the same kinds of inputs:
 
-| Input      | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime | memory  |
-|------------|--------:|-------------:|------------:|-----------:|-------:|--------:|--------:|
-| [ffg-exp1] |    3    |      5       |      4      |      5     |   12   |  4 sec  |  35 MB  |
-| [ffg-exp2] |    4    |      5       |      4      |      5     |   12   | 10 sec  |  40 MB  |
-| [ffg-exp3] |    5    |      5       |      4      |      5     |   12   | 15 sec  |  45 MB  |
-| [ffg-exp4] |    3    |      6       |      4      |      6     |   15   | 57 sec  |  52 MB  |
-| [ffg-exp5] |    4    |      6       |      4      |      6     |   15   | 167 sec |  55 MB  |
-| [ffg-exp6] |    5    |      6       |      4      |      6     |   15   | 245 sec |  57 MB  |
-| [ffg-exp7] |    6    |      6       |      4      |      6     |   15   | 360 sec |  82 MB  |
-| [ffg-exp8] |    5    |      7       |      4      |      6     |   24   | X sec |  Y MB  |
+| Input      | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime  | memory  |
+|------------|--------:|-------------:|------------:|-----------:|-------:|---------:|--------:|
+| [ffg-exp1] |    3    |      5       |      4      |      5     |   12   |  4 sec   |  35 MB  |
+| [ffg-exp2] |    4    |      5       |      4      |      5     |   12   | 10 sec   |  40 MB  |
+| [ffg-exp3] |    5    |      5       |      4      |      5     |   12   | 15 sec   |  45 MB  |
+| [ffg-exp4] |    3    |      6       |      4      |      6     |   15   | 57 sec   |  52 MB  |
+| [ffg-exp5] |    4    |      6       |      4      |      6     |   15   | 167 sec  |  55 MB  |
+| [ffg-exp6] |    5    |      6       |      4      |      6     |   15   | 245 sec  |  57 MB  |
+| [ffg-exp7] |    6    |      6       |      4      |      6     |   15   | 360 sec  |  82 MB  |
+| [ffg-exp8] |    5    |      7       |      4      |      6     |   24   | 1h 27m   |  156 MB |
 
 In addition to the above experiments, we ran a few experiments that would have
 the inputs of the size comparable to those produced by our TLA+ specification:
@@ -82,6 +82,8 @@ the inputs of the size comparable to those produced by our TLA+ specification:
 [ffg-exp5]: ./ffg-exp5.als
 [ffg-exp6]: ./ffg-exp6.als
 [ffg-exp7]: ./ffg-exp7.als
+[ffg-exp8]: ./ffg-exp8.als
 [ffg-exp10]: ./ffg-exp10.als
 [ffg-exp11]: ./ffg-exp11.als
-[ffg-exp12]: ./ffg-exp11.als
+[ffg-exp12]: ./ffg-exp12.als
+[ffg-exp13]: ./ffg-exp13.als
