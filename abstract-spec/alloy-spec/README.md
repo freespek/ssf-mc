@@ -12,10 +12,13 @@ TODO
 
 ## Experimental Results
 
-| Nr. | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime |
-| --- |---------|--------------|-------------|------------|--------|---------|
-|   1 |    3    |      5       | 4           | 5          | 12     | N sec   |
+| Input      | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime | memory |
+|------------|--------:|-------------:|------------:|-----------:|-------:|--------:|-------:|
+| [ffg-exp1] |    3    |      5       |      4      |      5     |   12   |  4 sec  |  35MB  |
+
+
 
 <!-- References -->
 
 [Alloy]: https://alloytools.org/
+[ffg-exp1]: ./ffg-exp1.als
