@@ -1,4 +1,4 @@
-module abs/ffg_exp2
+module abs/ffg_exp3
 -- experiment 3
 
 open abs/ffg
