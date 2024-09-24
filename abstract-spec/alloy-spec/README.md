@@ -20,8 +20,10 @@ conduct experiments for the same kinds of inputs:
 | [ffg-exp1] |    3    |      5       |      4      |      5     |   12   |  4 sec  |  35 MB  |
 | [ffg-exp2] |    4    |      5       |      4      |      5     |   12   | 10 sec  |  40 MB  |
 | [ffg-exp3] |    5    |      5       |      4      |      5     |   12   | 15 sec  |  45 MB  |
-| [ffg-exp4] |    3    |      6       |      4      |      6     |   15   | 11 sec  |  45 MB  |
-| [ffg-exp5] |    4    |      6       |      4      |      6     |   15   | 33 sec  |  46 MB  |
+| [ffg-exp4] |    3    |      6       |      4      |      6     |   15   | 57 sec  |  52 MB  |
+| [ffg-exp5] |    4    |      6       |      4      |      6     |   15   | 167 sec |  55 MB  |
+| [ffg-exp6] |    5    |      6       |      4      |      6     |   15   | 167 sec |  55 MB  |
+| [ffg-exp7] |    6    |      6       |      4      |      6     |   15   | 167 sec |  55 MB  |
 
 
 
@@ -34,3 +36,5 @@ conduct experiments for the same kinds of inputs:
 [ffg-exp3]: ./ffg-exp3.als
 [ffg-exp4]: ./ffg-exp4.als
 [ffg-exp5]: ./ffg-exp5.als
+[ffg-exp6]: ./ffg-exp6.als
+[ffg-exp7]: ./ffg-exp7.als
