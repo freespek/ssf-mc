@@ -15,6 +15,8 @@ TODO
 | Input      | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime | memory |
 |------------|--------:|-------------:|------------:|-----------:|-------:|--------:|-------:|
 | [ffg-exp1] |    3    |      5       |      4      |      5     |   12   |  4 sec  |  35MB  |
+| [ffg-exp2] |    4    |      5       |      4      |      5     |   12   | 10 sec  |  40MB  |
+| [ffg-exp3] |    5    |      5       |      4      |      5     |   12   | 10 sec  |  40MB  |
 
 
 
@@ -22,3 +24,5 @@ TODO
 
 [Alloy]: https://alloytools.org/
 [ffg-exp1]: ./ffg-exp1.als
+[ffg-exp2]: ./ffg-exp2.als
+[ffg-exp3]: ./ffg-exp3.als
