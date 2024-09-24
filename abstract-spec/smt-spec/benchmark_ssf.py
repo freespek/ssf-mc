@@ -11,6 +11,9 @@
 # WARNING!  This simply replaces a few lines in the model file by offsets.
 # BRITTLE!  If the model file has changed, this script will break!
 
+CHECKPOINTS = range(5, 8)
+BLOCKS = range(3, 6)
+
 MODEL_FILENAME = 'ssf.smt'
 BENCHMARK_FILENAME = 'benchmark.smt'
 DATATYPE_LINE_OFFSETS = (29, 34)    # (last line to print, last line to exclude)
@@ -51,8 +54,8 @@ def check_sat():
     return (time, output)
 
 print(f'blocks,checkpoints,result,time')
-for checkpoints in range(5, 8):
-    for blocks in range (3, 6):
+for checkpoints in CHECKPOINTS:
+    for blocks in BLOCKS:
         write_benchmark(blocks, checkpoints)
         time, output = check_sat()
         print(f'{blocks},{checkpoints},{output},{time}')
