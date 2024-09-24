@@ -68,7 +68,7 @@ IndInit_C1 ==
       /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
       /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
       /\ justified_checkpoints = Gen(5)
-      /\ InitAccountableSafety
+      \*/\ InitAccountableSafety
       /\ VotesInv
       /\ CheckpointsApproxInv
       \*/\ CheckpointsInv
@@ -94,7 +94,7 @@ IndInit_C1_1_2_3_4 ==
       /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
       /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
       /\ justified_checkpoints = Gen(5)
-      /\ InitAccountableSafety
+      \*/\ InitAccountableSafety
       /\ VotesInv
       /\ CheckpointsApproxInv
       \*/\ CheckpointsInv
