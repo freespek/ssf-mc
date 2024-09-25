@@ -39,9 +39,7 @@ D_f \subseteq D_{\mop(f)}
 \end{lemma}
 \begin{proof}
 Let $g \coloneqq \mop(f)$. To prove the first part, we have two options to consider, based on the definition of $\op$. If $\forall x \in D_f \ .\ P(x)$, then $D_f = D_g$.
-Otherwise, $g = \mop(f,\mop(\bb(f)))$ 
-\tth{Should it have been $g = \mapg(f,\mop(\bb(f)))$ ? }
-. By definition, $D_{\mapg(f,m)} = D_f \cup D_m$, so it follows that $D_f \subseteq D_{\mapg(f,m)}$, for any $m$. 
+Otherwise, $g = \mapg(f,\mop(\bb(f)))$. By definition, $D_{\mapg(f,m)} = D_f \cup D_m$, so it follows that $D_f \subseteq D_{\mapg(f,m)}$, for any $m$. 
 \end{proof}
 \begin{corollary}
 If $D_f = \emptyset$, then $D_{g} = \emptyset$.
@@ -63,10 +61,7 @@ If $D_f$ is empty, then it is vacuously true that $\forall x \in D_f \ .\ P(x)$,
 % we do not need to consider the second branch of the definition to compute $\op(x)$. Thus, we do not need to recursively compute $\op(v)$ for any $v$, and $h(V(x))$ is empty.
 % \end{proof}
 
-We define an auxiliary function $\alpha$ that assigns every function of the type $a \to Set(a)$ a value in $\nat \cup \{-\infty\}$, defined as
-\tth{Does sup refer to supremum?}
-\tth{Under what condition $\alpha(f) = -\infty$? Does there exist any case where $\alpha(f) = \infty$?}
-:
+We define an auxiliary function $\alpha$ that assigns every function of the type $a \to Set(a)$ a value in $\nat \cup \{-\infty\}$, defined as:
 \[
 \alpha(f) \coloneqq \sup\left\{ \gamma(v) \mid v \in D_f \right\}
 \]
@@ -74,9 +69,8 @@ We define an auxiliary function $\alpha$ that assigns every function of the type
 \begin{lemma}\label{lemma2}
 Let $f$ be a function, s.t. for any $x \in D_f$ it is the case that $f[x] = V(x)$. Then
 \[
-\alpha(f) \ge 0 \Rightarrow \alpha(b(f)) < \alpha(f)
+\alpha(f) \ge 0 \Rightarrow \alpha(\bb(f)) < \alpha(f)
 \]
-\tth{What is $b(f)$?}
 \end{lemma}
 
 \begin{proof}

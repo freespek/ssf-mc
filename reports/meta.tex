@@ -26,9 +26,7 @@ i.o.w., we have:
   \item A general case operator $G$, which invokes a recursive computation of $R$ over a modified parameter given by the operator $\bb$.
 \end{itemize}
 %
-The following needs to hold true, to ensure recursion termination: for every $x\colon a$, there exists a finite sequence $x = v_1, \dots, v_n$
-\tth{Should we use the same notation $\tup{v_n, \ldots, x}$ for sequences as on Page 10.}
-, such that
+The following needs to hold true, to ensure recursion termination: for every $x\colon a$, there exists a finite sequence $x = v_1, \dots, v_n$, such that
 \begin{itemize}
 \item $P(v_n)$ holds
 \item $v_{i+1} = \bb(v_i)$ for all $1 \le i < n$
@@ -46,13 +44,23 @@ Stack(x, N) ==
     step(seq, i) ==
       IF i > Len(seq) \/ P(seq[1])
       THEN seq
-      ELSE <<next(seq[1])>> \o seq \* Alternatively, we can append here and reverse the list at the end
+      ELSE 
+        \* Alternatively, we can append here and reverse the list at the end
+        <<next(seq[1])>> \o seq 
   IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
 \end{lstlisting}
 %
-We can see that $\Chain(x,N)$
-\tth{Some lines in \tlap{} are too long.} returns the sequence $\tup{v_n, ..., x}$ if $N$ is sufficiently large
-\tth{Can you please provide an intuition of functions \texttt{ApaFoldSeqLeft} and \texttt{MkSeq}>}. 
+Here, $\ApaFoldSeqLeft$ is the left-fold over sequences, that is, an operator for which
+\begin{align*}
+\ApaFoldSeqLeft(O, v, \tup{}) =& v \\
+\ApaFoldSeqLeft(O, v, \tup{x_1,\dots, x_n}) =& O(O(O(v, x_1), x_2), \dots, x_n)
+\end{align*}
+and $\MkSeq$ is the sequence constructor, for which 
+\[
+\MkSeq(N, O) = \tup{O(1), \dots, O(N)}
+\]
+%
+We can see that $\Chain(x,N)$ returns the sequence $\tup{v_n, ..., x}$ if $N$ is sufficiently large. 
 We can verify whether or not that is the case, by evaluating $P(\Chain(x, N)[1])$. If it does not hold, the $N$ chosen is not large enough, and needs to be increased. Using $\Chain$ we can define a fold-based non-recursive operator $\op^*$, such that $\op^*(x) = \op(x)$ under the above assumptions:
 
 \begin{lstlisting}[language=tla,columns=fullflexible]
@@ -112,9 +120,9 @@ I(x, N) ==
 \end{lstlisting}
 %
 we see that $\nrop(4, 2) = 7 \ne 10 = \op(4)$, but $\nrop(4, 100) = 10 = \op(4)$.
-As expected, choosing an insufficiently large value of $N$ will give us an incorrect result, but, as stated above, we know how to detect whether we have chosen an appropriate $N$.
+As expected, choosing an insufficiently large value of $N$ will give us an incorrect result, but we know how to detect whether we have chosen an appropriate $N$.
 
-\paragraph{ Optimization for associative $G$.}
+\paragraph{Optimization for associative $G$.}
 In the special case where $G$ is associative, that is, $G(a, G(b, c)) = G(G(a, b), c)$ for all $a,b,c$, we can make the entire translation more optimized, and single-pass. Since $\nrop(x,N)$, for sufficiently large $N$, computes 
 \[
 G(v_1, G(v_2, ... (G(v_{n-2}, G(v_{n-1}, e)))))
@@ -125,7 +133,6 @@ and $G$ is associative by assumption, then computing
 G(G(G(G(v_1, v_2), ...), v_{n-1}), e)
 \]
 gives us the same value. This computation can be done in a single pass:
-\newpage
 \begin{lstlisting}[language=tla,columns=fullflexible]
 IForAssociative(x, N) ==
   IF P(x)
@@ -134,14 +141,14 @@ IForAssociative(x, N) ==
     LET 
       \* $@$type: (<<a, a>>, Int) => <<a, a>>;
       step(pair, i) == \* we don't use the index `i`
-        LET partialAppChain == pair[1]
-            currentElemInSeq == pair[2]
+        LET partial == pair[1]
+             currentElem == pair[2]
         IN
-          IF P(currentElemInSeq)
+          IF P(currentElem)
           THEN pair
           ELSE
-            LET nextElemInSeq == next(currentElemInSeq)
-            IN << G(partialAppChain, IF P(nextElemInSeq) e ELSE nextElemInSeq), nextElemInSeq >>
+            LET nextElem == next(currentElem)
+            IN << G(partial, IF P(nextElem) e ELSE nextElem), nextElem >>
     IN ApaFoldSeqLeft( step, <<x, x>>, MkSeq(N, LAMBDA i: i) )[1]
 \end{lstlisting}
 
@@ -172,9 +179,7 @@ R(x) ==
       )
     )
 \end{lstlisting}
-for which $\op(x) = \op_1(x)$ for all $x$, and $\op$ terminates iff $\op_1$ terminates
-\tth{Should we rename the funcdtion as \texttt{R(\_)} is already used on Pages 9 and 10?}
-.
+for which $\op(x) = \op_1(x)$ for all $x$, and $\op$ terminates iff $\op_1$ terminates.
 
 \subsubsection{One-to-many recursion}
 
