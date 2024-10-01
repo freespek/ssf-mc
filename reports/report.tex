@@ -4,13 +4,49 @@
 
 \usepackage{hyperref}
 \usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
 
 \newcommand{\tth}[1]{\footnote{\textcolor{blue}{#1}}}
 \newcommand{\tbh}[1]{\textsc{\textbf{#1}}}
 
+\title{Technical Report:\\
+       Exploring Automatic Model-Checking of the Ethereum specification}
+\author{
+    Igor Konnov\thanks{This work was supported by Ethereum Foundation
+    under grant NNN.}\\ \small Independent Researcher \& TU Wien \\
+    \and
+    Jure Kukovec\footnotemark[1] \\ \small Independent Researcher \\
+    \and
+    Thomas Pani\footnotemark[1] \\ \small Independent Researcher\\
+    \and
+    Roberto Saltini \\ \small Consensys \\
+    \and
+    Thanh Hai Tran \\ \small Consensys
+}
+\date{\today}
+
 \input{preambule}
 
 \begin{document}
+
+\maketitle
+
+\begin{abstract}
+    TODO
+\end{abstract}
+
+\input{intro}
+
+% Milestone 1 - Spec 1
+\input{spec1}
+
+% Milestone 2 - Spec 2
+\input{spec2}
+
+% Milestone 4 - Specs 3-4
+
+\input{spec3-4}
 
 % Milestone 3 - Translation rules
 \input{rules}

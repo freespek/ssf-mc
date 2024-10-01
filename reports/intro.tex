@@ -1,0 +1,31 @@
+%! TeX root = report.tex
+
+\section{Introduction}
+
+Figure~\ref{fig:artifacts} depicts the relations between the specifications
+that we have produced in the project:
+
+\begin{enumerate}
+    \item We have started with the executable specification in Python.
+
+    \item \textbf{Spec 1}: This is the specification
+        \texttt{spec/ffg\_recursive.tla}. It is the result of a manual
+        mechanical translation of the original executable specification in
+        Python, which can be found in \texttt{ffg.py}. This specification is
+        using mutually recursive operators, which are not supported by
+        Apalache. As a result, we are not checking this specification. This
+        specification is the result of our work in Milestone 1.
+
+    \item \textbf{Spec 2}: This is the specification \texttt{spec/ffg.tla}. It
+        is a manual adaptation of Spec 1. The main difference between Spec 2
+        and Spec 1 is that Spec 2 uses ``folds'' (also known as ``reduce'')
+        instead of recursion.
+
+    \item TBD
+
+\end{enumerate}
+
+\begin{figure}
+  \input{artifacts}
+  \caption{The relation between the specification artifacts}\label{fig:artifacts}
+\end{figure}
