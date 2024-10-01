@@ -1,0 +1,633 @@
+\subsection{Translation rules}
+
+We give one translation rule per expression.
+
+\subsubsection{Singleton vector}
+
+
+
+%     a: t
+%   ==========   pvector_of_one_element(a) 
+%     e: t^
+% ==========================================
+%         List(<< e >>) : List(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Vec})]
+    {
+        \inferrule{a\colon \tau}{e \colon \htau}
+        \\
+        \mathrm{pvector\_of\_one\_element}(a)
+    }{
+        \List(\tup{e})\colon \List(\htau)
+    }
+\end{mathpar}
+
+A singleton Python vector is translated to a single-element list, and annotated
+as such. See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L15-L16}{Source}.
+
+\subsubsection{Vector concatenation}
+
+
+
+%    a: PVec[t]        b: PVec[t]
+%  ===============   ===============   pvector_concat(a, b) 
+%    e: List(t^)       f: List(t^)
+% ============================================================
+%                  Concat(e,f) : List(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Concat})]
+    {
+        \inferrule{a\colon \PVec[\tau]}{e \colon \List(\htau)}
+        \\
+        \inferrule{b\colon \PVec[\tau]}{f \colon \List(\htau)}
+        \\
+        \mathrm{pvector\_concat}(a, b)
+    }{
+        \Concat(e,f) \colon \List(\htau)
+    }
+\end{mathpar}
+
+Vector concatenation is translated to the list concatenation. See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L19-L20}{Source}.
+
+\subsubsection{Set sequentialization}
+
+%          a: PSet[t]         
+%        ==============   from_set_to_pvector(a) 
+%          e: Set(t^)       
+% ======================================================
+%   ApaFoldSet( Push, List(<<>>: Seq(t^)), e ) : List(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{SetToVec})]
+    {
+        \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
+        \\
+        s \coloneqq \tup{}\colon \Seq(\htau)
+        \\
+        \mathrm{from\_set\_to\_pvector}(a)
+    }{
+        \ApaFoldSet( \Push, \List(s), e ) \colon \List(\htau)
+    }
+\end{mathpar}
+
+We use fold, to create a sequence (in some order) from the set.  See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L23-L24}{Source}.
+
+\subsubsection{ Empty set}
+
+%   pset_get_empty : PSet[t]
+% ============================
+%        {} : Set(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{EmptySet})]
+    {
+        \mathrm{pset\_get\_empty}() \colon \PSet[t]
+    }{
+        \{\} \colon \Set(\htau)
+    }
+\end{mathpar}
+
+The only relevant part here is that we need a type annotation on the Python
+side to correctly annotate the empty set in \tlap{}.  See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L27-L28}{Source}.
+
+\subsubsection{ Set union}
+
+%     a: PSet[t]       b: PSet[t]
+%   ==============   ==============   pset_merge(a, b) 
+%     e: Set(t^)       f: Set(t^)
+% ======================================================
+%                 e \cup f : Set(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Union})]
+    {
+        \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
+        \\
+        \inferrule{b\colon \PSet[\tau]}{f \colon \Set(\htau)}
+        \\
+        \mathrm{pset\_merge}(a, b)
+    }{
+        e \cup f \colon \Set(\htau)
+    }
+\end{mathpar}
+
+Set union is translated to the \tlap{} native set union.  See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L31-L32}{Source}.
+
+\subsubsection{ Set flattening}
+
+%          a: PSet[PSet[t]]         
+%        ====================   pset_merge_flatten(a) 
+%          e: Set(Set(t^))       
+% =====================================================
+%                 UNION e : Set(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{BigUnion})]
+    {
+        \inferrule{ a\colon \PSet[\PSet[\tau]]}{e \colon \Set(\Set(\htau))}
+        \\
+        \mathrm{pset\_merge\_flatten}(a)
+    }{
+        \UNION e \colon \Set(\htau)
+    }
+\end{mathpar}
+
+Set flattening is translated to the \tlap{} native big $\UNION$.  See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L35-L36}{Source}.
+
+\subsubsection{Set intersection}
+
+%     a: PSet[t]       b: PSet[t]
+%   ==============   ==============   pset_intersection(a, b) 
+%     e: Set(t^)       f: Set(t^)
+% =============================================================
+%                    e \cap f : Set(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Intersection})]
+    {
+        \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
+        \\
+        \inferrule{b\colon \PSet[\tau]}{f \colon \Set(\htau)}
+        \\
+        \mathrm{pset\_intersection}(a, b)
+    }{
+        e \cap f \colon \Set(\htau)
+    }
+\end{mathpar}
+
+Set intersection is translated to the \tlap{} native set intersection.  See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L42-L43}{Source}.
+
+\subsubsection{Set difference}
+
+%     a: PSet[t]       b: PSet[t]
+%   ==============   ==============   pset_difference(a, b) 
+%     e: Set(t^)       f: Set(t^)
+% ===========================================================
+%                       e \ f : Set(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{SetDiff})]
+    {
+        \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
+        \\
+        \inferrule{b\colon \PSet[\tau]}{f \colon \Set(\htau)}
+        \\
+        \mathrm{pset\_difference}(a, b)
+    }{
+        e \setminus f \colon \Set(\htau)
+    }
+\end{mathpar}
+
+Set difference is translated to the \tlap{} native set difference.
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L46-L47}{Source}.
+
+\subsubsection{Singleton set}
+
+%     a: t
+%   =========   pset_get_singleton(a) 
+%     e: t^
+% =====================================
+%            { e } : Set(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Singleton})]
+    {
+        \inferrule{a\colon \tau}{e \colon \htau}
+        \\
+        \mathrm{pset\_get\_singleton}(a)
+    }{
+        \{e\} \colon \Set(\htau)
+    }
+\end{mathpar}
+
+A singleton Python set is translated to a \tlap{} native single-element set.
+See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L50-L51}{Source}.
+
+\subsubsection{Set extension}
+
+%     a: PSet[t]       b: t
+%   ==============   =========  pset_add(a, b) 
+%     e: Set(t^)       f: t^
+% ==============================================
+%             e \cup { f } : Set(t^) 
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{SetExt})]
+    {
+        \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
+        \\
+        \inferrule{b\colon \tau}{f \colon \htau}
+        \\
+        \mathrm{pset\_add}(a, b)
+    }{
+        e \cup \{f\} \colon \Set(\htau)
+    }
+\end{mathpar}
+A set extension is translated to a combination of union and singleton-set construction. Semantically, this is the equivalence:
+
+\[
+\mathrm{pset\_add}(a,b) = \mathrm{pset\_merge}(a, \mathrm{pset\_get\_singleton}(b))
+\]
+
+See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L54-L55}{Source}.
+
+\subsubsection{Element choice}
+
+%     a: PSet[t]
+%   ==============   pset_pick_element(a) 
+%     e: Set(t^)
+% =========================================
+%          CHOOSE x \in e: TRUE: t^
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Choice})]
+    {
+        \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
+        \\
+        \mathrm{pset\_pick\_element}(a)
+    }{
+        (\CHOOSE x \in e\colon\TRUE) \colon\htau
+    }
+\end{mathpar}
+
+We translate this to the built in deterministic choice in \tlap{}. We cannot
+account for the dynamic non-emptiness requirement. Instead, in that scenario,
+the value of this expression is some unspecified element of the correct type.
+See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L58-L60}{Source.}
+
+
+\subsubsection{Set filter}
+
+%     a: Callable[[t], bool]        b: PSet[t]
+%   ===========================   ==============   pset_filter(a, b) 
+%          e: t^ -> bool            f: Set(t^)
+% ====================================================================
+%                       { x \in f: e[x] }: Set(t^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Filter})]
+    {
+        \inferrule{a\colon \Callable[[\tau], \bool]}{e \colon \htau \to \Bool}
+        \\
+        \inferrule{b\colon \PSet[\tau]}{f \colon \Set(\htau)}
+        \\
+        \mathrm{pset\_filter}(a, b)
+    }{
+        \{ x \in f \colon e[x] \} \colon \Set(\htau)
+    }
+\end{mathpar}
+
+Set filtering is translated to the \tlap{} native filter operation.  See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L63-L70}{Source}.
+
+\subsubsection{ Set maximum}
+
+%     a: PSet[t]       b: Callable[[t], T]        
+%   ==============   =======================   pset_max(a, b) 
+%     e: Set(t^)           f: t^ -> T^            
+% =============================================================
+%       CHOOSE max \in e: \A x \in e: Le(f[x], f[max])
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Max})]
+    {
+        \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
+        \\
+        \inferrule{b\colon \Callable[[\tau], T]}{f \colon \htau \to \hat{T}}       
+        \\
+        \mathrm{pset\_max}(a, b)
+    }{
+        (\CHOOSE m \in e\colon \forall x \in e\colon \Le(f[x], f[m]))\colon \htau
+    }
+\end{mathpar}
+
+See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L74-L76}{Source}.
+
+
+Here, the translation depends on the type $T$ (resp. type $\hat{T}$), since there is no built-in notion of ordering in \tlap{}. 
+\paragraph{Instance 1:} If $\hat{T}$ is an integer type, then 
+\begin{lstlisting}[language=tla,columns=fullflexible]
+Le(x,y) $\defeq$ x $\le$ y
+\end{lstlisting}
+\paragraph{Instance 2:} If $\hat{T}$ is a tuple type $\tup{\Int,\Int}$, it is instead 
+% \begin{align*}
+% \Le(x,y) \defeq&\;\IF x[1] > y[1]\\
+%   &\THEN\FALSE\\
+%   &\ELSE\;\IF x[1] < y[1]\\
+%        &\phantom{\ELSE}\THEN \TRUE\\
+%        &\phantom{\ELSE}\ELSE x[2] \le y[2]\\
+% \end{align*}
+\begin{lstlisting}[language=tla,columns=fullflexible]
+Le(x,y) $\defeq$ 
+  IF x[1] > y[1]
+  THEN FALSE
+  ELSE IF x[1] < y[1]
+       THEN TRUE
+       ELSE x[2] $\le$ y[2]
+\end{lstlisting}
+
+\subsubsection{ Set sum}
+
+
+
+
+%             a: PSet[int]
+%           ================   pset_sum(a) 
+%             e: Set(int)
+% ===========================================================
+%   LET Plus(x,y) == x + y IN ApaFoldSet(Plus, 0, e ): int
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Sum})]
+    {
+        \inferrule{a\colon \PSet[\pyint]}{e \colon \Set(\Int)}
+        \\
+        \mathrm{pset\_sum}(a)
+    }{
+        \ApaFoldSet(+, 0, e) \colon \Int
+    }
+\end{mathpar}
+
+We translate a set sum as a fold of the $+$ operator over the set. See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L79-L80}{Source}.
+
+\subsubsection{ Set emptiness check}
+
+%      a: PSet[t]         
+%    ==============   pset_is_empty(a) 
+%      e: Set(t^)       
+% ======================================
+%             e = {} : bool
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{IsEmpty})]
+    {
+        \inferrule{a\colon \PSet[\tau]}{e \colon \Set(\htau)}
+        \\
+        \mathrm{pset\_is\_empty}(a)
+    }{
+        e = \{\} \colon \Bool
+    }
+\end{mathpar}
+
+The emptiness check is translated to a comparison with the explicitly
+constructed empty set. See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L83-L84}{Source}.
+
+
+\subsubsection{Vector-to-Set conversion}
+
+%     a: PVec[t]         
+%   ===============   from_pvector_to_pset(a) 
+%     e: List(t^)       
+% =============================================
+%   { At(e, i) : i \in Indices(e) }: Set(t^)            
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{VecToSet})]
+    {
+        \inferrule{a\colon \PVec[\tau]}{e \colon \List(\htau)}
+        \\
+        \mathrm{from\_pvector\_to\_pset}(a)
+    }{
+        \{ \At(e, i)\colon i \in \Indices(e) \} \colon \Set(\htau)  
+    }
+\end{mathpar}
+
+We translate the set-conversion, by mapping the accessor method over
+$\Indices$. See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L87-L88}{Source}.
+
+
+\subsubsection{Set mapping}
+
+%     a: Callable[[t1], t2]       b: PSet[t1]
+%   =========================   ==============   pset_map(a, b) 
+%         e: t1^ -> t2^           f: Set(t1^)
+% ===============================================================
+%                 { e[x]: x \in f}: Set(t2^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Map})]
+    {
+        \inferrule{a\colon \Callable[[\tau_1], \tau_2]}{e \colon \htau_1 \to \htau_2}
+        \\
+        \inferrule{b\colon \PSet[\tau_1]}{f \colon \Set(\htau_1)}
+        \\
+        \mathrm{pset\_map}(a, b)
+    }{
+        \{ e[x]\colon x \in f\} \colon \Set(\htau_2)
+    }
+\end{mathpar}
+
+Set mapping is translated to the \tlap{} native map operation. See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L91-L97}{Source}.
+
+\subsubsection{Function domain inclusion check}
+
+%     a: PMap[t1, t2]       b: t1
+%   ===================   =========   pmap_has(a, b) 
+%      e: t1^ -> t2^        f: t1^
+% ===================================================
+%               f \in DOMAIN e: bool 
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{InDom})]
+    {
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
+        \\
+        \inferrule{b\colon \tau_1}{e \colon \htau_1}
+        \\
+        \mathrm{pmap\_has}(a, b)
+    }{
+        e \in \DOMAIN f\colon \Bool
+    }
+\end{mathpar}
+
+Function domain inclusion checking is translated to the \tlap{} native
+set-inclusion operation for $\DOMAIN$.  See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L100-L101}{Source}.
+
+\subsubsection{ Function application}
+
+
+%     a: PMap[t1, t2]       b: t1
+%   ===================   =========   pmap_get(a, b) 
+%      e: t1^ -> t2^        f: t1^
+% ===================================================
+%                   e[f]: t2^
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{App})]
+    {
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
+        \\
+        \inferrule{b\colon \tau_1}{e \colon \htau_1}
+        \\
+        \mathrm{pmap\_get}(a, b)
+    }{
+        f[e]\colon \htau_2
+    }
+\end{mathpar}
+
+Function application is translated to the \tlap{} native function application.
+We cannot account for the dynamic domain-membership requirement. Instead, in
+that scenario, the value of this expression is some unspecified element of the
+correct type. See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L104-L106}{Source}.
+
+
+
+\subsubsection{ Empty function}
+
+%          pmap_get_empty : PMap[t1, t2]
+% ===============================================
+%   SetAsFun({}: Set(<<t1^, t2^>>)): t1^ -> t2^
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{EmptyFun})]
+    {
+        \mathrm{pmap\_get\_empty}()\colon \PMap[\tau_1,\tau_2]
+        \\
+        s \coloneqq \{\}\colon \Set(\tup{\htau_1, \htau_2}) 
+    }{
+      	\SetAsFun(s)\colon \htau_1 \to \htau_2
+    }
+\end{mathpar}
+
+See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L109-L110}{Source}.
+
+We use Apalache's $\SetAsFun$, since we only need to annotate the empty set
+with the correct tuple type. The native construction via $[ \_ \mapsto \_]$
+would require us to invent a codomain value, which we might not have access to
+if $\tau_1 \ne \tau_2$.
+
+\subsubsection{ Function update}
+
+
+%     a: PMap[t1, t2]       b: t1       c: t2
+%   ===================   =========   ==========   pmap_set(a, b, c) 
+%      e: t1^ -> t2^        f: t1^      g: t2^
+% ===================================================================
+%                 [e EXCEPT ![f] = g] : t1^ -> t2^
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{Update})]
+    {
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
+        \\
+        \inferrule{b\colon \tau_1}{x \colon \htau_1}
+        \\
+        \inferrule{c\colon \tau_2}{y \colon \htau_2}
+        \\
+        \mathrm{pmap\_set}(a, b, c)
+    }{
+        [ v \in (\DOMAIN f \cup \{x\}) \mapsto \IF v = x \THEN y \ELSE f[x] ] \colon \htau_1 \to \htau_2
+    }
+\end{mathpar}
+
+See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L113-L114}{Source}.
+
+While one might intuitively want to translate map updates using the \tlap{}
+native $\EXCEPT$, we cannot, since $\EXCEPT$
+\href{https://lamport.azurewebsites.net/tla/book-21-07-04.pdf}{does not allow
+for domain extensions}, whereas $\mathrm{pmap\_set}$
+\href{https://pyrsistent.readthedocs.io/en/latest/api.html#pyrsistent.PMap.set}{does}.
+By definition:
+
+\[
+[f \EXCEPT\ ![x] = y] \defeq [v \in \DOMAIN f \mapsto \IF v = x \THEN y \ELSE f[x] ]
+\]
+
+where, most notably, the domain of $[f \EXCEPT ![x] = y]$ is exactly the domain of $f$. We adapt the above definition to (possibly) extend the domain.
+
+
+\subsubsection{Function combination}
+
+
+%                 a: PMap[t1, t2]       b: PMap[t1, t2]
+%               ===================   ===================   pmap_merge(a, b) 
+%                  e: t1^ -> t2^         f: t1^ -> t2^
+% ============================================================================================
+%   [ x \in (DOMAIN e \cup DOMAIN f) |-> IF x \in DOMAIN f THEN f[x] ELSE e[x] ]: t1^ -> t2^
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{FnMerge})]
+    {
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{f \colon \htau_1 \to \htau_2}
+        \\
+        \inferrule{b\colon \PMap[\tau_1, \tau_2]}{g \colon \htau_1 \to \htau_2}
+        \\
+        \mathrm{pmap\_merge}(a,b)
+    }{
+        [x \in (\DOMAIN f \cup \DOMAIN g) \mapsto \IF x \in \DOMAIN g \THEN g[x] \ELSE f[x]]\colon \htau_1\to\htau_2
+    }
+\end{mathpar}
+
+See~\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L117-L118}{Source}.
+Function combination is translated to a new function, defined over the union of
+both domains. Note that the second map/function dominates in the case of
+key/domain collisions.
+
+
+\subsubsection{Function domain}
+
+%     a: PMap[t1, t2]   
+%   ===================   pmap_keys(a) 
+%      e: t1^ -> t2^    
+% ======================================
+%           DOMAIN e: Set(t1^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{FnDomain})]
+    {
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{e \colon \htau_1 \to \htau_2}
+        \\
+        \mathrm{pmap\_keys}(a)
+    }{
+        \DOMAIN e\colon \Set(\htau_1)
+    }
+\end{mathpar}
+
+See
+\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L121-L122}{Source}.
+We translate this to the \tlap{} native $\DOMAIN$.
+
+
+\subsubsection{ Function codomain}
+
+
+%     a: PMap[t1, t2]   
+%   ===================   pmap_values(a) 
+%      e: t1^ -> t2^    
+% ========================================
+%    { e[x]: x \in DOMAIN e }: Set(t2^)
+
+\begin{mathpar}
+    \inferrule*[right=(\textsc{FnCodomain})]
+    {
+        \inferrule{a\colon \PMap[\tau_1, \tau_2]}{e \colon \htau_1 \to \htau_2}
+        \\
+        \mathrm{pmap\_values}(a)
+    }{
+        \{ e[x]\colon x \in \DOMAIN e \}\colon \Set(\htau_2)
+    }
+\end{mathpar}
+
+See~\href{https://github.com/saltiniroberto/ssf/blob/7ea6e18093d9da3154b4e396dd435549f687e6b9/high_level/common/pythonic_code_generic.py#L125-L126}{Source}.
+We translate this by mapping the function over its $\DOMAIN$.

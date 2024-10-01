@@ -1,0 +1,311 @@
+\subsection{Meta-rules for translating recursive definitions}
+
+So far, we have been dealing with the primitive building blocks. In order to
+facilitate translation of recursive Python code to the \tlap{} fragment
+supported by Apalache, we introduce a set of \tlap{}-to-\tlap{} rules, which
+allow us to:
+
+\begin{enumerate}
+  \item Formulate translations from Python to \tlap{} in the
+    intuitive way, potentially introducing constructs like recursion, and then
+
+  \item Pair them with a \tlap{}-to-\tlap{} rule, ending in a supported
+      fragment.
+
+\end{enumerate}
+
+We have to do that, as the \texttt{ssf} code extensively uses recursive
+definitions.
+
+\subsubsection{Bounded recursion rule}
+
+Assume we are given a $\RECURSIVE$ operator $\op$. Without loss of generality,
+we can take the arity to be $1$, since any operator of higher arity can be
+expressed as an arity $1$ operator over tuples or records.
+
+Further, we assume that the operator $\op$ has the following shape:
+
+\begin{lstlisting}[language=tla,columns=fullflexible]
+RECURSIVE R(_)
+\* $@$type (a) => b;
+R(x) ==
+  IF P(x)
+  THEN e
+  ELSE G(x, R(next(x))
+\end{lstlisting}
+%
+
+In other words, we have:
+
+\begin{itemize}
+  \item A termination condition $P$
+  \item A "default" value $e$, returned if the argument satisfies the termination condition
+  \item A general case operator $G$, which invokes a recursive computation of $R$ over a modified parameter given by the operator $\bb$.
+\end{itemize}
+%
+
+The following needs to hold true, to ensure recursion termination: For every
+$x\colon a$, there exists a finite sequence $x = v_1, \dots, v_n$
+that satisfies the following conditions:
+
+\begin{itemize}
+\item $P(v_n)$ holds
+\item $v_{i+1} = \bb(v_i)$ for all $1 \le i < n$
+\item $P(v_i)$ does not hold for any $1 \le i < n$ (i.o.w., this is the shortest sequence with the above two properties)
+\end{itemize}
+%
+
+We will attempt to express the recursive operator $\op$ with a non-recursive
+``iterative'' operator $\nrop$ of arity $2$, which takes an additional
+parameter: a constant $N$. The non-recursive operator will have the property
+that, for any particular choice of $x$, $\nrop(x, N)$ will evaluate to $\op(x)$
+if $n < N$ (i.e., if the recursion stack of $\op$ has height of at most $N$).
+
+%
+To that end, we first define:
+\begin{lstlisting}[language=tla,columns=fullflexible]
+\* $@$type (a, Int) => Seq(a);
+Stack(x, N) ==
+  LET 
+    \* $@$type: (Seq(a), Int) => Seq(a);
+    step(seq, i) ==
+      IF i > Len(seq) \/ P(seq[1])
+      THEN seq
+      ELSE 
+        \* Alternatively, we can append here and reverse the list at the end
+        <<next(seq[1])>> \o seq 
+  IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+\end{lstlisting}
+%
+
+Here, $\ApaFoldSeqLeft$ is the left-fold over sequences, that is, an operator
+for which:
+
+\begin{align*}
+\ApaFoldSeqLeft(O, v, \tup{}) =& v \\
+\ApaFoldSeqLeft(O, v, \tup{x_1,\dots, x_n}) =& O(O(O(v, x_1), x_2), \dots, x_n)
+\end{align*}
+and $\MkSeq$ is the sequence constructor, for which 
+\[
+\MkSeq(N, O) = \tup{O(1), \dots, O(N)}
+\]
+%
+
+We can see that $\Chain(x,N)$ returns the sequence $\tup{v_n, ..., x}$ if $N$
+is sufficiently large.  We can verify whether or not that is the case, by
+evaluating $P(\Chain(x, N)[1])$. If it does not hold, the $N$ chosen is not
+large enough, and needs to be increased. Using $\Chain$ we can define a
+fold-based non-recursive operator $\op^*$, such that $\op^*(x) = \op(x)$ under
+the above assumptions:
+
+\begin{lstlisting}[language=tla,columns=fullflexible]
+\* $@$type (a, Int) => b;
+I(x, N) ==
+  LET stack == Stack(x, N) IN
+  LET step(cumul, v) == G(v, cumul) IN
+  ApaFoldSeqLeft( step, e, Tail(stack) )
+\end{lstlisting}
+%
+Then, $\op^*(x) = \nrop(x, N_0)$ for some sufficiently large specification-level constant $N_0$. Alternatively,
+\begin{lstlisting}[language=tla,columns=fullflexible]
+\* $@$type (a, Int) => b;
+I(x, N) ==
+  LET stack == Stack(x, N) IN
+  LET step(cumul, v) == G(v, cumul) IN
+  IF P(stack[1])
+  THEN ApaFoldSeqLeft(step, e, Tail(stack))
+  ELSE CHOOSE x \in {}: TRUE 
+\end{lstlisting}
+%
+In this form, we return $\CHOOSE x \in {}: \TRUE$, which is an idiom meaning "any value" (of the correct type), in the case where the $N$ chosen was not large enough. Tools can use this idiom to detect that $\nrop(x,N)$ did not evaluate to the expected value of $\op(x)$. 
+
+\paragraph{Example.} Consider the following operator:
+\begin{lstlisting}[language=tla,columns=fullflexible]
+RECURSIVE R(_)
+\* $@$type (Int) => Int;
+R(x) ==
+  IF x <= 0
+  THEN 0
+  ELSE x + R(x-1)
+\end{lstlisting}
+where $P(x) = x \le 0$, $G(a,b) = a + b$, and $\bb(x) = x - 1$. For this operator, we know that $\op(4) = 10$. By the above definitions:
+\begin{lstlisting}[language=tla,columns=fullflexible]
+\* $@$type (Int, Int) => Seq(Int);
+Stack(x, N) ==
+  LET 
+    \* $@$type: (Seq(Int), Int) => Seq(Int);
+    step(seq, i) ==
+      IF i > Len(seq) \/ seq[1] <= 0
+      THEN seq
+      ELSE <<seq[1] - 1>> \o seq
+  IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
+\end{lstlisting}
+%
+We can compute the above $\Chain$ with two different constants $N$, $2$ and $100$, and observe that $\Chain(4, 2) = \tup{2, 3, 4}$ and $\Chain(4, 100) = \tup{0, 1, 2, 3, 4}$. 
+We are able to tell whether we have chosen sufficiently large values for $N$ after the fact, by evaluating $P(\Chain(x,N)[1])$. 
+For our $P(x) = x \le 0$, we see $\neg P(\Chain(4, 2)[1])$, and $P(\Chain(4, 100)[1])$, so we can conclude that we should not pick $N=2$, but $N=100$ suffices. 
+Of course it is relatively easy to see, in this toy example, that the recursion depth is exactly $4$, but we could use this post-evaluation in cases where the recursion depth is harder to evaluate from the specification, to determine whether we need to increase the value of $N$. \hfill $\triangleleft$
+
+\noindent Continuing with the next operator:
+\begin{lstlisting}[language=tla,columns=fullflexible]
+\* $@$type (Int, Int) => Int;
+I(x, N) ==
+  LET stack == Stack(x, N)
+  IN ApaFoldSeqLeft( +, 0, Tail(stack) )
+\end{lstlisting}
+%
+we see that $\nrop(4, 2) = 7 \ne 10 = \op(4)$, but $\nrop(4, 100) = 10 = \op(4)$.
+As expected, choosing an insufficiently large value of $N$ will give us an incorrect result, but we know how to detect whether we have chosen an appropriate $N$.
+
+\paragraph{Optimization for associative $G$.}
+In the special case where $G$ is associative, that is, $G(a, G(b, c)) = G(G(a, b), c)$ for all $a,b,c$, we can make the entire translation more optimized, and single-pass. Since $\nrop(x,N)$, for sufficiently large $N$, computes 
+\[
+G(v_1, G(v_2, ... (G(v_{n-2}, G(v_{n-1}, e)))))
+\]
+%
+and $G$ is associative by assumption, then computing
+\[
+G(G(G(G(v_1, v_2), ...), v_{n-1}), e)
+\]
+gives us the same value. This computation can be done in a single pass:
+\begin{lstlisting}[language=tla,columns=fullflexible]
+IForAssociative(x, N) ==
+  IF P(x)
+  THEN e
+  ELSE
+    LET 
+      \* $@$type: (<<a, a>>, Int) => <<a, a>>;
+      step(pair, i) == \* we don't use the index `i`
+        LET partial == pair[1]
+             currentElem == pair[2]
+        IN
+          IF P(currentElem)
+          THEN pair
+          ELSE
+            LET nextElem == next(currentElem)
+            IN << G(partial, IF P(nextElem) e ELSE nextElem), nextElem >>
+    IN ApaFoldSeqLeft( step, <<x, x>>, MkSeq(N, LAMBDA i: i) )[1]
+\end{lstlisting}
+
+\subsubsection{ Mutual recursion cycles}
+
+Assume we are given a collection of $n$ operators $\op_1, \dots, \op_n$ (using the convention $\op_{n+1} = \op_1$), with types $\op_i\colon (a_i) \Rightarrow a_{i+1}$ s.t. $a_{n+1} = a_1$, in the following pattern:
+
+\begin{lstlisting}[language=tla,columns=fullflexible]
+RECURSIVE R_i(_)
+\* $@$type (a_i) => a_{i+1};
+R_i(x) == G_i(x, R_{i+1}(next_i(x)))
+\end{lstlisting}
+%
+Then, we can inline any one of these operators, w.l.o.g. $\op_1$, s.t. we obtain a primitive-recursive operator:
+\begin{lstlisting}[language=tla,columns=fullflexible]
+RECURSIVE R(_) 
+\* $@$type: (a_1) => a_1;
+R(x) ==
+  G_1( x, 
+    G_2( next_1(x),
+      G_3( next_2(next_1(x)),
+        G_4( ...
+          G_n( next_{n-1}(next_{n-2}(...(next_1(x)))), 
+               R(next_n(next_{n-1}(...(next_1(x)))))
+            )
+          )
+        )
+      )
+    )
+\end{lstlisting}
+for which $\op(x) = \op_1(x)$ for all $x$, and $\op$ terminates iff $\op_1$ terminates.
+
+\subsubsection{One-to-many recursion}
+
+Suppose we are given, for each value $x: a$, a finite set $V(x)\colon \Set(a)$ s.t. $V(x)$ is exactly the set of values $v$, for which we are required to recursively compute $\op(v)$, in order to compute $\op(x)$. 
+Further, assume that there exists a potential function $\gamma$ from $a$ to nonnegative integers, with the property that, for any $x$ of type $a$ the following holds:
+\[
+\forall y \in V(x)\colon \gamma(y) < \gamma(x) 
+\]
+%
+If one cannot think of a more intuitive candidate for $\gamma$, one may always take $\gamma(t)$ to be the recursion stack-depth required to compute $\op(t)$ (assuming termination). It is easy to see that such a definition satisfies the above condition.
+
+\paragraph{Example.} In the 3SF example, for each checkpoint $x$, the set $V(x)$ would be the set of all source-checkpoints belonging to FFG votes, which could be used to justify $x$ (and those checkpoints need to be recursively justified, forming a chain all the way back to genesis). Additionally, $\gamma$ would assign each checkpoint $x$ the value $x.\text{slot}$. \hfill $\triangleleft$
+
+\noindent Let $\op$ have the following shape:
+\begin{lstlisting}[language=tla,columns=fullflexible]
+RECURSIVE R(_)
+\* $@$type (a) => b;
+R(x) ==
+  IF P(x)
+  THEN e
+  ELSE G(x, F(V(x), Op))
+\end{lstlisting}
+%
+where $F(S, T(\_)) \coloneqq \{s \in S\colon T(s)\}$ or $F(S, T(\_)) \coloneqq \{T(s)\colon s \in S\}$ (i.e. a map or a filter).
+%
+
+\paragraph{Example.} In the 3SF example, for $\mathrm{is\_justified\_checkpoint}$, $P$ checks whether $x$ is the genesis checkpoint, and $e = \TRUE$. $G$ is the main computation, which determines whether or not a non-genesis checkpoint is justified, by finding quorums of validators, wherein each validator cast an FFG vote justifying $x$, but where the source checkpoint was recursively justified (i.e. belonged to $V(x)$). \hfill $\triangleleft$
+\\
+\\
+We give a translation scheme, which reduces this more generalized form of recursion to the one given in the previous section, by defining a map-based recursive operator $\mop$, for which we will ensure
+\[
+\op(x) = \mop([ v \in \{x\} \mapsto V(x) ])[x]
+\] 
+if $\op(x)$ terminates. We define the necessary operators in Figure \ref{fig1}. Using these operator definitions, we can show the following theorem:
+\begin{figure}[ht]
+\begin{lstlisting}[language=tla,columns=fullflexible]
+\* $@$type: (a -> Set(a)) => a -> Set(a);
+next(map) ==
+  LET newDomain == UNION {map[v]: v \in DOMAIN map}
+  IN [ newDomainElem \in newDomain |-> V(newDomainElem) ]
+
+\* $@$type: (a -> Set(a), a -> b) => a -> b;
+Gm(currentRecursionStepMap, partialValueMap) ==
+  LET domainExtension == DOMAIN currentRecursionStepMap IN
+  LET 
+    \* $@$type: (a) => b;
+    evalOneKey(k) ==
+      LET OpSubstitute(x) == partialValueMap[x] 
+      IN G(k, F(currentRecursionStepMap[k], OpSubstitute))
+  IN [
+    x \in (domainExtension \union DOMAIN partialValueMap) |->
+      IF x \in DOMAIN partialValueMap
+      THEN partialValueMap[x]
+      ELSE IF P(x)
+           THEN e
+           ELSE evalOneKey(x)
+  ]
+
+RECURSIVE Rm(_)
+\* $@$type (a -> Set(a)) => a -> b;
+Rm(map) ==
+  IF \A x \in DOMAIN map: P(x)
+  THEN [ x \in DOMAIN map |-> e ]
+  ELSE Gm(map, Rm(next(map)))
+\end{lstlisting}
+\caption{$\mop$ and auxiliary operators \label{fig1}}
+\end{figure}
+
+\newcommand{\thmBody}{
+Let $f$ be a function, s.t. for any $x \in \DOMAIN f$ it is the case that $f[x] = V(x)$. Then, for
+$g \coloneqq \mop(f)$:
+\[
+\forall x \in \DOMAIN g \colon g[x] = \op(x)
+\]
+}
+ 
+\begin{theorem}\label{thm}
+\thmBody
+\end{theorem}
+From this theorem, the following corollary trivially follows:
+\newcommand{\corollaryBody}{
+For any $x\colon a$
+\[
+\op(x) = \mop([ v \in \{x\} \mapsto V(x) ])[x]
+\]
+}
+ 
+\begin{corollary}\label{corollary}
+\corollaryBody
+\end{corollary}
+The equivalence proofs are available in the appendix. 
+The termination proof must still be made on a case-by-case basis, as it depends on $h$ and $V$.
+
+

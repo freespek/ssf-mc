@@ -1,0 +1,206 @@
+\section{Detailed proofs}
+
+In the following, we show soundness of our translation rules for the recursive
+operators.
+
+\subsection{Additional definitions}
+Let $f$ be any \tlap function. We use the shorthand $D_f \coloneqq \DOMAIN f$.
+We use $\nat$ to refer to the set of all natural numbers (i.e. nonnegative integers).
+
+We assume the following precondition: There exists a $\gamma\colon a \to \nat$, with the following property:
+\[
+\forall x\colon a \ .\ \forall y \in V(x) \ .\ \gamma(y) < \gamma(x) 
+\]
+
+Recall the following definitions:
+\[
+\iteDef{\op(x)}{e}{P(x)}{G(x, F(V(x), \op))},
+\]
+\[
+\iteDef{\mop(f)}{[ x \in D_f \mapsto e ]}{\forall x \in D_f \ .\ P(x)}{\mapg(f, \mop(\bb(f))}
+\]
+and
+\[
+\mapg(f, m)[x] \coloneqq \left\{
+\begin{array}{ll}
+      m[x] &; x \in D_m \\
+      e &; x \notin D_m \land P(x) \\
+      G(x, F(f[x], m)) &; \text{otherwise}\\
+\end{array} 
+\right. 
+\]
+with $D_{\mapg(f,m)} = D_f \cup D_m$.
+
+\subsection{Proofs}
+
+\begin{lemma}\label{lemma1}
+Let $f$ be any function of type $a \to Set(a)$. Then
+\[
+D_f \subseteq D_{\mop(f)}
+\]
+\end{lemma}
+\begin{proof}
+
+Let $g \coloneqq \mop(f)$. To prove the first part, we have two options to
+consider, based on the definition of $\op$. If $\forall x \in D_f \ .\ P(x)$,
+then $D_f = D_g$. Otherwise, $g = \mapg(f,\mop(\bb(f)))$. By definition,
+$D_{\mapg(f,m)} = D_f \cup D_m$, so it follows that $D_f \subseteq
+D_{\mapg(f,m)}$, for any $m$. 
+%
+\end{proof}
+
+\begin{corollary}
+If $D_f = \emptyset$, then $D_{g} = \emptyset$.
+\end{corollary}
+\begin{proof}
+If $D_f$ is empty, then it is vacuously true that $\forall x \in D_f \ .\ P(x)$, and so $D_f = D_g$ by definition.
+\end{proof}
+
+
+% \begin{lemma}\label{lemma1}
+% Let $x$ be any value of type $a$, s.t. $P(x)$ holds. Then, $h(V(x)) = \emptyset$
+% \end{lemma}
+
+% \begin{proof}
+% By definition $h(V(x))$ is defined s.t. computing $\op(x)$ requires us to recursively compute $Op(v)$ for each $v \in h(V(x))$. Since for $x$ it is the case that $P(x)$ holds, and $\op$ is defined as:
+% \[
+% \iteDef{\op(x)}{e}{P(x)}{G(x, F(h(V(x)), \op))}
+% \]
+% we do not need to consider the second branch of the definition to compute $\op(x)$. Thus, we do not need to recursively compute $\op(v)$ for any $v$, and $h(V(x))$ is empty.
+% \end{proof}
+
+We define an auxiliary function $\alpha$ that assigns every function of the type $a \to Set(a)$ a value in $\nat \cup \{-\infty\}$, defined as:
+\[
+\alpha(f) \coloneqq \sup\left\{ \gamma(v) \mid v \in D_f \right\}
+\]
+
+\begin{lemma}\label{lemma2}
+Let $f$ be a function, s.t. for any $x \in D_f$ it is the case that $f[x] = V(x)$. Then
+\[
+\alpha(f) \ge 0 \Rightarrow \alpha(\bb(f)) < \alpha(f)
+\]
+\end{lemma}
+
+\begin{proof}
+
+Assume $\alpha(f) \ge 0$. This is trivially equivalent to saying $D_f \ne
+\emptyset$.  We see that $\bb$ is defined as:
+
+\[
+\bb(f)[y] \coloneqq V(y)
+\]
+
+$D_{\bb(f)}$ is defined as:
+
+\[
+D_{\bb(f)} \coloneqq \bigcup_{v \in D_f} f[v]
+\]
+
+It follows that:
+
+\begin{align*} 
+\alpha(\bb(f)) &= \sup\left\{ \gamma(v) \mid v \in D_{\bb(f)} \right\} \\
+&= \sup\left\{ \gamma(v) \mid v \in \bigcup_{w \in D_f} f[w] \right\} \\
+&= \sup\left\{ \gamma(v) \mid v \in \bigcup_{w \in D_f} V(w) \right\} \\
+\end{align*}
+
+By the precondition, we know that:
+
+\[
+\forall y \in V(x) \ .\ \gamma(y) < \gamma(x) 
+\]
+
+If we take an arbitrary $v \in \bigcup_{w \in D_f} V(w)$, there exists a $w \in
+D_f$, s.t. $v \in V(w)$. The precondition then implies, that $\gamma(v) <
+\gamma(w)$.  Additionally, since $w \in D_f$, by the definition of $\alpha(f)$,
+it follows that $\gamma(w) \le \alpha(f)$.  Since all sets in question are
+finite, $D_{\bb(f)}$ is either empty, in which case $\alpha(\bb(f)) = -\infty$
+and the lemma trivially holds, or the supremum is actually a maximum, and
+strict inequality is maintained when we infer:
+
+\[
+\alpha(\bb(f)) = \sup\left\{ \gamma(v) \mid v \in \bigcup_{w \in D_f} V(w) \right\} < \alpha(f)
+\]
+%
+\end{proof}
+
+As a trivial corollary to this lemma, we observe that $\alpha(\bb(f)) =
+\alpha(f)$ iff $\alpha(f) = -\infty$.
+
+\recallthm{thm}{\thmBody}
+\begin{proof}
+We prove this by using induction over $\alpha(f)$.
+
+Base case $\alpha(f) = -\infty$: This can only be true if $D_f$ is empty.
+However, it is then vacuously true that:
+
+\[
+\forall x \in D_f \ .\ P(x)
+\]
+
+It follows from the corollary to Lemma \ref{lemma1} that $D_g$ is empty too. In
+that case, any universally quantified statement over $D_g$ vacuously holds.
+
+\emph{General case}: Let $\alpha(f) = N \ge 0$ and assume the theorem holds for
+any $f'$, for which $\alpha(f') < N$.  We observe that $f' \coloneqq \bb(f)$
+satisfies all of the requirements. By definition, we have:
+
+\[
+\bb(f)[y] \coloneqq V(y)
+\]
+
+The above holds true for every element in its domain, so the precondition of
+the theorem is met. Additionally, by Lemma~\ref{lemma2}, we know that
+$\alpha(f') < N$, so we can use the induction assumption to conclude that:
+
+\[
+\forall x \in D_{\mop(f')} \ .\ \mop(f')[x] = \op(x)
+\]
+
+If it is the case that $\forall x \in D_f \ .\ P(x)$, then $\mop(f)[x] = e$ for
+all domain elements, since $D_f = D_{\mop(f)}$, by the same reasoning we used
+in the case where $D_f$ was empty. Similarly, for each such $x$, $\op(x) = e$
+by the definition of $\op$, since $P(x)$ holds.
+
+Next, we select an arbitrary $x \in D_{\mop(f)}$. We look at the case split in $\mapg$:
+\begin{enumerate}
+\item If $x \in D_{\mop(f')}$, by the induction hypothesis, we know that $\mop(f')[x] = \op(x)$.
+\item If $x \notin D_{\mop(f')}$, but $P(x)$ holds, we know $\op(x) = e$. Here, $\mapg(f, \mop(f'))$ trivially evaluates to $e$ as well.
+\item Otherwise, it remains to be shown that the following holds true:
+
+\[
+G(x, F(f[x], \mop(f'))) = \op(x)
+\]
+
+Since we know $P(x)$ does not hold for this $x$, it follows that:
+\[
+\op(x) = G(x, F(V(x), Op))
+\]
+
+Hence, it suffices to see that:
+
+\[
+F(f[x], \mop(f')) = F(V(x), Op)
+\]
+
+By the property of $f$, $f[x] = V(x)$. As $x \in D_f$, $f[x] \subseteq D_{f'}$
+by definition and $D_{f'} \subseteq D_{\mop(f')}$ by Lemma~\ref{lemma1}, so for
+every element $v \in V(x)$ it is the case that $\op(v) = \mop(f')[v]$. Since
+$F$ is either a map or a filter, the equality above follows.
+
+\end{enumerate}
+
+\end{proof}
+
+\recallcorollary{corollary}{\corollaryBody}
+\begin{proof}
+\[
+f \coloneqq [ v \in \{x\} \mapsto V(x) ]
+\]
+obviously satisfies the precondition of Theorem \ref{thm}:
+\[
+\forall y \in D_f \ .\ f[y] = V(y)
+\]
+Since $x \in D_f \subseteq D_{\mop(f)}$ by Lemma~\ref{lemma1}, we can use Theorem~\ref{thm}, to conclude that $\mop(f)[x] = \op(x)$.
+\end{proof}
+

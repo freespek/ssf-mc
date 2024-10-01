@@ -1,0 +1,101 @@
+\usepackage{mathpartir}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{tlalatex}
+
+
+\lstdefinelanguage{tla}                                                         
+  {morekeywords={MODULE,EXTENDS,CONSTANTS,CONSTANT,ASSUME,VARIABLES,VARIABLE,
+          EXCEPT,UNCHANGED,TRUE,FALSE,IF,THEN,ELSE,LET,IN,SUBSET,DOMAIN,RECURSIVE},
+          comment=[l]{\\*},
+  morecomment=[s]{(*}{*)},
+  mathescape=true,escapechar={@},
+  basicstyle=\sffamily,%\small,
+  commentstyle=\itshape\rmfamily,%\small,
+  keywordstyle=\sffamily%\bfseries
+}
+
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\newcommand{\iteDef}[4]{
+  #1 \coloneqq \left\{
+\begin{array}{ll}
+      #2 &; #3 \\
+      #4 &; \text{otherwise}\\
+\end{array} 
+\right. 
+}
+
+\newcommand{\tlap}{$\textsc{TLA}^{+}$}
+% \newcommand{\defeq}{\;\mathrel{\smash   %% keep this symbol from being too tall
+%     {{\stackrel{\scriptscriptstyle\Delta}{=}}}}\;}
+
+\newcommand{\nat}{\mathbb N_0}
+
+\newcommand{\op}{\mathrm{R}}
+\newcommand{\nrop}{\mathrm{I}}
+\newcommand{\mop}{\mathrm{R}_m}
+\newcommand{\mapg}{\mathrm{G}_m}
+\newcommand{\bb}{\mathrm{next}}
+\newcommand{\Chain}{\mathrm{Stack}}
+
+\newcommand{\tup}[1]{\left<\left<#1\right>\right>}
+\newcommand{\htau}{\hat{\tau}}
+
+\newcommand{\List}{\mathrm{List}}
+\newcommand{\Seq}{\mathrm{Seq}}
+\newcommand{\Set}{\mathrm{Set}}
+\newcommand{\PVec}{\mathrm{PVec}}
+\newcommand{\PSet}{\mathrm{PSet}}
+\newcommand{\PMap}{\mathrm{PMap}}
+\newcommand{\Concat}{\mathrm{Concat}}
+\newcommand{\Callable}{\mathrm{Callable}}
+\newcommand{\Le}{\mathrm{Le}}
+\newcommand{\bool}{\mathrm{bool}}
+\newcommand{\Bool}{\mathrm{Bool}}
+\newcommand{\pyint}{\mathrm{int}}
+\newcommand{\Int}{\mathrm{Int}}
+\newcommand{\ApaFoldSet}{\mathrm{ApaFoldSet}}
+\newcommand{\ApaFoldSeqLeft}{\mathrm{ApaFoldSeqLeft}}
+\newcommand{\MkSeq}{\mathrm{MkSeq}}
+\newcommand{\SetAsFun}{\mathrm{SetAsFun}}
+\newcommand{\Push}{\mathrm{Push}}
+\newcommand{\At}{\mathrm{At}}
+\newcommand{\Indices}{\mathrm{Indices}}
+% \newcommand{\UNION}{\mathrm{UNION}}
+% \newcommand{\CHOOSE}{\mathrm{CHOOSE}}
+% \newcommand{\TRUE}{\mathrm{TRUE}}
+% \newcommand{\FALSE}{\mathrm{FALSE}}
+% \newcommand{\IF}{\mathrm{IF}}
+% \newcommand{\THEN}{\mathrm{THEN}}
+% \newcommand{\ELSE}{\mathrm{ELSE}}
+% \newcommand{\LET}{\mathrm{LET}}
+% \newcommand{\IN}{\mathrm{IN}}
+% \newcommand{\DOMAIN}{\mathrm{DOMAIN}}
+% \newcommand{\EXCEPT}{\mathrm{EXCEPT}}
+% \newcommand{\RECURSIVE}{\mathrm{RECURSIVE}}
+
+
+
+% recall a theorem mentioned before with the same label
+\newcommand{\recallthm}[2]{%
+  {\medskip\noindent\bfseries Theorem~\ref{#1}.~}{\itshape #2}
+}
+% recall a proposition mentioned before with the same label
+\newcommand{\recallproposition}[2]{%
+  {\medskip\noindent\bfseries Proposition~\ref{#1}.~}{\itshape #2}
+}
+% recall a lemma mentioned before with the same label
+\newcommand{\recalllemma}[2]{%
+  {\medskip\noindent\bfseries Lemma~\ref{#1}.~}{\itshape #2}
+}
+% recall a corollary mentioned before with the same label
+\newcommand{\recallcorollary}[2]{%
+  {\medskip\noindent\bfseries Corollary~\ref{#1}.~}{\itshape #2}
+}
