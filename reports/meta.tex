@@ -1,15 +1,30 @@
-\subsection{ Meta-rules}
+\subsection{Meta-rules for translating recursive definitions}
 
-In order to facilitate translation to the \tlap{} fragment supported by Apalache, we introduce a set of \tlap{}-to-\tlap{} rules, which allow us to
+So far, we have been dealing with the primitive building blocks. In order to
+facilitate translation of recursive Python code to the \tlap{} fragment
+supported by Apalache, we introduce a set of \tlap{}-to-\tlap{} rules, which
+allow us to:
+
 \begin{enumerate}
-\item formulate translations from Python to \tlap{} in the intuitive way, potentially introducing constructs like recursion, and then
-\item pair them with a \tlap{}-to-\tlap{} rule, ending in a supported fragment.
+  \item Formulate translations from Python to \tlap{} in the
+    intuitive way, potentially introducing constructs like recursion, and then
+
+  \item Pair them with a \tlap{}-to-\tlap{} rule, ending in a supported
+      fragment.
+
 \end{enumerate}
+
+We have to do that, as the \texttt{ssf} code extensively uses recursive
+definitions.
 
 \subsubsection{Bounded recursion rule}
 
-Assume we are given a $\RECURSIVE$ operator $\op$. W.l.o.g. we can take the arity to be $1$, since any operator of higher arity can be expressed as an arity $1$ operator over tuples or records.
-We assume $\op$ has the following shape:
+Assume we are given a $\RECURSIVE$ operator $\op$. Without loss of generality,
+we can take the arity to be $1$, since any operator of higher arity can be
+expressed as an arity $1$ operator over tuples or records.
+
+Further, we assume that the operator $\op$ has the following shape:
+
 \begin{lstlisting}[language=tla,columns=fullflexible]
 RECURSIVE R(_)
 \* $@$type (a) => b;
@@ -19,21 +34,33 @@ R(x) ==
   ELSE G(x, R(next(x))
 \end{lstlisting}
 %
-i.o.w., we have:
+
+In other words, we have:
+
 \begin{itemize}
   \item A termination condition $P$
   \item A "default" value $e$, returned if the argument satisfies the termination condition
   \item A general case operator $G$, which invokes a recursive computation of $R$ over a modified parameter given by the operator $\bb$.
 \end{itemize}
 %
-The following needs to hold true, to ensure recursion termination: for every $x\colon a$, there exists a finite sequence $x = v_1, \dots, v_n$, such that
+
+The following needs to hold true, to ensure recursion termination: For every
+$x\colon a$, there exists a finite sequence $x = v_1, \dots, v_n$
+that satisfies the following conditions:
+
 \begin{itemize}
 \item $P(v_n)$ holds
 \item $v_{i+1} = \bb(v_i)$ for all $1 \le i < n$
 \item $P(v_i)$ does not hold for any $1 \le i < n$ (i.o.w., this is the shortest sequence with the above two properties)
 \end{itemize}
 %
-We will attempt to express the recursive operator $\op$ with a non-recursive "iterative" operator $\nrop$ of arity $2$, which takes an additional parameter: a constant $N$. The non-recursive operator will have the property that, for any particular choice of $x$, $\nrop(x, N)$ will evaluate to $\op(x)$ if $n < N$ (i.e. if the recursion stack of $\op$ has height of at most $N$).
+
+We will attempt to express the recursive operator $\op$ with a non-recursive
+``iterative'' operator $\nrop$ of arity $2$, which takes an additional
+parameter: a constant $N$. The non-recursive operator will have the property
+that, for any particular choice of $x$, $\nrop(x, N)$ will evaluate to $\op(x)$
+if $n < N$ (i.e., if the recursion stack of $\op$ has height of at most $N$).
+
 %
 To that end, we first define:
 \begin{lstlisting}[language=tla,columns=fullflexible]
@@ -50,7 +77,10 @@ Stack(x, N) ==
   IN ApaFoldSeqLeft( step, <<x>>, MkSeq(N, LAMBDA i: i) )
 \end{lstlisting}
 %
-Here, $\ApaFoldSeqLeft$ is the left-fold over sequences, that is, an operator for which
+
+Here, $\ApaFoldSeqLeft$ is the left-fold over sequences, that is, an operator
+for which:
+
 \begin{align*}
 \ApaFoldSeqLeft(O, v, \tup{}) =& v \\
 \ApaFoldSeqLeft(O, v, \tup{x_1,\dots, x_n}) =& O(O(O(v, x_1), x_2), \dots, x_n)
@@ -60,8 +90,13 @@ and $\MkSeq$ is the sequence constructor, for which
 \MkSeq(N, O) = \tup{O(1), \dots, O(N)}
 \]
 %
-We can see that $\Chain(x,N)$ returns the sequence $\tup{v_n, ..., x}$ if $N$ is sufficiently large. 
-We can verify whether or not that is the case, by evaluating $P(\Chain(x, N)[1])$. If it does not hold, the $N$ chosen is not large enough, and needs to be increased. Using $\Chain$ we can define a fold-based non-recursive operator $\op^*$, such that $\op^*(x) = \op(x)$ under the above assumptions:
+
+We can see that $\Chain(x,N)$ returns the sequence $\tup{v_n, ..., x}$ if $N$
+is sufficiently large.  We can verify whether or not that is the case, by
+evaluating $P(\Chain(x, N)[1])$. If it does not hold, the $N$ chosen is not
+large enough, and needs to be increased. Using $\Chain$ we can define a
+fold-based non-recursive operator $\op^*$, such that $\op^*(x) = \op(x)$ under
+the above assumptions:
 
 \begin{lstlisting}[language=tla,columns=fullflexible]
 \* $@$type (a, Int) => b;
@@ -205,6 +240,7 @@ R(x) ==
 %
 where $F(S, T(\_)) \coloneqq \{s \in S\colon T(s)\}$ or $F(S, T(\_)) \coloneqq \{T(s)\colon s \in S\}$ (i.e. a map or a filter).
 %
+
 \paragraph{Example.} In the 3SF example, for $\mathrm{is\_justified\_checkpoint}$, $P$ checks whether $x$ is the genesis checkpoint, and $e = \TRUE$. $G$ is the main computation, which determines whether or not a non-genesis checkpoint is justified, by finding quorums of validators, wherein each validator cast an FFG vote justifying $x$, but where the source checkpoint was recursively justified (i.e. belonged to $V(x)$). \hfill $\triangleleft$
 \\
 \\
@@ -271,10 +307,5 @@ For any $x\colon a$
 \end{corollary}
 The equivalence proofs are available in the appendix. 
 The termination proof must still be made on a case-by-case basis, as it depends on $h$ and $V$.
-
-
-
-
-
 
 

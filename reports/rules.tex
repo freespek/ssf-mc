@@ -1,10 +1,45 @@
-\section{Python to \tlap{} translation rules}
+\section{M3: Translating Python specifications to \tlap{}}
 
-On the Python side, we have the $\texttt{typing}$ package and types defined in $\texttt{pyrsistent}$. 
+In this section, we present our results on translating a subset of Python that
+is used to write executable specifications in the projects such as
+\texttt{ssf-mc}\footnote{\url{https://github.com/saltiniroberto/ssf}}. Since we
+have done the translation by hand, our rules are currently formalized on paper.
+Additionally, in case of non-trivial rules, we give correctness proofs.
 
-We assume the existence of a type-translation from those types to Apalache's type system.
+Since the Python subset uses the package $\texttt{pyrsistent}$, we assume that
+the expressions are typed according to the package types, which can be found in
+the $\texttt{typing}$ module. In the following, given a Pyrsistent type $\tau$,
+we will denote its corresponding type in the Apalache type
+system~1.2\footnote{\url{https://apalache-mc.org/docs/adr/002adr-types.html}}
+with $\htau$. Table~\ref{tab:types} shows the types mapping.
 
-We maintain the following convention: if $\tau$ is the Python type, we label the corresponding Apalache type as $\htau$.
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{cc}
+        \tbh{Pyrsistent type} & \tbh{Apalache type}
+            \\\toprule
+        bool & Bool \\\midrule
+        int & Int \\\midrule
+        str & Str \\\midrule
+        $\PSet[\tau]$ & $\Set(\htau)$ \\\midrule
+        $\PVec[\tau]$ & $\List(\htau) \defeq \{ es\colon \Seq(\htau) \}$ \\\midrule
+        $\PMap[\tau_1, \tau_2]$ & $\htau_1 \rightarrow \htau_2$ \\\midrule
+        $\Callable[[\tau_1], \tau_2]$ & $\tau_1 \Rightarrow \tau_2$ \\\midrule
+    \end{tabular}
+    \caption{Mapping the Pyrsistent
+             types to Apalache types}\label{tab:types}
+\end{table}
+
+Note that instead of using the standard type $\Seq(\htau)$ of \tlap{}, which
+represents 1-indexed sequences, we use an alternative module
+\texttt{Lists}\footnote{\url{https://github.com/konnov/tlaki/blob/main/src/Lists.tla}},
+which represents 0-indexed sequences. To that end, we introduce the type
+notation:
+
+\[ \List(\htau) \coloneqq \{ es\colon \Seq(\htau) \} \]
+
+The translation rules can be easily adapted to~$\Seq(\htau)$ instead
+of~$\List(\htau)$.
 
 \include{pyToTla}
 
