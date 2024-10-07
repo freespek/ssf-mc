@@ -3,6 +3,8 @@ _apalache-out
 report.pdf
 _build
 *.aux
+*.bbl
+*.blg
 *.log
 *.fdb_latexmk
 *.fls
