@@ -2,4 +2,40 @@
 
 \section{M4: Spec 3}
 
-TODO\footnote{IK: describe the idea}
+\paragraph{Motivation.} In the course of writing \texttt{Spec 2}, we realized
+that the executable Python specification was essentially sequential. In other
+words, even though the 3SF algorithm is distributed, the Python
+specification as well as \texttt{Spec 1} and \texttt{Spec 2} were encoding the
+execution history in a specification state.
+
+Since \tlap{} is good for reasoning about state machines, Apalache is tuned
+towards incremental checking of the executions. For instance, if a state
+machine is composed of $n$ kinds of state-transitions (called actions), that
+is, $\mathit{Next} = A_1 \vee \dots \vee A_N$, then model checker tries to find
+a violation to a state invariant~$\textit{Inv}$ by assuming that a single
+symbolic transition $A_i$ took place. If there is no violation, that instance
+of the invariant~$\texttt{Inv}$ can be discarded. By doing so, the model
+checker reduces the number of constraints for the SMT solver to process.  The
+same applies to checking an inductive invariant. When there is no such a
+decomposition of $\mathit{Next}$, the model checker produces harder
+problems for SMT.
+
+\paragraph{Introducing a state machine.} Having this observation in mind, we
+introduced \texttt{Spec 3} that incrementally builds the following data structures:
+
+\begin{itemize}
+
+    \item The set of proposed blocks, and the graph containing these blocks,
+        called $\textit{blocks}$ and $\textit{graph}$, respectively.
+
+    \item The ancestor-descendant relation, called
+        $\textit{block\_graph\_closure}$.
+
+    \item The announced FFG votes and the validators' votes on them, called
+        $\textit{ffg\_votes}$ and $\textit{votes}$, respectively.
+
+    \item The set of justified checkpoints that is computed as the greatest
+        fixpoint, called $\textit{justified\_checkpoints}$.
+
+\end{itemize}
+
