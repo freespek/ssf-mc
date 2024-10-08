@@ -173,7 +173,8 @@ CastVotes(source, target, validators) ==
        IN \E allJustifiedCheckpoints \in SUBSET allCheckpoints:
         /\ justified_checkpoints' = allJustifiedCheckpoints
         /\ \A c \in allJustifiedCheckpoints: IsJustified(c, votes', allJustifiedCheckpoints)
-        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints): ~IsJustified(c, votes', allJustifiedCheckpoints)
+        /\ \A c \in (allCheckpoints \ allJustifiedCheckpoints):
+             ~IsJustified(c, votes', allJustifiedCheckpoints)
 
 SlashableNodes ==
     LET slashable_votes == { vote1 \in votes: \E vote2 \in votes:
@@ -198,10 +199,10 @@ Init ==
     /\ justified_checkpoints = {GenesisCheckpoint}
 
 Next == 
-    \/ \E parent \in blocks, slot \in BlockSlots, body \in BLOCK_BODIES: ProposeBlock(parent, slot, body)
-    \* ConstSimplifier throws StackOverflowError
-    \* \/ \E parent \in blocks, slotsAndBodies \in SUBSET (BlockSlots \X BLOCK_BODIES): ProposeBlocks(parent, slotsAndBodies)
-    \/ \E <<targetBlock, sourceBlock>> \in block_graph_closure, srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
+    \/ \E parent \in blocks, slot \in BlockSlots, body \in BLOCK_BODIES:
+        ProposeBlock(parent, slot, body)
+    \/ \E <<targetBlock, sourceBlock>> \in block_graph_closure,
+          srcSlot, tgtSlot \in CheckpointSlots, validators \in SUBSET VALIDATORS: 
         CastVotes(
             Checkpoint(sourceBlock, srcSlot), 
             Checkpoint(targetBlock, tgtSlot),
