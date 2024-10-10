@@ -309,7 +309,26 @@ This experiment timed out after 40 hours.
 
 ## 5. Model checking Spec 3
 
-### 5.1. Bounded model checking of Accountable Safety
+### 5.1. Producing an example of a justified checkpoint
+
+In this experiment, we aim at finding an example of at least one justified
+checkpoint that is different from genesis:
+
+```sh
+$ apalache-mc simulate --length=20 --inv=ExistsJustifiedNonGenesisInv MC_ffg.tla
+```
+
+It takes 5 seconds to find an example.
+
+### 5.2. Producing an example of two conflicting finalized checkpoints
+
+```sh
+$ apalache-mc check --length=20 --inv=ExistTwoFinalizedConflictingBlocks MC_ffg.tla
+```
+
+It takes 1 hour 27 minutes to find an example.
+
+### 5.3. Bounded model checking of Accountable Safety
 
 In this experiment, we are checking whether Accountable Safety holds true for up
 to 10 steps of `Spec 3`. Since `Spec 3` specifies the abstract state machine of
@@ -323,7 +342,7 @@ $ JVM_ARGS=-Xmx20G apalache-mc check --inv=AccountableSafety MC_ffg.tla
 
 This experiment takes about **TODO**.
 
-### 5.2. Randomized symbolic execution for accountable safety
+### 5.4. Randomized symbolic execution for accountable safety
 
 To obtain results faster, albeit at the cost of completeness, we analyze 100
 random symbolic runs, each consisting of up to 10 steps:
