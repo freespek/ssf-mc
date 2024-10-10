@@ -326,7 +326,7 @@ It takes 5 seconds to find an example.
 $ apalache-mc check --length=20 --inv=ExistTwoFinalizedConflictingBlocks MC_ffg.tla
 ```
 
-It takes NNN seconds to find an example.
+It takes 1 hour 27 minutes to find an example.
 
 ### 5.3. Bounded model checking of Accountable Safety
 
