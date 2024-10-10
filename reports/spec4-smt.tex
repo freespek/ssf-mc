@@ -1,6 +1,82 @@
 %! TeX root = report.tex
 
-\section{Spec 4 - SMT}
+\section{Spec 4: Finite Sets \& Cardinalities in SMT}
 
-TODO\footnote{TP: shorten the markdown}
+In addition to \SpecFour{}, we have developed a manual encoding of the 3SF
+protocol in SMT, directly utilizing the CVC5
+solver~\cite{DBLP:conf/tacas/BarbosaBBKLMMMN22}. Following the same
+structure as \SpecFour{}, the encoding captures the key components of the 3SF
+protocol, including checkpoints, FFG votes, justified and finalized blocks,
+and slashing conditions.
+To model finite sets and cardinalities, we use the non-standard theory of sets
+and cardinalities~\cite{DBLP:journals/lmcs/BansalBRT18} provided by CVC5.
 
+In contrast to the \tlap{}-based \SpecFour{}, we manually encode the protocol
+directly as SMT-LIB constraints. At the cost of using a lower-level language and
+requiring a specialized solver, this has the following advantages:
+\begin{itemize}
+  \item The manual encoding is more succinct than the SMT encoding produced by
+    Apalache from \tlap{}.
+  \item SMT-LIB supports recursive functions, which allows us to express the
+    recursion inherent to the 3SF protocol more naturally.
+\end{itemize}
+
+\subsection{Modeling}
+The SMT spec explicitly introduces hashes, checkpoints and nodes as atoms over
+finite domains. In contrast, votes are modeled as any possible combination
+of a source and target checkpoint and a sending node:
+
+\begin{lstlisting}[language=smt]
+(declare-datatype Hash ((Hash1) (Hash2) (Hash3)))
+(declare-datatype Checkpoint ((C1) (C2) (C3) (C4) (C5)))
+(declare-datatype Node ((Alice) (Bob) (Charlie) (David)))
+(declare-datatype Vote ((Vote (source Checkpoint) (target Checkpoint) (sender Node))))
+\end{lstlisting}
+
+To remain within the decidable SMT fragment, we have to model unbounded data
+using functions. For example, we model the slot number of a block as a function
+from block hashes to integers:
+
+\begin{lstlisting}[language=smt]
+(declare-fun slot (Hash) Int)
+; genesis' slot is 0
+(assert (= (slot genesis) 0))
+; slots are increasing from parent to child
+(assert (forall ((h Hash)) (=> (not (= h genesis)) (> (slot h) (slot (parent_of h))))))
+\end{lstlisting}
+
+We encode all protocol rules as declarative constraints in the SMT model. For
+example, the constraint that a checkpoint is justified if and only if there is
+a supermajority of validators that cast a justifying vote from an already
+justified checkpoint is encoded as follows:
+
+\begin{lstlisting}[language=smt]
+(declare-const justified_checkpoints (Set Checkpoint))
+(assert (= justified_checkpoints (set.comprehension ((c Checkpoint))
+  (or
+    ; L3: genesis is justified
+    (= c genesis_checkpoint)
+    ; L4: there is a quorum of validators that cast a vote from a justified checkpoint to c
+    (>= (* 3 (set.card (set.comprehension ((node Node))
+        (exists ((vote Vote)) (and
+          ; L4+5: vote is a valid vote cast by node
+          (set.member vote votes)
+          (= (sender vote) node)
+          ; L6: the source of the vote is justified
+          (set.member (source vote) justified_checkpoints)
+          ; L7: there is a chain source.block ->* checkpoint.block ->* target.block
+          (and
+            (set.member (tuple (checkpoint_block (source vote)) (checkpoint_block c)) ancestor_descendant_relationship)
+            (set.member (tuple (checkpoint_block c) (checkpoint_block (target vote))) ancestor_descendant_relationship)
+          )
+          ; L8: the target checkpoint slot is the same as the checkpoint's
+          (= (checkpoint_slot (target vote)) (checkpoint_slot c))
+        ))
+        node
+      )))
+      (* 2 N)
+    )
+  )
+  c
+)))
+\end{lstlisting}
