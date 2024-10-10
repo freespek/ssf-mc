@@ -71,14 +71,31 @@ actions.
 experiments with this specification. They are summarized in
 Table~\ref{tab:abstract-ffg-mc}.
 
+% 
+
 \begin{table}
     \centering
-    \begin{tabular}{lr}
-        \tbh{State invariant} & \tbh{Command} & \tbh{Time} \\ \toprule
-        $\textit{ExistsJustifiedNonGenesisInv}$ & \texttt{check} & 5s \\ \midrule
-        $\textit{ExistTwoFinalizedConflictingBlocks}$ & \texttt{check} & NNN \\ \midrule
-        $\textit{AccountableSafety}$ & \texttt{simulate} & NNN \\ \midrule
-        $\textit{AccountableSafety}$ & \texttt{check} & NNN \\ \bottomrule
+    \begin{tabular}{llr}
+        \tbh{State invariant}
+            & \tbh{Command}
+            & \tbh{Time}
+            \\ \toprule
+        $\textit{ExistsJustifiedNonGenesisInv}$
+            & \texttt{check}
+            & 5s
+            \\ \midrule
+        $\textit{ExistTwoFinalizedConflictingBlocks}$
+            & \texttt{check}
+            & 1h 27min
+            \\ \midrule
+        $\textit{AccountableSafety}$
+            & \texttt{simulate}
+            & N
+            \\ \midrule
+        $\textit{AccountableSafety}$
+            & \texttt{check}
+            & N
+            \\ \bottomrule
     \end{tabular}
     \caption{Model checking experiments with Spec 3}\label{tab:abstract-ffg-mc}
 \end{table}
