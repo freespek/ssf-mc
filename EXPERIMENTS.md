@@ -43,14 +43,14 @@ future -->
 
 We have produced the following specifications in the project:
  
- - **Spec 1**. This is the specification [spec/ffg_recursive.tla][]. It is the
+ - **Spec 1**. This is the specification [spec1-2/ffg_recursive.tla][]. It is the
  result of a manual mechanical translation of the original executable
  specification in Python, which can be found in [ffg.py]. This specification is
  using mutually recursive operators, which are [not supported by Apalache][recursive].  As a
  result, we are not checking this specification. This specification is the result
  of our work in [Milestone 1][].
 
- - **Spec 2**. This is the specification [spec/ffg.tla][]. It is a manual
+ - **Spec 2**. This is the specification [spec1-2/ffg.tla][]. It is a manual
  adaptation of `Spec 1`. The main difference between `Spec 2` and `Spec 1` is
  that `Spec 2` uses ["folds"][fold] (also known as "reduce") instead of
  recursion. We expect `Spec 2` to be equivalent to `Spec 1`, although we do not
@@ -82,7 +82,7 @@ We have produced the following specifications in the project:
  This is ongoing work in [Milestone 4][].
  
 The specifications `Spec 2` and `Spec 3` come with model checking instances
-[spec/MC_ffg.tla] and [abstract-spec/MC_ffg.tla], respectively. These instances
+[spec1-2/MC_ffg.tla] and [abstract-spec/MC_ffg.tla], respectively. These instances
 fix the specification parameters to small values for model checking purposes,
 e.g.:
 
@@ -128,7 +128,7 @@ Incomplete results on fixed block graphs (§ 4.3):
 
 ## 4. Model checking Spec 2
 
-We describe model checking experiments with `Spec 2`, that is [spec/ffg.tla][].
+We describe model checking experiments with `Spec 2`, that is [spec1-2/ffg.tla][].
 
 ### 4.1. Model checking the initial Python translation
 
@@ -178,7 +178,7 @@ We declare it timed out after 40 hours of runtime.
 
 Given the result above, we evaluate `Spec 2` on finding reachable protocol states.
 To this end, we introduce falsy invariants describing reachable protocol states
-in [spec/MC_ffg_examples.tla]. Apalache should report these example states as
+in [spec1-2/MC_ffg_examples.tla]. Apalache should report these example states as
 counterexamples to the supplied property.
 
 This serves two purposes:
@@ -209,7 +209,7 @@ voting scenarios on top of these graphs.
 
 To further evaluate `Spec 2`, we fix the block graph – this way the solver
 only has to reason about voting. Example fixed block graphs are encoded in
-[spec/MC_ffg_examples.tla].
+[spec1-2/MC_ffg_examples.tla].
 
 We consider
   - a single, linear chain (`SingleChain`)
@@ -309,7 +309,26 @@ This experiment timed out after 40 hours.
 
 ## 5. Model checking Spec 3
 
-### 5.1. Bounded model checking of Accountable Safety
+### 5.1. Producing an example of a justified checkpoint
+
+In this experiment, we aim at finding an example of at least one justified
+checkpoint that is different from genesis:
+
+```sh
+$ apalache-mc simulate --length=20 --inv=ExistsJustifiedNonGenesisInv MC_ffg.tla
+```
+
+It takes 5 seconds to find an example.
+
+### 5.2. Producing an example of two conflicting finalized checkpoints
+
+```sh
+$ apalache-mc check --length=20 --inv=ExistTwoFinalizedConflictingBlocks MC_ffg.tla
+```
+
+It takes 1 hour 27 minutes to find an example.
+
+### 5.3. Bounded model checking of Accountable Safety
 
 In this experiment, we are checking whether Accountable Safety holds true for up
 to 10 steps of `Spec 3`. Since `Spec 3` specifies the abstract state machine of
@@ -323,7 +342,7 @@ $ JVM_ARGS=-Xmx20G apalache-mc check --inv=AccountableSafety MC_ffg.tla
 
 This experiment takes about **TODO**.
 
-### 5.2. Randomized symbolic execution for accountable safety
+### 5.4. Randomized symbolic execution for accountable safety
 
 To obtain results faster, albeit at the cost of completeness, we analyze 100
 random symbolic runs, each consisting of up to 10 steps:
@@ -376,16 +395,16 @@ This experiment took 19 hours 48 min 29 sec.
 [Apalache releases]: https://github.com/apalache-mc/apalache/releases
 [Igor Konnov]: https://www.konnov.phd
 [Z3]: https://github.com/Z3Prover/z3
-[spec/ffg]: ./spec/ffg.tla
-[spec/MC_ffg]: ./spec/MC_ffg.tla
+[spec1-2/ffg]: ./spec1-2/ffg.tla
+[spec1-2/MC_ffg]: ./spec1-2/MC_ffg.tla
 [abstract-spec/MC_ffg]: ./abstract-spec/MC_ffg.tla
 [abstract-spec/ffg]: ./abstract-spec/ffg.tla
 [ffg.py]: https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py
-[spec/ffg_recursive.tla]: ./spec/ffg-recursive.tla
-[spec/ffg.tla]: ./spec/ffg.tla
+[spec1-2/ffg_recursive.tla]: ./spec1-2/ffg-recursive.tla
+[spec1-2/ffg.tla]: ./spec1-2/ffg.tla
 [abstract-spec/ffg.tla]: ./abstract-spec/ffg.tla
-[spec/MC_ffg.tla]: ./spec/MC_ffg.tla
-[spec/MC_ffg_examples.tla]: ./spec/MC_ffg_examples.tla
+[spec1-2/MC_ffg.tla]: ./spec1-2/MC_ffg.tla
+[spec1-2/MC_ffg_examples.tla]: ./spec1-2/MC_ffg_examples.tla
 [abstract-spec/MC_ffg.tla]: ./abstract-spec/MC_ffg.tla
 [Alloy]: https://en.wikipedia.org/wiki/Alloy_(specification_language)
 [Milestone 1]: https://github.com/freespek/ssf-mc/milestone/1?closed=1
