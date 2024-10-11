@@ -66,8 +66,12 @@ justified checkpoint is encoded as follows:
           (set.member (source vote) justified_checkpoints)
           ; L7: there is a chain source.block ->* checkpoint.block ->* target.block
           (and
-            (set.member (tuple (checkpoint_block (source vote)) (checkpoint_block c)) ancestor_descendant_relationship)
-            (set.member (tuple (checkpoint_block c) (checkpoint_block (target vote))) ancestor_descendant_relationship)
+            (set.member
+              (tuple (checkpoint_block (source vote)) (checkpoint_block c))
+              ancestor_descendant_relationship)
+            (set.member
+              (tuple (checkpoint_block c) (checkpoint_block (target vote)))
+              ancestor_descendant_relationship)
           )
           ; L8: the target checkpoint slot is the same as the checkpoint's
           (= (checkpoint_slot (target vote)) (checkpoint_slot c))
