@@ -84,3 +84,66 @@ justified checkpoint is encoded as follows:
   c
 )))
 \end{lstlisting}
+
+\subsection{Checking the Specification}
+
+Similar to model checking with Apalache, we can use the CVC5 solver to find
+examples of reachable protocol states, often within seconds. For example, to
+find a finalized checkpoint besides the genesis checkpoint, we append the
+following SMT-LIB script to our specification:
+
+\begin{lstlisting}[language=smt]
+; find a finalized checkpoint (besides genesis)
+(assert (not (= finalized_checkpoints (set.singleton genesis_checkpoint))))
+(check-sat)
+(get-model)
+\end{lstlisting}
+
+Ultimately, we want to show that \textit{AccountableSafety} holds. To check that
+this property holds with an SMT solver, we negate the property and check for
+unsatisfiability:
+
+\begin{lstlisting}[language=smt]
+; there is a counterexample to AccountableSafety
+(assert (and
+  (exists ((block1 Hash) (block2 Hash))
+    (and
+      (set.member (tuple block1 block2) conflicting_blocks)
+      (set.member block1 finalized_blocks)
+      (set.member block2 finalized_blocks)
+  ) )
+  (< (* 3 (set.card slashable_nodes)) N)
+))
+(check-sat)
+\end{lstlisting}
+
+If the constraint above was satisfiable, we would have found a counterexample
+to \textit{AccountableSafety}. Thus, \textit{AccountableSafety} holds if the
+solver returns unsatisfiable.
+
+\subsection{Experimental Results}
+
+Similar to our experiments with Apalache, we instantiate the SMT model with
+different numbers of blocks and checkpoints to verify
+\textit{AccountableSafety} and evaluate the runtime of the solver.
+Table~\ref{tab:smt} shows the results of our experiments.
+
+\begin{table}
+    \centering
+    \begin{tabular}{rrrrrrrr}
+        \tbh{blk} & \tbh{chk} & \tbh{Time} \\ \toprule
+        3 & 5 & 8 min 11 sec \\ \midrule
+        4 & 5 & 22 min 00 sec \\ \midrule
+        5 & 5 & 1 h 40 min 19 sec \\ \midrule[\heavyrulewidth]
+        3 & 6 & 74 h 1 min 41 sec \\ \midrule
+        4 & 6 & timeout ($>80$ h) \\ \midrule
+        5 & 6 & timeout ($>80$ h) \\ \bottomrule
+    \end{tabular}
+    \caption{Model checking experiments with CVC5.\ \textbf{blk} is the number of blocks, \textbf{chk} is the number
+      of checkpoints.}\label{tab:smt}
+\end{table}
+
+As we can see, similar to our \tlap{} experiments, the runtime of the SMT solver
+grows exponentially with the number of blocks and checkpoints. The solver is
+able to verify \textit{AccountableSafety} for up to 5 blocks and 5 checkpoints
+or 3 blocks and 6 checkpoints, but it times out for larger instances.
