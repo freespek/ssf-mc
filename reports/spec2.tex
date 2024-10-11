@@ -89,9 +89,90 @@ are_conflicting(chain1, chain2, node_state) ==
 To further improve our confidence in the correctness of this optimization, we
 could produce a proof in TLAPS or run Apalache to show functional equivalence.
 
-\paragraph{Insight.} Translation rules from other artifacts can provide useful starting
-points for specifications, but are also likely to introduce unwanted
-inefficiencies. Automated tools cannot account for the nuances of the specific
+\subsection{Checking the Specification}
+
+We can query the specification for reachable protocol states using Apalache.
+For example, we can check if a finalized checkpoint exists by writing an
+invariant that we expect not to hold. If the invariant below is violated,
+Apalache will produce an example of a finalized checkpoint as a counterexample:
+
+\begin{lstlisting}[language=tla]
+\* Find a finalized checkpoint (in addition to the genesis checkpoint)
+FinalizedCheckpoint_Example ==
+    get_finalized_checkpoints(single_node_state) = { genesis_checkpoint(single_node_state) }
+\end{lstlisting}
+
+Obviously, we can also check \textit{AccountableSafety} by supplying it as an
+invariant to Apalache:
+
+\begin{lstlisting}[language=tla]
+AccountableSafety ==
+  LET
+    finalized_checkpoints == get_finalized_checkpoints(single_node_state)
+    finalized_blocks == { get_block_from_hash(checkpoint.block_hash, single_node_state) : checkpoint \in finalized_checkpoints }
+    there_are_conflicting_finalized_blocks == \E block1, block2 \in finalized_blocks : are_conflicting(block1, block2, single_node_state)
+    slashable_nodes == get_slashable_nodes(single_node_state.view_votes)
+  IN there_are_conflicting_finalized_blocks => Cardinality(slashable_nodes) * 3 >= Cardinality(Nodes)
+\end{lstlisting}
+
+Table~\ref{tab:spec2} shows the results of model checking \SpecTwo{} with
+Apalache. We can see that generating examples of reachable protocol states and
+verifying \textit{AccountableSafety} is infeasible due to the high computational
+complexity of the specification.
+
+\begin{table}
+    \centering
+    \begin{tabular}{ll}
+        \tbh{Property} & \tbh{Time} \\ \toprule
+        Example: conflicting blocks & timeout ($>40$h) \\
+        Example: finalized \& conflicting blocks & timeout ($>40$h) \\
+        AccountableSafety & timeout ($>40$h) \\ \bottomrule
+    \end{tabular}
+    \caption{Model checking \SpecTwo{} with Apalache.}\label{tab:spec2}
+\end{table}
+
+These results are not surprising -- the solver has to consider both reachability
+properties for all possible block graphs, and all possible FFG voting scenarios
+on top of these graphs. To further evaluate \SpecTwo{}, we fix the block graph
+-- this way the solver only has to reason about voting. We encode three example
+block graphs: a single, linear chain (\texttt{SingleChain}), a minimal forked
+chain of three blocks (\texttt{ShortFork}), and a forest of disconnected chains
+(\texttt{Forest}). Table~\ref{tab:spec2_fixed} shows the results of model
+checking \SpecTwo{} for these fixed block graphs.
+
+\begin{table}
+    \centering
+    \begin{tabular}{llr}
+      \tbh{Property} & \tbh{Block graph} & \tbh{Time} \\ \toprule
+      Example: conflicting blocks & \texttt{SingleChain} & 1 min 3 sec \\
+      Example: conflicting blocks & \texttt{ShortFork} & 52 sec \\
+      Example: conflicting blocks & \texttt{Forest} & 2 min 21 sec \\ \midrule
+      Example: fin.\ \& confl.\ blocks & \texttt{SingleChain} & 1 min 5
+      sec \\
+      Example: fin.\ \& confl.\ blocks & \texttt{ShortFork} & 10 hours
+      49 min 47 sec \\
+      Example: fin.\ \& confl.\ blocks & \texttt{Forest} & timeout
+      ($>40$h) \\ \midrule
+      AccountableSafety & \texttt{SingleChain} & 1 min 13 sec \\
+      AccountableSafety & \texttt{ShortFork} & timeout ($>40$h) \\
+      AccountableSafety & \texttt{Forest} & timeout ($>40$h) \\ \bottomrule
+    \end{tabular}
+    \caption{Model checking \SpecTwo{} for fixed block
+    graphs.}\label{tab:spec2_fixed}
+\end{table}
+
+We can see that the solver can handle the single chain block graph (where
+\textit{AccountableSafety} trivially holds due to absence of conflicting
+blocks), but struggles with the more complex scenarios even when given a fixed
+block graph. This suggests that the complexity inherent in the specification is
+due to the high combinatorial complexity of voting scenarios, rather than just
+the block graph.
+
+\subsection{Discussion}~\footnote{\color{red}TODO: perhaps move this to a general
+discussion section?} Applying translation rules to obtain checkable
+specifications from other artifacts can provide a useful starting point.
+However, such translation are also likely to introduce unwanted
+inefficiencies. Translation rules cannot account for the nuances of the specific
 context, which can lead to suboptimal performance. Consequently, leveraging
 human ingenuity to develop specifications from the outset can be more effective.
 When relying on translated specifications, it becomes crucial to conduct
