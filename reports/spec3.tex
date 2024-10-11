@@ -3,10 +3,10 @@
 \section{M4: Spec 3}
 
 \paragraph{Motivation.} In the course of writing \texttt{Spec 2}, we realized
-that the executable Python specification was essentially sequential. In other
+that the executable Python specification is essentially sequential. In other
 words, even though the 3SF algorithm is distributed, its Python
-specification as well as \texttt{Spec 1} and \texttt{Spec 2} were encoding the
-execution history in a specification state.
+specification as well as \texttt{Spec 1} and \texttt{Spec 2} are encoding
+all possible protocol states in a single specification state.
 
 Since \tlap{} is designed for reasoning about state machines, Apalache is tuned
 towards incremental model checking of the executions. For instance, if a state
@@ -16,7 +16,7 @@ a violation to a state invariant~$\textit{Inv}$ by assuming that a single
 symbolic transition $A_i$ took place. If there is no violation, that instance
 of the invariant~$\textit{Inv}$ can be discarded. By doing so, the model
 checker reduces the number of constraints for the SMT solver to process.  The
-same applies to checking an inductive invariant. When there is no such a
+same applies to checking an inductive invariant. When there is no such
 decomposition of $\mathit{Next}$, the model checker produces harder problems
 for SMT\@.
 
@@ -39,7 +39,7 @@ introduced \texttt{Spec 3} that incrementally builds the following data structur
 
 \end{itemize}
 
-Perhaps, the most essential part of the specification is shown in
+The most essential part of the specification is shown in
 Figure~\ref{fig:abstract-ffg-cast-votes}. It represents an abstract
 state-transition that corresponds to a subset of validators sending votes for
 the same FFG vote. The most interesting part of this transition can be seen in
