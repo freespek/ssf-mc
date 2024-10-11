@@ -16,14 +16,14 @@ Alloy has two features that are attractive for our project:
       finer level of tuning.
 
   \item Alloy translates the model checking problem to a Boolean satisfiability
-      problem (SAT), in constrast to satisfiability-modulo-theory (SMT).  This
+      problem (SAT), in constrast to Apalache, which translates it to satisfiability-modulo-theory (SMT).  This
       allows us to run the latest off-the-shelf solvers such as Kissat, the
       winner of the SAT Competition 2024~\cite{SAT-Competition-2024-solvers}.
 
 \end{itemize}
 
 Having \texttt{Spec 4} in~\tlap{}, it was relatively easy for us to write down
-the Alloy specification, as \texttt{Spec 4} is already quite abstract. Since
+the Alloy specification, as \texttt{Spec 4} is already quite abstract. However, as
 Alloy's core abstractions are objects and relations between them, the
 specification looks quite differently. For example, here is how we declare
 signatures for the blocks and checkpoints:
@@ -62,7 +62,7 @@ checkpoints:
   }
 \end{lstlisting}
 
-Similar to our experiments with Apalache, we produced examples of configurations
+Similar to our experiments with Apalache, we produce examples of configurations
 that satisfy simple properties. For example:
 
 \begin{lstlisting}[language=alloy,columns=fullflexible]
@@ -72,7 +72,7 @@ that satisfy simple properties. For example:
   for 10 but 6 Block, 6 Checkpoint, 12 Vote, 5 int
 \end{lstlisting}
 
-For small search scopes, Alloy was quickly finding examples, often in a matter
+For small search scopes, Alloy quickly finds examples, often in a matter
 of seconds.
 
 Ultimately, we are interested in showing that~$\textit{AccountableSafety}$
@@ -88,11 +88,11 @@ Similar to Apalache, Alloy allows us to show safety for bounded scopes.
                                      4 Signature, 6 FfgVote, 15 Vote, 5 int
 \end{lstlisting}
 
-Our goal was to see, how far Alloy could go, when we were increasing the scope.
+Thus it is interesting to increase these parameter values as much as possible to cover more scenarios, while keeping them small enough that the SAT solver still terminates within reasonable time.
 Table~\ref{tab:alloy-mc} summarizes our experiments with Alloy when checking
 $\textit{noAccountableSafety}$ with Kissat. As we can see, we have managed to
-show accountable safety for the chain configurations of up to 6 blocks,
-including the genesis. However, the most interesting configuration of 7 blocks
+show accountable safety for chain configurations of up to 6 blocks,
+including the genesis block. However, the most interesting configuration of 7 blocks
 (on two chains) happens to be quite challenging for Alloy and Kissat.
 
 \begin{table}
@@ -136,9 +136,9 @@ including the genesis. However, the most interesting configuration of 7 blocks
     \end{tabular}
     \caption{Model checking experiments with Alloy and Kissat:
       \textbf{blk} is the number of blocks, \textbf{chk} is the number
-      of checkpoints, \textbf{sig} is the number of validators' signatures,
+      of checkpoints, \textbf{sig} is the number of validator signatures,
       \textbf{ffg} is the number of FFG votes, \textbf{votes} is the number
-      of validators' votes.
+      of validator votes.
     }\label{tab:alloy-mc}
 \end{table}
 
