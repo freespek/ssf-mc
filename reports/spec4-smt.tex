@@ -3,16 +3,10 @@
 \section{Spec 4c in SMT using Finite Sets \& Cardinalities}
 
 In addition to \SpecFour{}, we have developed a manual encoding of the 3SF
-protocol in SMT, directly utilizing the CVC5
-solver~\cite{DBLP:conf/tacas/BarbosaBBKLMMMN22}. Following the same
-structure as \SpecFour{}, the encoding captures the key components of the 3SF
-protocol, including checkpoints, FFG votes, justified and finalized blocks,
-and slashing conditions.
-To model finite sets and cardinalities, we use the non-standard SMT theory of
-sets and cardinalities~\cite{DBLP:journals/lmcs/BansalBRT18} provided by CVC5.
-
-In contrast to the \tlap{}-based \SpecFour{}, we manually encode the protocol
-directly as SMT-LIB constraints. At the cost of using a lower-level language and
+protocol in SMT, directly utilizing the CVC5 solver~\cite{DBLP:conf/tacas/BarbosaBBKLMMMN22}.
+In contrast to the \tlap{}-based specifications, we manually encode an
+arbitrary state of the protocol
+directly, using SMT-LIB constraints. At the cost of using a lower-level language and
 requiring a specialized solver, this has the following advantages:
 \begin{itemize}
   \item The manual encoding is more succinct than the SMT encoding produced by
@@ -21,9 +15,18 @@ requiring a specialized solver, this has the following advantages:
     recursion inherent to the 3SF protocol more naturally.
 \end{itemize}
 
+Structurally, this specification combines some aspects of \SpecTwo{} and
+\SpecThree{}: like \SpecTwo{}, it does not encode a state machine, but rather
+an arbitrary state of the protocol. However, it uses data structures and
+constraints similar to \SpecThree{} to model key components of the 3SF
+protocol, including checkpoints, FFG votes, justification and finalization,
+and slashing conditions.
+To model finite sets and cardinalities, we use the non-standard SMT theory of
+sets and cardinalities~\cite{DBLP:journals/lmcs/BansalBRT18} provided by CVC5.
+
 \subsection{Modeling}
 The SMT spec explicitly introduces hashes, checkpoints and nodes as atoms over
-finite domains. In contrast, votes are modeled as any possible combination
+finite domains. Votes are modeled as any possible combination
 of a source and target checkpoint and a sending node:
 
 \begin{lstlisting}[language=smt]
