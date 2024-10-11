@@ -67,7 +67,7 @@ the inputs of the size comparable to those produced by our TLA+ specification:
 | [ffg-exp10] |    3    |      15      |      4      |      5     |   12   | 31 sec  | 56 MB   |
 | [ffg-exp11] |    4    |      20      |      4      |      5     |   12   | 152 sec | 94 MB   |
 | [ffg-exp12] |    5    |      25      |      4      |      5     |   12   | 234 sec | 117 MB  |
-| [ffg-exp13] |    7    |      15      |      4      |      10    |   40   | X sec | X MB  |
+| [ffg-exp13] |    7    |      15      |      4      |      10    |   40   | >10 days | 300 MB  |
 
 
 <!-- References -->
