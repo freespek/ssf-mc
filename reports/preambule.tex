@@ -6,8 +6,7 @@
 \usepackage{listings}
 \usepackage{tlalatex}
 
-
-\lstdefinelanguage{tla}                                                         
+\lstdefinelanguage{tla}
   {morekeywords={MODULE,EXTENDS,CONSTANTS,CONSTANT,ASSUME,VARIABLES,VARIABLE,
           EXCEPT,UNCHANGED,TRUE,FALSE,IF,THEN,ELSE,LET,IN,SUBSET,DOMAIN,RECURSIVE},
           comment=[l]{\\*},
@@ -17,7 +16,14 @@
   commentstyle=\itshape\rmfamily,%\small,
   keywordstyle=\sffamily%\bfseries
 }
-
+\lstdefinelanguage{alloy}
+  {morekeywords={pred,sig,fact,set,one,extends,all,or,and,run,for,but},
+          comment=[l]{---},
+  mathescape=true,escapechar={@},
+  basicstyle=\sffamily,%\small,
+  commentstyle=\itshape\rmfamily,%\small,
+  keywordstyle=\sffamily\bfseries
+}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
