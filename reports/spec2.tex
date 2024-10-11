@@ -17,11 +17,12 @@ thus \SpecOne{} cannot not be directly model-checked.
 To resolve this, we reformulate \SpecOne{} into \SpecTwo{}, by substituting
 (mutually) recursive constructs with bounded
 \texttt{fold}~operations\footnote{In functional programming, \texttt{fold} is a
-  higher-order function that uses of a given combining operation to build a
-  return value over a recursive data structure. It is also known as
-\texttt{reduce} in some languages}, which enable the same iterative
-computations to be performed in a non-recursive manner.
-Consider the following example from \SpecOne{}:
+higher-order function that accepts a combining operation and an iterable data
+structure, and applies the operation to each element of the data structure
+to compute a single return value. \texttt{fold} is also known as
+\texttt{reduce} in some languages.}, which enable the same iterative
+computations to be performed in a non-recursive manner. Consider the following
+example from \SpecOne{}:
 
 \begin{lstlisting}[language=tla]
 RECURSIVE is_ancestor_descendant_relationship(_, _, _)
