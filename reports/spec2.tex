@@ -92,7 +92,7 @@ could produce a proof in TLAPS or run Apalache to show functional equivalence.
 \subsection{Checking the Specification}
 
 We can query the specification for reachable protocol states using Apalache.
-For example, we can check if a finalized checkpoint exists by writing an
+For example, we can check if a nontrivial finalized checkpoint exists by writing an
 invariant that we expect not to hold. If the invariant below is violated,
 Apalache will produce an example of a finalized checkpoint as a counterexample:
 
