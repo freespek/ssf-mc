@@ -8,8 +8,8 @@ solver~\cite{DBLP:conf/tacas/BarbosaBBKLMMMN22}. Following the same
 structure as \SpecFour{}, the encoding captures the key components of the 3SF
 protocol, including checkpoints, FFG votes, justified and finalized blocks,
 and slashing conditions.
-To model finite sets and cardinalities, we use the non-standard theory of sets
-and cardinalities~\cite{DBLP:journals/lmcs/BansalBRT18} provided by CVC5.
+To model finite sets and cardinalities, we use the non-standard SMT theory of
+sets and cardinalities~\cite{DBLP:journals/lmcs/BansalBRT18} provided by CVC5.
 
 In contrast to the \tlap{}-based \SpecFour{}, we manually encode the protocol
 directly as SMT-LIB constraints. At the cost of using a lower-level language and

@@ -12,7 +12,9 @@ The primary goal of \SpecTwo{} is to maintain the semantic structure of
 operators model key aspects of protocol behavior, such as the block tree and
 block justification. Apalache does not natively support recursive
 operators\footnote{\url{https://apalache-mc.org/docs/apalache/principles/recursive.html}},
-thus \SpecOne{} cannot not be directly model-checked.
+thus it cannot be used immediately to model-check \SpecOne{}. While the
+explicit-state \tlap{} model checker TLC supports recursive operators, it does
+not scale to model-checking of this problem.
 
 To resolve this, we reformulate \SpecOne{} into \SpecTwo{}, by substituting
 (mutually) recursive constructs with bounded
@@ -82,6 +84,9 @@ are_conflicting(chain1, chain2, node_state) ==
     /\ chain1 \notin PRECOMPUTED__is_ancestor_descendant_relationship[chain2]
     /\ chain2 \notin PRECOMPUTED__is_ancestor_descendant_relationship[chain1]
 \end{lstlisting}
+
+To further improve our confidence in the correctness of this optimization, we
+could produce a proof in TLAPS or run Apalache to show functional equivalence.
 
 \paragraph{Insight.} Auto-translated specifications can provide useful starting
 points, but are also likely to introduce unwanted inefficiencies. Automated
