@@ -41,7 +41,7 @@ s UNSATISFIABLE
 ```
 
 This means that the property `noAccountableSafety` does not have a model.
-Hence, we were not able to find a counterexample to `AccountableSafety`.
+Hence, we were not able to find a counterexample to `AccountableSafety`, for inputs of the specified size.
 
 ## Experimental Results
 
