@@ -45,7 +45,7 @@ Hence, we were not able to find a counterexample to `AccountableSafety`, for inp
 
 ## Experimental Results
 
-Similar to the experiments with a [direct SMT encoding][smt-enc] for CVC5, we
+Similar to our experiments with the [direct SMT encoding][smt-enc] for CVC5, we
 conduct experiments for the same kinds of inputs:
 
 | Input      | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime  | memory  |
