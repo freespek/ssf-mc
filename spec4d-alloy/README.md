@@ -69,6 +69,14 @@ inputs comparable in size to those produced by our TLA+ specification:
 | [ffg-exp12] |    5    |      25      |      4      |      5     |   12   | 234 sec | 117 MB  |
 | [ffg-exp13] |    7    |      15      |      4      |      10    |   40   | >10 days | 300 MB  |
 
+As we can see, the running times increase dramatically, when we increase the
+maximum number of FFG votes and votes. While we do not have a precise
+explanation, the intuitive one is as follows. To be justified, a checkpoint
+needs at least 3 votes (assuming that we have 4 validators). Further, 3 more
+votes are required to finalize a justified block. Hence, the budget of 40 votes,
+gives us approximately 9 justified checkpoints. Since justified checkpoints may
+refer to on another (via FFG votes), 9 checkpoints may build longer
+justification chains.
 
 <!-- References -->
 
