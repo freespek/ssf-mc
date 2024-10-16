@@ -2,7 +2,36 @@
 
 \section{M3: Spec 4}
 
-TODO\footnote{JK: inductive invariant}
+\subsection{Inductive Invariant} 
+This specification defines an inductive invariant \textsf{IndInv}. Recall, an inductive invariant satisfies the following two conditions, for a spec with an initial-state predicate \textsf{Init}, and transition predicate \textsf{Next}:
+\begin{enumerate}
+	\item It is implied by the initial state: $\mathsf{Init} \Rightarrow \mathsf{IndInv}$
+	\item It is preserved by the transition predicate: $\mathsf{IndInv} \land \mathsf{Next} \Rightarrow \mathsf{IndInv}$
+\end{enumerate}
+Because of this characterization, inductive invariants lend themselves especially nicely to bounded symbolic model checking; with Apalache, one can prove (or disprove) an inductive invariant by running two queries of depth at most 1, corresponding to the above properties.
+If no violation is found, we are assured that \textsf{IndInv} holds in all possible reachable states.
+Since our goal is ultimately to prove or disprove \textsf{AccountableSafety}, we can additionally prove $\textsf{IndInv} \Rightarrow \mathsf{AccountableSafety}$.
+
+The challenge, typically, is that inductive invariants are more difficult to write, compared to state invariants.
+They are usually composed of several lemmas, i.e. properties that we are less interested in on their own, but which are crucial in establishing property (2.).
+
+The invariant introduced in Spec~4 mainly deals with the characterization of the chain-fork scenarios. 
+Since we represent a fork by means of a sign-change on block numbers, we have to specify that their absolute values are contiguous, that the chains coincide in the absence of a fork, as well as on the pre-fork prefix, and that both chains are monotone w.r.t. block numbers after the fork point.
+Additionally, we require validity predicates for the vote set and checkpoints, as well as a precise characterization of the set of justified checkpoints. The latter merits further discussion.
+
+\paragraph{Justified checkpoints.} To accurately describe the set of all justified checkpoints, we require two constraints:
+\begin{enumerate}
+	\item Consistency: Every checkpoint in the set is justified, and 
+	\item Completeness: Every justified checkpoint belongs to the set.
+\end{enumerate}
+It is worth noting that both of these properties are required for an inductive invariant; if we don't specify consistency, the solver can trivially infer that the set contains all possible checkpoints, and that all checkpoints are finalized, which leads to bogus counterexamples to \textsf{AccountableSafety}.
+On the other hand, if we don't specify completeness, the solver can trivially infer that the set of justified checkpoints is empty (or contains exactly the genesis checkpoint). This leads us to be unable to detect real violations of \textsf{AccountableSafety}, since we can never observe conflicting finalized checkpoints, even when the votes cast necessitate their existence.
+
+This matters, because including both of these constraints is expensive for the solver; no matter how we define the justification predicate, it will appear in both positive and negative form, so the solver is guaranteed to have to deal with both quantifier alternations, as well as double universal quantification.
+Fundamentally, this demonstrates an intrinsic complexity of the problem itself, regardless of the particular characterization of justified sets in \tlap{}.
+
+Our experimental evaluation of the inductive invariant can be found in <TBD>, where you can clearly see how this complexity translates to long run-times of the solver.
+
 
 TODO\footnote{IK: describe the further optimizations}
 
