@@ -1,6 +1,152 @@
 %! TeX root = report.tex
 
-\section{Spec 4 - SMT}
+\section{Spec 4c in SMT using Finite Sets \& Cardinalities}
 
-TODO\footnote{TP: shorten the markdown}
+In addition to \SpecFour{}, we have developed a manual encoding of the 3SF
+protocol in SMT, directly utilizing the CVC5 solver~\cite{DBLP:conf/tacas/BarbosaBBKLMMMN22}.
+In contrast to the \tlap{}-based specifications, we manually encode an
+arbitrary state of the protocol
+directly, using SMT-LIB constraints. At the cost of using a lower-level language and
+requiring a specialized solver, this has the following advantages:
+\begin{itemize}
+  \item The manual encoding is more succinct than the SMT encoding produced by
+    Apalache from \tlap{}.
+  \item SMT-LIB supports recursive functions, which allows us to express the
+    recursion inherent to the 3SF protocol more naturally.
+\end{itemize}
 
+Structurally, this specification combines some aspects of \SpecTwo{} and
+\SpecThree{}: like \SpecTwo{}, it does not encode a state machine, but rather
+an arbitrary state of the protocol. However, it uses data structures and
+constraints similar to \SpecThree{} to model key components of the 3SF
+protocol, including checkpoints, FFG votes, justification and finalization,
+and slashing conditions.
+To model finite sets and cardinalities, we use the non-standard SMT theory of
+sets and cardinalities~\cite{DBLP:journals/lmcs/BansalBRT18} provided by CVC5.
+
+\subsection{Modeling}
+The SMT spec explicitly introduces hashes, checkpoints and nodes as atoms over
+finite domains. Votes are modeled as any possible combination
+of a source and target checkpoint and a sending node:
+
+\begin{lstlisting}[language=smt]
+(declare-datatype Hash ((Hash1) (Hash2) (Hash3)))
+(declare-datatype Checkpoint ((C1) (C2) (C3) (C4) (C5)))
+(declare-datatype Node ((Alice) (Bob) (Charlie) (David)))
+(declare-datatype Vote ((Vote (source Checkpoint) (target Checkpoint) (sender Node))))
+\end{lstlisting}
+
+To remain within the decidable SMT fragment, we have to model unbounded data
+using functions. For example, we model the slot number of a block as a function
+from block hashes to integers:
+
+\begin{lstlisting}[language=smt]
+(declare-fun slot (Hash) Int)
+; genesis' slot is 0
+(assert (= (slot genesis) 0))
+; slots are increasing from parent to child
+(assert (forall ((h Hash)) (=> (not (= h genesis)) (> (slot h) (slot (parent_of h))))))
+\end{lstlisting}
+
+We encode all protocol rules as declarative constraints in the SMT model. For
+example, the constraint that a checkpoint is justified if and only if there is
+a supermajority of validators that cast a justifying vote from an already
+justified checkpoint is encoded as follows:
+
+\begin{lstlisting}[language=smt]
+(declare-const justified_checkpoints (Set Checkpoint))
+(assert (= justified_checkpoints (set.comprehension ((c Checkpoint))
+  (or
+    ; L3: genesis is justified
+    (= c genesis_checkpoint)
+    ; L4: there is a quorum of validators that cast a vote from a justified checkpoint to c
+    (>= (* 3 (set.card (set.comprehension ((node Node))
+        (exists ((vote Vote)) (and
+          ; L4+5: vote is a valid vote cast by node
+          (set.member vote votes)
+          (= (sender vote) node)
+          ; L6: the source of the vote is justified
+          (set.member (source vote) justified_checkpoints)
+          ; L7: there is a chain source.block ->* checkpoint.block ->* target.block
+          (and
+            (set.member
+              (tuple (checkpoint_block (source vote)) (checkpoint_block c))
+              ancestor_descendant_relationship)
+            (set.member
+              (tuple (checkpoint_block c) (checkpoint_block (target vote)))
+              ancestor_descendant_relationship)
+          )
+          ; L8: the target checkpoint slot is the same as the checkpoint's
+          (= (checkpoint_slot (target vote)) (checkpoint_slot c))
+        ))
+        node
+      )))
+      (* 2 N)
+    )
+  )
+  c
+)))
+\end{lstlisting}
+
+\subsection{Checking the Specification}
+
+Similar to model checking with Apalache, we can use the CVC5 solver to find
+examples of reachable protocol states, often within seconds. For example, to
+find a finalized checkpoint besides the genesis checkpoint, we append the
+following SMT-LIB script to our specification:
+
+\begin{lstlisting}[language=smt]
+; find a finalized checkpoint (besides genesis)
+(assert (not (= finalized_checkpoints (set.singleton genesis_checkpoint))))
+(check-sat)
+(get-model)
+\end{lstlisting}
+
+Ultimately, we want to show that \textit{AccountableSafety} holds. To check that
+this property holds with an SMT solver, we negate the property and check for
+unsatisfiability:
+
+\begin{lstlisting}[language=smt]
+; there is a counterexample to AccountableSafety
+(assert (and
+  (exists ((block1 Hash) (block2 Hash))
+    (and
+      (set.member (tuple block1 block2) conflicting_blocks)
+      (set.member block1 finalized_blocks)
+      (set.member block2 finalized_blocks)
+  ) )
+  (< (* 3 (set.card slashable_nodes)) N)
+))
+(check-sat)
+\end{lstlisting}
+
+If the constraint above was satisfiable, we would have found a counterexample
+to \textit{AccountableSafety}. Thus, \textit{AccountableSafety} holds if the
+solver returns unsatisfiable.
+
+\subsection{Experimental Results}
+
+Similar to our experiments with Apalache, we instantiate the SMT model with
+different numbers of blocks and checkpoints to verify
+\textit{AccountableSafety} and evaluate the runtime of the solver.
+Table~\ref{tab:smt} shows the results of our experiments.
+
+\begin{table}
+    \centering
+    \begin{tabular}{rrrrrrrr}
+        \tbh{blk} & \tbh{chk} & \tbh{Time} \\ \toprule
+        3 & 5 & 8 min 11 sec \\
+        4 & 5 & 22 min 00 sec \\
+        5 & 5 & 1 h 40 min 19 sec \\ \midrule
+        3 & 6 & 74 h 1 min 41 sec \\
+        4 & 6 & timeout ($>80$ h) \\
+        5 & 6 & timeout ($>80$ h) \\ \bottomrule
+    \end{tabular}
+    \caption{Model checking experiments with CVC5.\ \textbf{blk} is the number of blocks, \textbf{chk} is the number
+      of checkpoints.}\label{tab:smt}
+\end{table}
+
+As we can see, similar to our \tlap{} experiments, the runtime of the SMT solver
+grows exponentially with the number of blocks and checkpoints. The solver is
+able to verify \textit{AccountableSafety} for up to 5 blocks and 5 checkpoints
+or 3 blocks and 6 checkpoints, but it times out for larger instances.
