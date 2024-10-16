@@ -59,8 +59,8 @@ conduct experiments for the same kinds of inputs:
 | [ffg-exp7] |    6    |      6       |      4      |      6     |   15   | 360 sec  |  82 MB  |
 | [ffg-exp8] |    5    |      7       |      4      |      6     |   24   | 1h 27m   |  156 MB |
 
-In addition to the above experiments, we ran a few experiments that would have
-the inputs of the size comparable to those produced by our TLA+ specification:
+In addition to the above experiments, we ran a few experiments that have
+inputs comparable in size to those produced by our TLA+ specification:
 
 | Input       | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime | memory  |
 |-------------|--------:|-------------:|------------:|-----------:|-------:|--------:|--------:|
