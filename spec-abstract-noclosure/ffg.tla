@@ -126,12 +126,6 @@ IsValidFFGVote(vote) ==
     /\ IsValidCheckpoint(vote.target)
     /\ vote.source[2] < vote.target[2]
     /\ IsLeftAncestorOfRight(vote.source[1], vote.target[1])
-    (* See ../spec/ffg.tla:
-    /\ has_block_hash(vote.message.ffg_source.block_hash, node_state)
-    /\ get_block_from_hash(vote.message.ffg_source.block_hash, node_state).slot = vote.message.ffg_source.block_slot
-    /\ has_block_hash(vote.message.ffg_target.block_hash, node_state)
-    /\ get_block_from_hash(vote.message.ffg_target.block_hash, node_state).slot = vote.message.ffg_target.block_slot
-     *)
     \* similar to has_block_hash
     /\ vote.source[1] \in all_blocks
     /\ vote.target[1] \in all_blocks
