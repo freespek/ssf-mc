@@ -82,7 +82,7 @@ justification chains.
 
 [Alloy]: https://alloytools.org/
 [Kissat]: https://github.com/arminbiere/kissat
-[smt-enc]: ../smt-spec/README.md
+[smt-enc]: ../spec3c-smt/README.md
 [ffg-exp1]: ./ffg-exp1.als
 [ffg-exp2]: ./ffg-exp2.als
 [ffg-exp3]: ./ffg-exp3.als
