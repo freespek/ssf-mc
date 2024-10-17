@@ -15,7 +15,7 @@ Since our goal is ultimately to prove or disprove \textsf{AccountableSafety}, we
 The challenge, typically, is that inductive invariants are more difficult to write, compared to state invariants.
 They are usually composed of several lemmas, i.e. properties that we are less interested in on their own, but which are crucial in establishing property (2.).
 
-The invariant introduced in Spec~4 mainly deals with the characterization of the chain-fork scenarios. 
+As we explain below, the inductive invariant introduced in \SpecFour{} mainly contains of two sets of lemmas, one for characterizing the chain-fork scenarios, and a second one for characterizing justified checkpoints.
 Since we represent a fork by means of a sign-change on block numbers, we have to specify that their absolute values are contiguous, that the chains coincide in the absence of a fork, as well as on the pre-fork prefix, and that both chains are monotone w.r.t. block numbers after the fork point.
 Additionally, we require validity predicates for the vote set and checkpoints, as well as a precise characterization of the set of justified checkpoints. The latter merits further discussion.
 
@@ -27,8 +27,8 @@ Additionally, we require validity predicates for the vote set and checkpoints, a
 It is worth noting that both of these properties are required for an inductive invariant; if we don't specify consistency, the solver can trivially infer that the set contains all possible checkpoints, and that all checkpoints are finalized, which leads to bogus counterexamples to \textsf{AccountableSafety}.
 On the other hand, if we don't specify completeness, the solver can trivially infer that the set of justified checkpoints is empty (or contains exactly the genesis checkpoint). This leads us to be unable to detect real violations of \textsf{AccountableSafety}, since we can never observe conflicting finalized checkpoints, even when the votes cast necessitate their existence.
 
-This matters, because including both of these constraints is expensive for the solver; no matter how we define the justification predicate, it will appear in both positive and negative form, so the solver is guaranteed to have to deal with both quantifier alternations, as well as double universal quantification.
-Fundamentally, this demonstrates an intrinsic complexity of the problem itself, regardless of the particular characterization of justified sets in \tlap{}.
+This is critical, because including both constraints places a heavy burden on the solver. No matter how we define the justification predicate, it will inevitably appear in both positive and negative form, forcing the solver to contend with both quantifier alternations and double universal quantification, both of which are known to be hard.
+Fundamentally, this demonstrates the intrinsic complexity of the problem itself, regardless of the particular characterization of justified sets in \tlap{}.
 
 Our experimental evaluation of the inductive invariant can be found in <TBD>, where you can clearly see how this complexity translates to long run-times of the solver.
 
