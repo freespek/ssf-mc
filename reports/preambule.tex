@@ -10,19 +10,26 @@
 \newcommand{\SpecTwo}{\texttt{Spec~2}}
 \newcommand{\SpecThree}{\texttt{Spec~3}}
 \newcommand{\SpecFour}{\texttt{Spec~4}}
-
-\lstset{
-    basicstyle=\sffamily\scriptsize,   % Use a variable-width font
-    columns=fullflexible,   % Adjust spacing to match the variable-width font
-    frame=single,           % Only around the code
+\lstset{%
+  basicstyle=\sffamily\scriptsize,   % Use a variable-width font
+  columns=fullflexible,   % Adjust spacing to match the variable-width font
+  frame=single,           % Only around the code
 }
 
-\lstdefinelanguage{tla}                                                         
-  {morekeywords={MODULE,EXTENDS,CONSTANTS,CONSTANT,ASSUME,VARIABLES,VARIABLE,
+\lstdefinelanguage{tla}{%
+  morekeywords={MODULE,EXTENDS,CONSTANTS,CONSTANT,ASSUME,VARIABLES,VARIABLE,
           EXCEPT,UNCHANGED,TRUE,FALSE,IF,THEN,ELSE,LET,IN,SUBSET,DOMAIN,RECURSIVE},
           comment=[l]{\\*},
   morecomment=[s]{(*}{*)},
   mathescape=true,escapechar={@},
+  commentstyle=\itshape\rmfamily,%\small,
+  keywordstyle=\sffamily\bfseries
+}
+\lstdefinelanguage{alloy}{%
+  morekeywords={pred,sig,fact,set,one,extends,all,or,and,run,for,but},
+          comment=[l]{---},
+  mathescape=true,escapechar={@},
+  basicstyle=\sffamily,%\small,
   commentstyle=\itshape\rmfamily,%\small,
   keywordstyle=\sffamily\bfseries
 }
