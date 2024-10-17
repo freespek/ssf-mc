@@ -13,7 +13,7 @@ Alloy has two features that are attractive for our project:
       number of objects of particular type in the universe. For example, we can
       restrict the number of checkpoints and votes to 5 and 12, respectively.
       Although we introduced similar restrictions with Apalache, Alloy has even
-      finer level of tuning.
+      finer level of parameter tuning.
 
   \item Alloy translates the model checking problem to a Boolean satisfiability
       problem (SAT), in constrast to Apalache, which translates it to satisfiability-modulo-theory (SMT).  This
@@ -49,8 +49,7 @@ signatures for the blocks and checkpoints:
 
 In contrast to~\texttt{Spec 4}, our Alloy specification does not describe a
 state machine, but it specifies an arbitrary single state of the protocol. As
-in~\texttt{Spec 4}, we employ the same trick to restrict the justified
-checkpoints:
+in~\texttt{Spec 4}, we compute the set of justified checkpoints as a fixpoint:
 
 \begin{lstlisting}[language=alloy,columns=fullflexible]
   one sig JustifiedCheckpoints {
@@ -88,12 +87,38 @@ Similar to Apalache, Alloy allows us to show safety for bounded scopes.
                                      4 Signature, 6 FfgVote, 15 Vote, 5 int
 \end{lstlisting}
 
-Thus it is interesting to increase these parameter values as much as possible to cover more scenarios, while keeping them small enough that the SAT solver still terminates within reasonable time.
-Table~\ref{tab:alloy-mc} summarizes our experiments with Alloy when checking
-$\textit{noAccountableSafety}$ with Kissat. As we can see, we have managed to
-show accountable safety for chain configurations of up to 6 blocks,
-including the genesis block. However, the most interesting configuration of 7 blocks
-(on two chains) happens to be quite challenging for Alloy and Kissat.
+Thus it is interesting to increase these parameter values as much as possible
+to cover more scenarios, while keeping them small enough that the SAT solver
+still terminates within reasonable time. Table~\ref{tab:alloy-mc} summarizes
+our experiments with Alloy when checking $\textit{noAccountableSafety}$ with
+Kissat.  Since a vote includes an FFG vote and a validator's signature, the
+number of FFG votes and validators bound the number of votes. Hence, if we only
+increase the number of votes without increasing the number of FFG votes, we may
+miss the cases when longer chains of justifications must be constructed.
+
+As we can see, we have managed to show accountable safety for chain
+configurations of up to 6 blocks, including the genesis block. While the
+configurations up to 4 blocks are important to analyze, they do not capture the
+general case, namely, of two finalized checkpoints building on top of justified
+checkpoints that are not the genesis. Thus, the configurations of 5 blocks are
+the most important ones, as they capture the general case.
+
+To see, whether we could go a bit further beyond 5 blocks, we have tried the
+configuration of 7 blocks. This configuration happened to be quite challenging
+for Alloy and Kissat. We have run Kissat for over 16 days, and it was stuck
+at the remaining seven percent for many days. At that point, it has introduced:
+
+\begin{itemize}
+  \item 60 thousand Boolean variables,
+  \item 582 thousand ``irredundant'' clauses and 199 thousand binary clauses,
+  \item 1.3 billion conflicts,
+  \item 56 million restarts.
+\end{itemize}
+
+We conjecture that the inductive structure of justified and finalized
+checkpoints make it challenging for the solvers (both SAT and SMT) to analyze
+the specification. Essentially, the solvers have to reason about chains of
+checkpoints on top of chains of blocks.
 
 \begin{table}
     \centering
@@ -108,30 +133,30 @@ including the genesis block. However, the most interesting configuration of 7 bl
             & \tbh{Memory}
             \\ \toprule
         1 & 3 & 5 & 4 & 5  & 12 & 4s & 35M
-            \\ \midrule
+            \\
         2 & 4 & 5 & 4 & 5 & 12 & 10s & 40M
-            \\ \midrule
+            \\
         3 & 5 & 5 & 4 & 5 & 12 & 15s & 45M
-            \\ \midrule
+            \\
         4 & 3 & 6 & 4 & 6 & 15 & 57s & 52M
-            \\ \midrule
+            \\
         5 & 4 & 6 & 4 & 6 & 15 & 167s & 55M
-            \\ \midrule
+            \\
         6 & 5 & 6 & 4 & 6 & 15 & 245s & 57M
-            \\ \midrule
+            \\
         7 & 6 & 6 & 4 & 6 & 15 & 360s & 82M
-            \\ \midrule
+            \\
         8 & 5 & 7 & 4 & 6 & 24 & 1h 27m & 156M
-            \\ \midrule
+            \\
         9 & --- & --- & --- & --- & --- & --- & ---
-            \\ \midrule
+            \\
         10 & 3 & 15 & 4 & 5 & 12 & 31s & 56M
-            \\ \midrule
+            \\
         11 & 4 & 20 & 4 & 5 & 12 & 152s & 94M
-            \\ \midrule
+            \\
         12 & 5 & 25 & 4 & 5 & 12 & 234s & 117M
-            \\ \midrule
-        13 & 7 & 15 & 4 & 10 & 40 & over 10 days & 300 MB
+            \\
+        13 & 7 & 15 & 4 & 10 & 40 & over 16 days (timeout) & 300 MB
             \\ \bottomrule
     \end{tabular}
     \caption{Model checking experiments with Alloy and Kissat:
