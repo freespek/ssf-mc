@@ -1,6 +1,6 @@
 %! TeX root = report.tex
 
-\section{Spec 4d in Alloy}
+\section{Spec 3c in Alloy}
 
 Once we saw that our specifications \texttt{Spec 3} and \texttt{Spec 4}
 were too challenging for the \tlap{} tools, we have decided to employ
@@ -22,8 +22,8 @@ Alloy has two features that are attractive for our project:
 
 \end{itemize}
 
-Having \texttt{Spec 4} in~\tlap{}, it was relatively easy for us to write down
-the Alloy specification, as \texttt{Spec 4} is already quite abstract. However, as
+Having \texttt{Spec 3} in~\tlap{}, it was relatively easy for us to write down
+the Alloy specification, as \texttt{Spec 3} is already quite abstract. However, as
 Alloy's core abstractions are objects and relations between them, the
 specification looks quite differently. For example, here is how we declare
 signatures for the blocks and checkpoints:
@@ -47,9 +47,9 @@ signatures for the blocks and checkpoints:
   one sig GenesisBlock extends Block {}
 \end{lstlisting}
 
-In contrast to~\texttt{Spec 4}, our Alloy specification does not describe a
+In contrast to~\texttt{Spec 3}, our Alloy specification does not describe a
 state machine, but it specifies an arbitrary single state of the protocol. As
-in~\texttt{Spec 4}, we compute the set of justified checkpoints as a fixpoint:
+in~\texttt{Spec 3}, we compute the set of justified checkpoints as a fixpoint:
 
 \begin{lstlisting}[language=alloy,columns=fullflexible]
   one sig JustifiedCheckpoints {
