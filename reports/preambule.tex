@@ -6,15 +6,24 @@
 \usepackage{listings}
 \usepackage{tlalatex}
 
-\lstdefinelanguage{tla}
+\newcommand{\SpecOne}{\texttt{Spec~1}}
+\newcommand{\SpecTwo}{\texttt{Spec~2}}
+\newcommand{\SpecThree}{\texttt{Spec~3}}
+\newcommand{\SpecFour}{\texttt{Spec~4}}
+\lstset{
+    basicstyle=\sffamily\scriptsize,   % Use a variable-width font
+    columns=fullflexible,   % Adjust spacing to match the variable-width font
+    frame=single,           % Only around the code
+}
+
+\lstdefinelanguage{tla}                                                         
   {morekeywords={MODULE,EXTENDS,CONSTANTS,CONSTANT,ASSUME,VARIABLES,VARIABLE,
           EXCEPT,UNCHANGED,TRUE,FALSE,IF,THEN,ELSE,LET,IN,SUBSET,DOMAIN,RECURSIVE},
           comment=[l]{\\*},
   morecomment=[s]{(*}{*)},
   mathescape=true,escapechar={@},
-  basicstyle=\sffamily,%\small,
   commentstyle=\itshape\rmfamily,%\small,
-  keywordstyle=\sffamily%\bfseries
+  keywordstyle=\sffamily\bfseries
 }
 \lstdefinelanguage{alloy}
   {morekeywords={pred,sig,fact,set,one,extends,all,or,and,run,for,but},
@@ -23,6 +32,22 @@
   basicstyle=\sffamily,%\small,
   commentstyle=\itshape\rmfamily,%\small,
   keywordstyle=\sffamily\bfseries
+
+\lstdefinelanguage{smt}{%
+    keywords={%
+        assert, check-sat, get-model, set, define-fun, define-fun-rec,
+        not, or, and, ite, let, forall, exists, true, false
+    },
+    alsoletter=-,
+    morekeywords={%
+        declare-const, define-sort, check-sat, set-option,
+        get-assertions, get-info, get-value, set-logic,
+        declare-datatypes, declare-datatype, declare-fun
+    },
+    sensitive=true,
+    comment=[l]{;}, % Single line comments
+    morecomment=[s]{(*}{*)}, % Multi-line comments
+    string=[b]" % Strings
 }
 
 \newtheorem{theorem}{Theorem}[section]

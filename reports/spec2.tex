@@ -1,5 +1,179 @@
 %! TeX root = report.tex
 
-\section{M2: Spec 2}
+\section{M2: Spec 2: Fold-Based Specification}
 
-TODO\footnote{TP: introduce folds}
+\SpecTwo{} addresses some of the limitations inherent in the straightforward
+translation of \SpecOne{} from the Python executable specification.
+
+\subsection{Translating Recursive \tlap{} Operators}
+
+The primary goal of \SpecTwo{} is to maintain the semantic structure of
+\SpecOne{} while eliminating recursion. In \SpecOne{}, (mutually) recursive
+operators model key aspects of protocol behavior, such as the block tree and
+block justification. Apalache does not natively support recursive
+operators\footnote{\url{https://apalache-mc.org/docs/apalache/principles/recursive.html}},
+thus it cannot be used immediately to model-check \SpecOne{}. While the
+explicit-state \tlap{} model checker TLC supports recursive operators, it does
+not scale to model-checking of this problem.
+
+To resolve this, we reformulate \SpecOne{} into \SpecTwo{}, by substituting
+(mutually) recursive constructs with bounded
+\texttt{fold}~operations\footnote{In functional programming, \texttt{fold} is a
+higher-order function that accepts a combining operation and an iterable data
+structure, and applies the operation to each element of the data structure
+to compute a single return value. \texttt{fold} is also known as
+\texttt{reduce} in some languages.}, which enable the same iterative
+computations to be performed in a non-recursive manner. Consider the following
+example from \SpecOne{}:
+
+\begin{lstlisting}[language=tla]
+RECURSIVE is_ancestor_descendant_relationship(_, _, _)
+is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
+    IF ancestor = descendant THEN TRUE
+    ELSE IF descendant = node_state.configuration.genesis THEN FALSE
+    ELSE
+        /\ has_parent(descendant, node_state)
+        /\ is_ancestor_descendant_relationship(ancestor, get_parent(descendant, node_state), node_state)
+\end{lstlisting}
+
+Its corresponding fold-based formulation is shown below:
+
+\begin{lstlisting}[language=tla]
+is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
+    LET FindAncestor(last_block_and_flag, slot) ==
+        LET
+            last_block == last_block_and_flag[1]
+            flag == last_block_and_flag[2]
+        IN
+        IF flag THEN Pair(last_block, TRUE)
+        ELSE IF last_block = node_state.configuration.genesis \/ ~has_parent(last_block, node_state) THEN Pair(last_block, FALSE)
+        ELSE LET parent == get_parent(last_block, node_state) IN Pair(parent, parent = ancestor)
+    IN
+    ApaFoldSeqLeft(FindAncestor, Pair(descendant, descendant = ancestor), MkSeq(MAX_SLOT, LAMBDA i: i))[2]
+\end{lstlisting}
+
+\subsection{An Optimization: Flattening Nested Folds}
+
+Initial model checking experiments with \SpecTwo{} revealed significant
+challenges related to memory consumption, stemming from the high number of SMT
+constraints emitted by Apalache for nested fold operations, which in turn mirror
+the complexity of the original nested recursive structures from the Python
+specification.
+
+To address these issues, we introduce a manual optimization strategy that
+involves flattening nested fold operations. This technique transforms nested
+folds into a more manageable structure by employing additional \tlap{} state
+variables, similar to memoization or prophecy variables.
+
+For example, we introduce a new \tlap{} state variable
+\texttt{PRECOMPUTED\_IS\_ANCESTOR\_DESCENDANT\_RELATIONSHIP} to store
+precomputed ancestor-descendant relationships and initialize it with the results
+of the fold operation above:
+
+\begin{lstlisting}[language=tla]
+LET all_blocks == get_all_blocks(single_node_state) IN
+PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
+    [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
+\end{lstlisting}
+
+Instead of re-evaluating the fold operation each time we need to check if two
+blocks are in an ancestor-descendant relationship, we can directly access the
+memoized result in a much more efficient map lookup:
+
+\begin{lstlisting}[language=tla]
+are_conflicting(chain1, chain2, node_state) ==
+    /\ chain1 \notin PRECOMPUTED__is_ancestor_descendant_relationship[chain2]
+    /\ chain2 \notin PRECOMPUTED__is_ancestor_descendant_relationship[chain1]
+\end{lstlisting}
+
+To further improve our confidence in the correctness of this optimization, we
+could produce a proof in TLAPS or run Apalache to show functional equivalence.
+
+\subsection{Checking the Specification}
+
+We can query the specification for reachable protocol states using Apalache.
+For example, we can check if a nontrivial finalized checkpoint exists by writing an
+invariant that we expect not to hold. If the invariant below is violated,
+Apalache will produce an example of a finalized checkpoint as a counterexample:
+
+\begin{lstlisting}[language=tla]
+\* Find a finalized checkpoint (in addition to the genesis checkpoint)
+FinalizedCheckpoint_Example ==
+    get_finalized_checkpoints(single_node_state) = { genesis_checkpoint(single_node_state) }
+\end{lstlisting}
+
+Obviously, we can also check \textit{AccountableSafety} by supplying it as an
+invariant to Apalache:
+
+\begin{lstlisting}[language=tla]
+AccountableSafety ==
+  LET
+    finalized_checkpoints == get_finalized_checkpoints(single_node_state)
+    finalized_blocks == { get_block_from_hash(checkpoint.block_hash, single_node_state) : checkpoint \in finalized_checkpoints }
+    there_are_conflicting_finalized_blocks == \E block1, block2 \in finalized_blocks : are_conflicting(block1, block2, single_node_state)
+    slashable_nodes == get_slashable_nodes(single_node_state.view_votes)
+  IN there_are_conflicting_finalized_blocks => Cardinality(slashable_nodes) * 3 >= Cardinality(Nodes)
+\end{lstlisting}
+
+Table~\ref{tab:spec2} shows the results of model checking \SpecTwo{} with
+Apalache. We can see that generating examples of reachable protocol states and
+verifying \textit{AccountableSafety} is infeasible due to the high computational
+complexity of the specification.
+
+\begin{table}
+    \centering
+    \begin{tabular}{ll}
+        \tbh{Property} & \tbh{Time} \\ \toprule
+        Example: conflicting blocks & timeout ($>40$h) \\
+        Example: finalized \& conflicting blocks & timeout ($>40$h) \\
+        AccountableSafety & timeout ($>40$h) \\ \bottomrule
+    \end{tabular}
+    \caption{Model checking \SpecTwo{} with Apalache.}\label{tab:spec2}
+\end{table}
+
+These results are not surprising -- the solver has to consider both reachability
+properties for all possible block graphs, and all possible FFG voting scenarios
+on top of these graphs. To further evaluate \SpecTwo{}, we fix the block graph
+-- this way the solver only has to reason about voting. We encode three example
+block graphs: a single, linear chain (\texttt{SingleChain}), a minimal forked
+chain of three blocks (\texttt{ShortFork}), and a forest of disconnected chains
+(\texttt{Forest}). Table~\ref{tab:spec2_fixed} shows the results of model
+checking \SpecTwo{} for these fixed block graphs.
+
+\begin{table}
+    \centering
+    \begin{tabular}{llr}
+      \tbh{Property} & \tbh{Block graph} & \tbh{Time} \\ \toprule
+      Example: conflicting blocks & \texttt{SingleChain} & 1 min 3 sec \\
+      Example: conflicting blocks & \texttt{ShortFork} & 52 sec \\
+      Example: conflicting blocks & \texttt{Forest} & 2 min 21 sec \\ \midrule
+      Example: fin.\ \& confl.\ blocks & \texttt{SingleChain} & 1 min 5
+      sec \\
+      Example: fin.\ \& confl.\ blocks & \texttt{ShortFork} & 10 hours
+      49 min 47 sec \\
+      Example: fin.\ \& confl.\ blocks & \texttt{Forest} & timeout
+      ($>40$h) \\ \midrule
+      AccountableSafety & \texttt{SingleChain} & 1 min 13 sec \\
+      AccountableSafety & \texttt{ShortFork} & timeout ($>40$h) \\
+      AccountableSafety & \texttt{Forest} & timeout ($>40$h) \\ \bottomrule
+    \end{tabular}
+    \caption{Model checking \SpecTwo{} for fixed block
+    graphs.}\label{tab:spec2_fixed}
+\end{table}
+
+We can see that the solver can handle the single chain block graph (where
+\textit{AccountableSafety} trivially holds due to absence of conflicting
+blocks), but struggles with the more complex scenarios even when given a fixed
+block graph. This suggests that the complexity inherent in the specification is
+due to the high combinatorial complexity of voting scenarios, rather than just
+the block graph.
+
+\subsection{Discussion}~\footnote{\color{red}TODO: perhaps move this to a general
+discussion section?} Applying translation rules to obtain checkable
+specifications from other artifacts can provide a useful starting point.
+However, such translations are also likely to introduce unwanted
+inefficiencies. Translation rules cannot account for the nuances of the specific
+context, which can lead to suboptimal performance. Consequently, leveraging
+human ingenuity to develop specifications from the outset can be more effective.
+When relying on translated specifications, it becomes crucial to conduct
+manual optimizations to ensure efficiency.
