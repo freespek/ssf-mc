@@ -64,7 +64,7 @@ We have produced the following specifications in the project:
  and computing for over 40h. This specification is the result of our work in
  [Milestone 1][] and [Milestone 2][].
  
- - **Spec 3**. This is the specification [abstract-spec/ffg.tla][]. It is a
+ - **Spec 3**. This is the specification [spec3/ffg.tla][]. It is a
  manual abstraction of `Spec 2` that is further optimized for constraint solving,
  especially with Apalache. `Spec 3` describes a state machine that adds blocks
  and votes in every step, and thus enables bounded model-checking. `Spec 3`
@@ -82,7 +82,7 @@ We have produced the following specifications in the project:
  This is ongoing work in [Milestone 4][].
  
 The specifications `Spec 2` and `Spec 3` come with model checking instances
-[spec1-2/MC_ffg.tla] and [abstract-spec/MC_ffg.tla], respectively. These instances
+[spec1-2/MC_ffg.tla] and [spec3/MC_ffg.tla], respectively. These instances
 fix the specification parameters to small values for model checking purposes,
 e.g.:
 
@@ -336,7 +336,7 @@ a single validator (alternatively, the network view), we have to check
 executions up to some bound.
 
 ```sh
-$ cd ./abstract-spec
+$ cd ./spec3
 $ JVM_ARGS=-Xmx20G apalache-mc check --inv=AccountableSafety MC_ffg.tla
 ```
 
@@ -348,7 +348,7 @@ To obtain results faster, albeit at the cost of completeness, we analyze 100
 random symbolic runs, each consisting of up to 10 steps:
 
 ```sh
-$ cd ./abstract-spec
+$ cd ./spec3
 $ JVM_ARGS=-Xmx20G apalache-mc simulate \
   simulate --max-run=100 --length=10 --timeout-smt=10800 \
   --inv=AccountableSafety MC_ffg.tla
@@ -371,7 +371,7 @@ instance, we use 20 CPU cores to check 5 symbolic runs each.
 In this experiment, we show that `Inv0` is an inductive invariant for `Spec 3`:
 
 ```sh
-$ cd ./abstract-spec
+$ cd ./spec3
 $ apalache-mc check --length=1 --inv=Inv0 \
   --init=Init0 --next=Next0 MC_ffg.tla
 ```
@@ -381,7 +381,7 @@ This experiment takes about **TODO**.
 ### 6.2. Inductive checking of Accountable Safety
 
 ```sh
-$ cd ./abstract-spec
+$ cd ./spec3
 $ JVM_ARGS=-Xmx20G ~/devl/apalache/bin/apalache-mc check \
   --length=0 --init=Init0 --inv=AccountableSafety \
   MC_ffg.tla
@@ -397,15 +397,15 @@ This experiment took 19 hours 48 min 29 sec.
 [Z3]: https://github.com/Z3Prover/z3
 [spec1-2/ffg]: ./spec1-2/ffg.tla
 [spec1-2/MC_ffg]: ./spec1-2/MC_ffg.tla
-[abstract-spec/MC_ffg]: ./abstract-spec/MC_ffg.tla
-[abstract-spec/ffg]: ./abstract-spec/ffg.tla
+[spec3/MC_ffg]: ./spec3/MC_ffg.tla
+[spec3/ffg]: ./spec3/ffg.tla
 [ffg.py]: https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py
 [spec1-2/ffg_recursive.tla]: ./spec1-2/ffg-recursive.tla
 [spec1-2/ffg.tla]: ./spec1-2/ffg.tla
-[abstract-spec/ffg.tla]: ./abstract-spec/ffg.tla
+[spec3/ffg.tla]: ./spec3/ffg.tla
 [spec1-2/MC_ffg.tla]: ./spec1-2/MC_ffg.tla
 [spec1-2/MC_ffg_examples.tla]: ./spec1-2/MC_ffg_examples.tla
-[abstract-spec/MC_ffg.tla]: ./abstract-spec/MC_ffg.tla
+[spec3/MC_ffg.tla]: ./spec3/MC_ffg.tla
 [Alloy]: https://en.wikipedia.org/wiki/Alloy_(specification_language)
 [Milestone 1]: https://github.com/freespek/ssf-mc/milestone/1?closed=1
 [Milestone 2]: https://github.com/freespek/ssf-mc/milestone/2?closed=1
