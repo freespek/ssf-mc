@@ -157,13 +157,6 @@ is_complete_chain(block, node_state) ==
 \* @type: ($block, $commonNodeState) => Bool;
 PRECOMPUTED__is_complete_chain(block, node_state) == GenesisBlock \in PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP[block]
 
-
-
-
-
-
-
-
 (*
  * Determine if there is an ancestor-descendant relationship between two blocks.
  * Non-recursive version for Apalache.
