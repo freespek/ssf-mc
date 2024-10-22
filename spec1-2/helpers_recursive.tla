@@ -49,7 +49,8 @@ TLC_is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
     ELSE IF descendant = node_state.configuration.genesis THEN FALSE
     ELSE
         /\ has_parent(descendant, node_state)
-        /\ TLC_is_ancestor_descendant_relationship(ancestor, get_parent(descendant, node_state), node_state)
+        /\ TLC_is_ancestor_descendant_relationship(ancestor,
+             get_parent(descendant, node_state), node_state)
 
 (*
  * Check if two blocks have a common ancestor.

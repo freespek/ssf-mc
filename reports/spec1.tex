@@ -14,11 +14,22 @@ The first specification is obtained by following the principle of least surprise
 Despite being a programming language and specification language respectively, Python and \tlap{} overlap somewhat in what they can express. 
 For instance, both allow us to express sets, and then filter those sets by a given predicate to obtain a different set.
 To take a concrete example, observe the definition of \textsf{pset\_filter} in Figure~\ref{py_filter}.
+
 \begin{figure}
-\includegraphics[width=\textwidth]{images/pset_filter.png}
+  \begin{lstlisting}[language=Python,style=mystyle]
+def pset_filter(p: Callable[[T1], bool], s: PSet[T1]) -> PSet[T1]:
+  r: PSet[T1] = pset()
+ 
+  for e in s:
+    if p(e):
+      r = r.add(e)
+  
+  return r
+  \end{lstlisting}
+  %\includegraphics[width=\textwidth]{images/pset_filter.png}
 \caption{\textsf{pset\_filter} definition \label{py_filter}}
 \end{figure}
-%
+
 Notice that, while filter is not one of the built-in operators of the \emph{pyrsistent} library, it is relatively simple to define a filter operator, such that the set returns contains exactly all of the elements of $s$, for which the Boolean predicate $p$ holds true.
 In \tlap{}, however, filtering is a language primitive, so if we can translate a python set $s$ to a \tlap{} set $\hat{s}$, and a Python predicate $p$ (of the above type) to a \tlap{} predicate $\hat{p}$, we can translate $\mathsf{pset\_filter}(p, s)$ to $\{ x \in \hat{s}\colon \hat{p}(x) \}$.
 
@@ -39,16 +50,44 @@ In general, this behavior is impossible to replicate without very convoluted \tl
 \paragraph{Recursion.} Native \tlap{} supports recursive operators at the language level, but Apalache does not, at the model-checking level. This means that we can translate recursive Python functions as-written in \texttt{Spec 1}, with the knowledge that we will need to remove them in \texttt{Spec 2} to facilitate model checking.
 
 As an example, Figure~\ref{py_adr} shows a crucial operator, \textsf{is\_ancestor\_descendant\_relationship}, as it is expressed in Python, and Figure~\ref{tla_adr} shows its \tlap{} equivalent.
+
 \begin{figure}
-\includegraphics[width=\textwidth]{images/is_ancestor_descendant_relationship.png}
-\caption{\textsf{is\_ancestor\_descendant\_relationship} Python definition \label{py_adr}}
+  %\includegraphics[width=\textwidth]{images/is_ancestor_descendant_relationship.png}
+
+  \begin{lstlisting}[style=mystyle,language=Python]
+  def is_ancestor_descendant_relationship(
+    ancestor: Block, 
+    descendant: Block, 
+    node_state: CommonNodeState
+  ) -> bool:
+    """
+    It determines whether there is an ancestor-descendant relationship between two blocks.
+    """
+    if ancestor == descendant:
+        return True
+    elif descendant == node_state.configuration.genesis:
+        return False
+    else:
+        return (
+            has_parent(descendant, node_state) and
+            is_ancestor_descendant_relationship(
+                ancestor,
+                get_parent(descendant, node_state),
+                node_state
+            )
+        )
+  \end{lstlisting}
+
+  \caption{Python definition
+      of~\textsf{is\_ancestor\_descendant\_relationship} Python}\label{py_adr}
 \end{figure}
 
 \begin{figure}
-\includegraphics[width=\textwidth]{images/TLC_is_ancestor_descendant_relationship.png}
-\caption{\textsf{is\_ancestor\_descendant\_relationship} \tlap{} equivalent \label{tla_adr}}
+  \includegraphics[width=\textwidth]{images/ancestor_descendant.pdf}
+  \caption{Definition
+    of~\textsf{is\_ancestor\_descendant\_relationship} in \tlap{}}\label{tla_adr}
 \end{figure}
-%
+
 We can see that the \tlap{} specification requires us to explicitly annotate the operator as recursive. 
 Beyond that, since both languages support if-statements, those translate directly (though since \textsf{elif} in Python has no equivalent, we chain two ifs). 
 Lastly, the \tlap{} operator references \textsf{has\_parent} and \textsf{get\_parent}, which are \tlap{}-translated python operators themselves. 
