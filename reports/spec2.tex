@@ -23,34 +23,17 @@ higher-order function that accepts a combining operation and an iterable data
 structure, and applies the operation to each element of the data structure
 to compute a single return value. \texttt{fold} is also known as
 \texttt{reduce} in some languages.}, which enable the same iterative
-computations to be performed in a non-recursive manner. Consider the following
-example from \SpecOne{}:
+computations to be performed in a non-recursive manner.
 
-\begin{lstlisting}[language=tla]
-RECURSIVE is_ancestor_descendant_relationship(_, _, _)
-is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
-    IF ancestor = descendant THEN TRUE
-    ELSE IF descendant = node_state.configuration.genesis THEN FALSE
-    ELSE
-        /\ has_parent(descendant, node_state)
-        /\ is_ancestor_descendant_relationship(ancestor, get_parent(descendant, node_state), node_state)
-\end{lstlisting}
+Let's reconsider the example in Figure~\ref{tla_adr}. In
+Figure~\ref{fig:relationship-folds}, we present its equivalent that is using
+folds.
 
-Its corresponding fold-based formulation is shown below:
-
-\begin{lstlisting}[language=tla]
-is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
-    LET FindAncestor(last_block_and_flag, slot) ==
-        LET
-            last_block == last_block_and_flag[1]
-            flag == last_block_and_flag[2]
-        IN
-        IF flag THEN Pair(last_block, TRUE)
-        ELSE IF last_block = node_state.configuration.genesis \/ ~has_parent(last_block, node_state) THEN Pair(last_block, FALSE)
-        ELSE LET parent == get_parent(last_block, node_state) IN Pair(parent, parent = ancestor)
-    IN
-    ApaFoldSeqLeft(FindAncestor, Pair(descendant, descendant = ancestor), MkSeq(MAX_SLOT, LAMBDA i: i))[2]
-\end{lstlisting}
+\begin{figure}
+  \includegraphics[width=\textwidth]{images/is_ancestor_descendant_relationship_folds.pdf}
+  \caption{The recursive definition converted to bounded iteration with folds}%
+  \label{fig:relationship-folds}
+\end{figure}
 
 \subsection{An Optimization: Flattening Nested Folds}
 
@@ -68,23 +51,25 @@ variables, similar to memoization or prophecy variables.
 For example, we introduce a new \tlap{} state variable
 \texttt{PRECOMPUTED\_IS\_ANCESTOR\_DESCENDANT\_RELATIONSHIP} to store
 precomputed ancestor-descendant relationships and initialize it with the results
-of the fold operation above:
+of the fold operation above, see Figure~\ref{fig:relationship-memo}.
 
-\begin{lstlisting}[language=tla]
-LET all_blocks == get_all_blocks(single_node_state) IN
-PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
-    [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
-\end{lstlisting}
+\begin{figure}
+  \includegraphics[width=\textwidth]{images/precompute.pdf}
+  \caption{Memoizing the ancestor-descendant relationship}%
+  \label{fig:relationship-memo}
+\end{figure}
 
-Instead of re-evaluating the fold operation each time we need to check if two
-blocks are in an ancestor-descendant relationship, we can directly access the
-memoized result in a much more efficient map lookup:
+What does this give us? For instance, instead of re-evaluating the fold
+operation each time we need to check if two blocks are in an
+ancestor-descendant relationship, we can directly access the memoized result in
+a much more efficient map lookup, as shown in
+Figure~\ref{fig:conflicting-memo}.
 
-\begin{lstlisting}[language=tla]
-are_conflicting(chain1, chain2, node_state) ==
-    /\ chain1 \notin PRECOMPUTED__is_ancestor_descendant_relationship[chain2]
-    /\ chain2 \notin PRECOMPUTED__is_ancestor_descendant_relationship[chain1]
-\end{lstlisting}
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{images/are_conflicting.pdf}
+  \caption{The definition of conflicting blocks, using memoization}%
+  \label{fig:conflicting-memo}
+\end{figure}
 
 To further improve our confidence in the correctness of this optimization, we
 could produce a proof in TLAPS or run Apalache to show functional equivalence.
@@ -94,26 +79,23 @@ could produce a proof in TLAPS or run Apalache to show functional equivalence.
 We can query the specification for reachable protocol states using Apalache.
 For example, we can check if a nontrivial finalized checkpoint exists by writing an
 invariant that we expect not to hold. If the invariant below is violated,
-Apalache will produce an example of a finalized checkpoint as a counterexample:
+Apalache will produce an example of a finalized checkpoint as a counterexample,
+see~Figure~\ref{fig:finalized-example}.
 
-\begin{lstlisting}[language=tla]
-\* Find a finalized checkpoint (in addition to the genesis checkpoint)
-FinalizedCheckpoint_Example ==
-    get_finalized_checkpoints(single_node_state) = { genesis_checkpoint(single_node_state) }
-\end{lstlisting}
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{images/finalized-example.pdf}
+  \caption{A false invariant for producing an example}%
+  \label{fig:finalized-example}
+\end{figure}
 
 Obviously, we can also check \textit{AccountableSafety} by supplying it as an
-invariant to Apalache:
+invariant to Apalache, see~\ref{fig:accountable-safety}.
 
-\begin{lstlisting}[language=tla]
-AccountableSafety ==
-  LET
-    finalized_checkpoints == get_finalized_checkpoints(single_node_state)
-    finalized_blocks == { get_block_from_hash(checkpoint.block_hash, single_node_state) : checkpoint \in finalized_checkpoints }
-    there_are_conflicting_finalized_blocks == \E block1, block2 \in finalized_blocks : are_conflicting(block1, block2, single_node_state)
-    slashable_nodes == get_slashable_nodes(single_node_state.view_votes)
-  IN there_are_conflicting_finalized_blocks => Cardinality(slashable_nodes) * 3 >= Cardinality(Nodes)
-\end{lstlisting}
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{images/accountable-safety.pdf}
+  \caption{A state invariant for accountable safety}%
+  \label{fig:accountable-safety}
+\end{figure}
 
 Table~\ref{tab:spec2} shows the results of model checking \SpecTwo{} with
 Apalache. We can see that generating examples of reachable protocol states and

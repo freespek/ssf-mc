@@ -25,17 +25,17 @@ The challenge, typically, is that inductive invariants are more difficult to wri
 They are usually composed of several lemmas, i.e. properties that we are less interested in on their own, but which are crucial in establishing property (2.).
 
 As we explain below, the inductive invariant introduced in \SpecFour{} mainly contains of two sets of lemmas, one for characterizing the chain-fork scenarios, and a second one for characterizing justified checkpoints, shown in Figure~\ref{figFork} and Figure~\ref{figJC} respectively.
-%
+
 \begin{figure}
-\includegraphics[width=\textwidth]{images/chainLemmas.png}
-\caption{Chain and forking lemmas in \textit{IndInv} \label{figFork}}
+  \includegraphics[width=\textwidth]{images/chain-and-fork-inv.pdf}
+  \caption{Chain and forking lemmas in \textit{IndInv}}\label{figFork}
 \end{figure}
-%
+
 \begin{figure}
-\includegraphics[width=\textwidth]{images/checkpointLemmas.png}
-\caption{Justified checkpoint lemmas in \textit{IndInv} \label{figJC}}
+  \includegraphics[width=\textwidth]{images/justified-inv.pdf}
+  \caption{Justified checkpoint lemmas in \textit{IndInv}}\label{figJC}
 \end{figure}
-%
+
 Since we represent a fork by means of a sign-change on block numbers, we have to specify that their absolute values are contiguous, that the chains coincide in the absence of a fork, as well as on the pre-fork prefix, and that both chains are monotone w.r.t. block numbers after the fork point.
 Additionally, we require validity predicates for the vote set and checkpoints, as well as a precise characterization of the set of justified checkpoints. The latter merits further discussion.
 
