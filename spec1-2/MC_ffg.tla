@@ -159,9 +159,16 @@ IsValidNodeState(node_state) ==
 Precompute ==
     LET all_blocks == get_all_blocks(single_node_state) IN
         /\ PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP =
-            [ descendant \in all_blocks |-> { ancestor \in all_blocks : is_ancestor_descendant_relationship(ancestor, descendant, single_node_state) } ]
-        /\ LET initialTargetMap == [ checkpoint \in get_set_FFG_targets(single_node_state.view_votes) |-> VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state) ]
-           IN PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT = AllJustifiedCheckpoints(initialTargetMap, single_node_state, MAX_SLOT)
+            [ descendant \in all_blocks |-> {
+                ancestor \in all_blocks:
+                  is_ancestor_descendant_relationship(ancestor, descendant, single_node_state)
+            }]
+        /\ LET initialTargetMap == [
+             checkpoint \in get_set_FFG_targets(single_node_state.view_votes) |->
+               VotesInSupportAssumingJustifiedSource(checkpoint, single_node_state)
+           ]
+           IN PRECOMPUTED__IS_JUSTIFIED_CHECKPOINT =
+                AllJustifiedCheckpoints(initialTargetMap, single_node_state, MAX_SLOT)
 
 \* Start in some arbitrary state
 Init ==
@@ -190,13 +197,17 @@ ConsistentParameters == Cardinality(BlockHashes) >= Cardinality(DOMAIN single_no
 \* two conflicting finalized blocks imply that at least n/3 adversarial validators can be
 \* detected to have violated either [slashing condition] E1 or E2.
 AccountableSafety ==
-    LET
-        finalized_checkpoints == get_finalized_checkpoints(single_node_state)
-        finalized_blocks == { get_block_from_hash(checkpoint.block_hash, single_node_state) : checkpoint \in finalized_checkpoints }
-        there_are_conflicting_finalized_blocks == \E block1, block2 \in finalized_blocks : are_conflicting(block1, block2, single_node_state)
+    LET finalized_checkpoints == get_finalized_checkpoints(single_node_state)
+        finalized_blocks == {
+            get_block_from_hash(checkpoint.block_hash, single_node_state):
+              checkpoint \in finalized_checkpoints
+        }
+        there_are_conflicting_finalized_blocks ==
+            \E block1, block2 \in finalized_blocks:
+                are_conflicting(block1, block2, single_node_state)
         slashable_nodes == get_slashable_nodes(single_node_state.view_votes)
-    \* TODO(#33): Generalize to weighted voting power
-    IN there_are_conflicting_finalized_blocks => Cardinality(slashable_nodes) * 3 >= Cardinality(Nodes)
+    IN there_are_conflicting_finalized_blocks =>
+        (Cardinality(slashable_nodes) * 3 >= Cardinality(Nodes))
 
 Inv ==
     /\ ConsistentParameters

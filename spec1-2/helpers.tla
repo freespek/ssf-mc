@@ -157,6 +157,13 @@ is_complete_chain(block, node_state) ==
 \* @type: ($block, $commonNodeState) => Bool;
 PRECOMPUTED__is_complete_chain(block, node_state) == GenesisBlock \in PRECOMPUTED__IS_ANCESTOR_DESCENDANT_RELATIONSHIP[block]
 
+
+
+
+
+
+
+
 (*
  * Determine if there is an ancestor-descendant relationship between two blocks.
  * Non-recursive version for Apalache.
@@ -171,10 +178,17 @@ is_ancestor_descendant_relationship(ancestor, descendant, node_state) ==
         LET last_block == last_block_and_flag[1] IN
         LET flag == last_block_and_flag[2] IN
         IF flag THEN Pair(last_block, TRUE)
-        ELSE IF last_block = node_state.configuration.genesis \/ ~has_parent(last_block, node_state) THEN Pair(last_block, FALSE)
-        ELSE LET parent == get_parent(last_block, node_state) IN Pair(parent, parent = ancestor)
+        ELSE IF last_block = node_state.configuration.genesis
+                \/ ~has_parent(last_block, node_state)
+            THEN Pair(last_block, FALSE)
+            ELSE LET parent == get_parent(last_block, node_state) IN
+                 Pair(parent, parent = ancestor)
     IN
-    ApaFoldSeqLeft( FindAncestor, Pair(descendant, descendant = ancestor), MkSeq(MAX_SLOT, (* @type: Int => Int; *) LAMBDA i: i) )[2]
+    ApaFoldSeqLeft(FindAncestor,
+                   Pair(descendant, descendant = ancestor),
+                   MkSeq(MAX_SLOT,
+                         (* @type: Int => Int; *)
+                         LAMBDA i: i))[2]
 
 \* A precomputed version of `is_ancestor_descendant_relationship`, to avoid emitting folds.
 \* @type: ($block, $block, $commonNodeState) => Bool;
