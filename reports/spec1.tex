@@ -124,7 +124,7 @@ code paths where this precondition holds). Thus, we can safely omit these
 assertions in the translation.
 
 \paragraph{Control flow.} Given the functional nature of the Python
-speficiation, and given that both languages support if-statements, those
+specification, and given that both languages support if-statements, those
 translate directly (although since \texttt{elif} in Python has no direct
 equivalent, we have to chain two IF-ELSEs in \tlap{}). Iteration (in the form of
 \texttt{for}-\texttt{in} loops) only occurs in the Python code to compute the set
@@ -134,7 +134,7 @@ set comprehension operator as discussed above.
 \paragraph{Recursion.} As we have mentioned, the Python code contains a number
 of (mutually) recursive functions. Native \tlap{} supports recursive operators
 at the language level, which must be explicitly annotated with the keyword
-RECURSIVE, which we introduce manually.
+\texttt{RECURSIVE}, which we introduce manually.
 
 However, Apalache does not support recursive \tlap{} operators at the
 model-checking level. This means that we can translate recursive Python
