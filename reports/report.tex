@@ -4,8 +4,10 @@
 
 \usepackage{hyperref}
 \usepackage{booktabs}
+\usepackage{subcaption}
 \usepackage{tikz}
 \usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta,arrows}
 
 \newcommand{\tth}[1]{\footnote{\textcolor{blue}{#1}}}
 \newcommand{\tbh}[1]{\textsc{\textbf{#1}}}
@@ -50,6 +52,19 @@
 \input{spec3-smt}
 \input{spec3-alloy}
 \input{spec4}
+\input{spec4b}
+
+\bibliographystyle{plain}
+\bibliography{ref}
+
+% appendix
+\pagebreak
+
+\appendix
+
+The work done in this section is the main contribution of Milestone~3.  Since
+this section is quite long and technical, we have decided to add it in the
+appendix.
 
 \bibliographystyle{plain}
 \bibliography{ref}

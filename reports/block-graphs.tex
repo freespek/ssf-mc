@@ -1,0 +1,208 @@
+%! TeX root = report.tex
+
+% inside figure!
+\centering
+\begin{subfigure}{.35\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,.5) {};
+    \node[n] (n1') at (1,-.5) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n1') -- (n0);
+  \end{tikzpicture}
+
+  \caption{Short fork [M3]}\label{fig:three}
+\end{subfigure}
+%
+\begin{subfigure}{.3\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,.5) {};
+    \node[n] (n2) at (2,.5) {};
+    \node[n] (n1') at (1,-.5) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n2) -- (n1);
+    \draw[a] (n1') -- (n0);
+  \end{tikzpicture}
+
+  \caption{Four blocks [M4a]}\label{fig:four-top}
+\end{subfigure}
+%
+\begin{subfigure}{.3\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,.5) {};
+    \node[n] (n1') at (1,-.5) {};
+    \node[n] (n2') at (2,-.5) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n1') -- (n0);
+    \draw[a] (n2') -- (n1');
+  \end{tikzpicture}
+
+  \caption{Four blocks [M4b]}\label{fig:four-bottom}
+\end{subfigure}
+%
+\begin{subfigure}{.3\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,.5) {};
+    \node[n] (n2) at (2,.5) {};
+    \node[n] (n1') at (1,-.5) {};
+    \node[n] (n2') at (2,-.5) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n2) -- (n1);
+    \draw[a] (n1') -- (n0);
+    \draw[a] (n2') -- (n1');
+  \end{tikzpicture}
+
+  \caption{Five blocks [M5a]}\label{fig:five1}
+\end{subfigure}
+%
+\begin{subfigure}{.3\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,0) {};
+    \node[n] (n2) at (2,.5) {};
+    \node[n] (n2') at (2,-.5) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n2) -- (n1);
+    \draw[a] (n2') -- (n1);
+  \end{tikzpicture}
+
+  \caption{Five blocks [M5b]}\label{fig:five2}
+\end{subfigure}
+%
+\begin{subfigure}{.35\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,.5) {};
+    \node[n] (n2) at (2,.5) {};
+    \node[n] (n3) at (3,.5) {};
+    \node[n] (n1') at (1,-.5) {};
+    \node[n] (n2') at (2,-.5) {};
+    \node[n] (n3') at (3,-.5) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n2) -- (n1);
+    \draw[a] (n3) -- (n2);
+    \draw[a] (n1') -- (n0);
+    \draw[a] (n2') -- (n1');
+    \draw[a] (n3') -- (n2');
+  \end{tikzpicture}
+
+  \caption{Seven blocks [M7]}\label{fig:seven1}
+\end{subfigure}
+%
+\begin{subfigure}{.3\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,0) {};
+    \node[n] (n2) at (2,0) {};
+    \node[n] (n3) at (3,0) {};
+    \node[n] (n4) at (4,0) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n2) -- (n1);
+    \draw[a] (n3) -- (n2);
+    \draw[a] (n4) -- (n3);
+  \end{tikzpicture}
+
+  \caption{Single chain}\label{fig:single}
+\end{subfigure}
+%
+%
+\begin{subfigure}{.35\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,0.5) {};
+    \node[n] (n2) at (2,0.5) {};
+    \node[n] (n3) at (3,0.5) {};
+    \node[n] (n4) at (4,0.5) {};
+    \node[n] (n5) at (1,-.5) {};
+    \node[n] (n6) at (2,-.5) {};
+    \node[n] (n7) at (3,-.5) {};
+    \node[n] (n8) at (1,-1) {};
+    \node[n] (n9) at (1,-1.5) {};
+    \node[n] (n10) at (2,-1.5) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n2) -- (n1);
+    \draw[a] (n3) -- (n2);
+    \draw[a] (n4) -- (n3);
+    \draw[a] (n5) -- (n0);
+    \draw[a] (n6) -- (n5);
+    \draw[a] (n7) -- (n6);
+
+    \draw[a] (n10) -- (n9);
+  \end{tikzpicture}
+
+  \caption{Forest}\label{fig:forest}
+\end{subfigure}
+%
+\begin{subfigure}{.3\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,0) {};
+    \node[n] (n2) at (2,0) {};
+    \node[n] (n3) at (3,0) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n2) -- (n1);
+    \draw[a] (n3) -- (n2);
+    \draw[a,bend right=45] (n3) to (n1);
+  \end{tikzpicture}
+
+  \caption{Impossible chains [I1]}\label{fig:tricky1}
+\end{subfigure}
+%
+\begin{subfigure}{.3\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \tikzset{n/.style={circle, fill=black, inner sep=2pt}}
+
+    \node[n] (n0) at (0,0) {};
+    \node[n] (n1) at (1,0) {};
+    \node[n] (n2) at (2,0) {};
+    \node[n] (n3) at (3,0) {};
+      
+    \draw[a] (n1) -- (n0);
+    \draw[a] (n2) -- (n1);
+    \draw[a] (n3) -- (n2);
+    \draw[a,bend right=45] (n1) to (n3);
+  \end{tikzpicture}
+
+  \caption{Impossible chains [I2]}\label{fig:tricky2}
+\end{subfigure}
+
