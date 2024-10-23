@@ -11,7 +11,8 @@ To this end, we restrict block bodies of the two chains as follows:
 
 The aim of this encoding is to decrease complexity for the SMT solver, since it simplifies block graph ancestry and closure reasoning significantly (e.g. we can check whether one block is an ancestor of another by simply comparing block body integer values), while preserving the behavior which arises from voting on checkpoint justification.
 
-\subsection{Inductive Invariant} 
+\subsection{Inductive Invariant}\label{sec:spec4-indinv}
+
 This specification defines an inductive invariant \textit{IndInv}. Recall, an inductive invariant satisfies the following two conditions, assuming we have an initial-state predicate \textit{Init}, and transition predicate \textit{Next}:
 \begin{enumerate}
 	\item It is implied by the initial state: $\mathit{Init} \Rightarrow \mathit{IndInv}$
@@ -50,8 +51,7 @@ On the other hand, if we don't specify completeness, the solver can trivially in
 This is critical, because including both constraints places a heavy burden on the solver. No matter how we define the justification predicate, it will inevitably appear in both positive and negative form, forcing the solver to contend with both quantifier alternations and double universal quantification, both of which are known to be hard.
 Fundamentally, this demonstrates the intrinsic complexity of the problem itself, regardless of the particular characterization of justified sets in \tlap{}.
 
-Our experimental evaluation of the inductive invariant can be found in <TBD>, where you can clearly see how this complexity translates to long run-times of the solver.
-
+\subsection{Model checking experiments}
 
 TODO\footnote{IK: describe the further optimizations}
 
