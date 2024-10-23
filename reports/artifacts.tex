@@ -1,12 +1,12 @@
 %! TeX root = report.tex
 
 \begin{tikzpicture}[node distance=2cm, >=latex]
-    \tikzset{
+    \tikzset{%
         mynode/.style={%
             draw, rectangle, minimum width=3cm, minimum height=1cm, align=center,
             rounded corners
         }
-    };
+    }
 
     % Define the nodes
     \node[mynode, minimum width=2cm, minimum height=1cm] (py)
@@ -40,12 +40,12 @@
         minimum height=1cm, below right=1cm and -2cm of spec3] (spec3c)
         {\textbf{\textsf{Spec 3c}}: Alloy/SAT };
 
-    \draw[->] (py) -- (spec1);
-    \draw[->] (spec1) -- (spec2);
-    \draw[->] (spec2) -- (spec3);
-    \draw[->] (spec3) -- (spec4);
-    \draw[->] (spec3) -- (spec3b);
-    \draw[->] (spec3) -- (spec3c);
-    \draw[->] (spec4) -- (spec4b);
+    \draw[a] (py) -- (spec1);
+    \draw[a] (spec1) -- (spec2);
+    \draw[a] (spec2) -- (spec3);
+    \draw[a] (spec3) -- (spec4);
+    \draw[a] (spec3) -- (spec3b);
+    \draw[a] (spec3) -- (spec3c);
+    \draw[a] (spec4) -- (spec4b);
 
 \end{tikzpicture}

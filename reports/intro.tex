@@ -32,8 +32,16 @@ that we have produced in the project:
   \caption{The relation between the specification artifacts}\label{fig:artifacts}
 \end{figure}
 
+Figure~\ref{fig:block-graphs} shows small graphs, most of which form one or
+more chains. In the simple cases~\ref{fig:three}--\ref{fig:single}, we have one
+or two chains that form a tree. In a more general case like in
+Figure~\ref{fig:forest}, a graph is a forest. The graphs in
+Figures~\ref{fig:tricky1}--\ref{fig:tricky2} do not represent chains.  The
+graph~\texttt{I1} is a direct-acyclic graph but not a forest. The
+graph~\texttt{I2} has a loop.
+
 \begin{figure}
   \input{block-graphs}
-  \caption{Small configurations of block graphs}\label{fig:block-graphs}
+  \caption{Small instances of chains and non-chains}\label{fig:block-graphs}
 \end{figure}
 
