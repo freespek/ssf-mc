@@ -23,11 +23,28 @@ higher-order function that accepts a combining operation and an iterable data
 structure, and applies the operation to each element of the data structure
 to compute a single return value. \texttt{fold} is also known as
 \texttt{reduce} in some languages.}, which enable the same iterative
-computations to be performed in a non-recursive manner.
+computations to be performed in a non-recursive manner. We provide a set of
+translation rules to convert recursive operators to bounded \texttt{fold}
+operations, see Appendix~\ref{subsec:recrules}.
 
 Let's reconsider the example in Figure~\ref{tla_adr}. In
 Figure~\ref{fig:relationship-folds}, we present its equivalent that is using
-folds.
+folds. Following the rules in Appendix~\ref{subsec:recrules}, we have
+constructed an accumulator \texttt{FindAncestor} that is passed to the fold
+operator. Its body represents a single iteration of the recursive definition: it
+first checks if its second parameter, indicating if an ancestor-descendant match
+has already been found, is \texttt{TRUE} -- in this case, it simply propagates
+the result \texttt{Pair(last\_block, TRUE)} to the next iteration (this is
+equivalent to the base case of the recursive definition). If the match has not
+been found, it checks if the current block is the genesis block or an orphaned
+block, and returns \texttt{FALSE} if it is. Otherwise, it retrieves the parent
+block of the current block, checks if it is the ancestor block, and passes
+\texttt{Pair(parent, parent = ancestor)} to the next iteration. We pass this
+accumulator to the fold operator, together with the initial value and the
+structure to fold over (in this case, a generic sequence of length
+\texttt{MAX\_SLOT}, which ensures that the fold is performed over all blocks in
+the chain).
+
 
 \begin{figure}
   \includegraphics[width=\textwidth]{images/is_ancestor_descendant_relationship_folds.pdf}
@@ -50,7 +67,7 @@ variables, similar to memoization or prophecy variables.
 
 For example, we introduce a new \tlap{} state variable
 \texttt{PRECOMPUTED\_IS\_ANCESTOR\_DESCENDANT\_RELATIONSHIP} to store
-precomputed ancestor-descendant relationships and initialize it with the results
+memoized ancestor-descendant relationships and initialize it with the results
 of the fold operation above, see Figure~\ref{fig:relationship-memo}.
 
 \begin{figure}

@@ -4,16 +4,53 @@
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth,angle=-90]{ffg-callgraph.pdf}
+    \includegraphics[width=.9\textheight,angle=-90]{ffg-callgraph.pdf}
     \caption{The callgraph of the 3SF specification}
-    \label{fig:your_label}
+    \label{fig:callgraph}
 \end{figure}
 
-The first specification is obtained by following the principle of least surprise; to the extent that it is possible, without regard to model checking efficiency, we translate Python code to its \tlap{} counterpart with the closest syntax, preserving semantics.
+The Python specification consists of class / type definitions and a number of
+functions that define the behavior of the 3SF protocol. We obtain \SpecOne{} by
+performing a manual but mechanical translation of the Python specification to
+\tlap{}. To this end, we first survey the Python code to identify its structure
+and the program logic elements that it defines. We then translate these
+functions to \tlap{} by following the principle of least surprise: we aimed to
+preserve the syntax and semantics of the Python code as closely as possible --
+at this stage, without regard to model-checking efficiency. We also translate
+the data structures and types used in the Python code to their \tlap{}
+counterparts. To this end, we have produced detailed translation rules, which we
+present in Appendix~\ref{section3}.
 
-Despite being a programming language and specification language respectively, Python and \tlap{} overlap somewhat in what they can express. 
-For instance, both allow us to express sets, and then filter those sets by a given predicate to obtain a different set.
-To take a concrete example, observe the definition of \textsf{pset\_filter} in Figure~\ref{py_filter}.
+\subsection{Shape of the Python Specification}
+
+A few key points to note about the Python code are as follows:
+
+\paragraph{Data structures and types.} Type definitions come in the form of
+Python classes annotated with the \texttt{@dataclass} decorator, which
+automatically generates constructors, comparator methods, and other boilerplate
+code. Composite types are defined using the \texttt{pyrsistent} library, which
+provides immutable data structures such as sets and maps.
+
+\paragraph{Functions.} The function definitions are mostly pure functions that
+take some input and return some output -- side-effects are rare and limited to
+auxiliary state when computing the function output. Some functions are
+(mutually) recursive, as can be seen in Figure~\ref{fig:callgraph}.
+
+\paragraph{Similarities between Python and \tlap{}.} Despite being a programming
+language and specification language respectively, Python specifications written
+in a functional manner (using immutable data types and pure functions) and
+\tlap{} overlap somewhat in what they can express. For instance, both allow us
+to express sets, structures / records, and comprehensions over these data
+structures. For example, the Python code defines a record
+\texttt{CommonNodeState} which we translate to a record in \tlap{}.
+
+\subsection{Translating Basic Operators}
+
+The Python specification defines a number of
+foundational operators that are used in other functions. These operators are
+mostly simple and can be translated directly to built-in operators in \tlap{}.
+To take a concrete example, observe the definition of \texttt{pset\_filter} in
+Figure~\ref{py_filter}.
 
 \begin{figure}
   \begin{lstlisting}[language=Python,style=mystyle]
@@ -24,32 +61,99 @@ def pset_filter(p: Callable[[T1], bool], s: PSet[T1]) -> PSet[T1]:
     if p(e):
       r = r.add(e)
   
-  return r
-  \end{lstlisting}
+  return r\end{lstlisting}
   %\includegraphics[width=\textwidth]{images/pset_filter.png}
-\caption{\textsf{pset\_filter} definition \label{py_filter}}
+\caption{\textsf{pset\_filter} definition\label{py_filter}}
 \end{figure}
 
-Notice that, while filter is not one of the built-in operators of the \emph{pyrsistent} library, it is relatively simple to define a filter operator, such that the set returns contains exactly all of the elements of $s$, for which the Boolean predicate $p$ holds true.
-In \tlap{}, however, filtering is a language primitive, so if we can translate a python set $s$ to a \tlap{} set $\hat{s}$, and a Python predicate $p$ (of the above type) to a \tlap{} predicate $\hat{p}$, we can translate $\mathsf{pset\_filter}(p, s)$ to $\{ x \in \hat{s}\colon \hat{p}(x) \}$.
+Notice that, while filter is not one of the built-in operators of the
+\texttt{pyrsistent} library, it is relatively simple to define the
+\texttt{pset\_filter} filter function, which returns a set that contains exactly
+all of the elements of $s$, for which the Boolean predicate $p$ holds true.
 
-We take this idea, and apply it to every definition in the file \texttt{pythonic\_code\_generic.py}, attempting to identify \tlap{}-equivalents (w.r.t. semantics) for each defined function. 
-Later on, in Section~\ref{section3}, we give a formal characterization of all of these equivalencies, in the form of rewriting rules, although for the purposes of this first specification, the entirety of this translation is manual.
+In \tlap{}, however, filtering is a language primitive, so if we can translate a
+python set $s$ to a \tlap{} set $\hat{s}$, and a Python predicate $p$ (of the
+above type) to a \tlap{} predicate $\hat{p}$, we can translate
+$\mathsf{pset\_filter}(p, s)$ to $\{ x \in \hat{s}\colon \hat{p}(x) \}$.
 
-Although it is relevant in the process of translation, we do not give explicit rules for the translation of Python language primitives to \tlap{} in general, since attempting to establish those for the full language would vastly exceed the scope of this project. 
-Some of these constructs are particularly relevant, and we briefly mention them here:
-\paragraph{Assignments and local variables.} There are certain idiosyncrasies to do with the fact that one language is executable, and the other is not. For instance, Python allows for arbitrary variable assignment and reassignment, as well as the introduction of local variables. There are two constructs available in \tlap{} which can be used to express variable assignment:
+We take this idea, and apply it to every definition in the file
+\texttt{pythonic\_code\_generic.py}, attempting to identify \tlap{}-equivalents
+(w.r.t.\ semantics) for each defined function.  Later on, in
+Appendix~\ref{section3}, we give a formal characterization of all of these
+equivalencies, in the form of rewriting rules.
+
+\subsection{Translating Complex Operators}
+
+Some further constructs of the Python language are particularly
+relevant for the translation, and we describe how we handle them in the next
+paragraphs. We do, however, not give explicit rules for the translation of
+\emph{all} Python language primitives to \tlap{} in general, since attempting to
+establish those for the full language would vastly exceed the scope of this
+project.
+
+\paragraph{Assignments and local variables.} There are certain idiosyncrasies to
+do with the fact that Python is imperative and executable, and \tlap{} is not.
+For instance, Python allows for arbitrary variable assignment and reassignment,
+as well as the introduction of local variables. There are two constructs
+available in \tlap{} which can be used to express variable assignment:
 \begin{itemize}
-  \item state-variable update $a' = e$
-  \item LET-IN local operator definition $\mathrm{LET}\; v \defeq e \;\mathrm{IN}\; f$
+  \item a state-variable update $a' = e$
+  \item a LET-IN local operator definition $\mathrm{LET}\; v \defeq e
+    \;\mathrm{IN}\; f$
 \end{itemize}
-to avoid going in to too much detail, it is up to the translator to evaluate which of the two better captures the semantics of the Python code (with, in general, a preference for the LET-IN variant).
-\paragraph{Runtime exceptions.} Python code may throw at any time, sometimes in the form of Require-assertions within function definitions. 
-In general, this behavior is impossible to replicate without very convoluted \tlap{} code, so we either have to omit those assertions, or return an unspecified value of the correct type if the requirement is not met.
 
-\paragraph{Recursion.} Native \tlap{} supports recursive operators at the language level, but Apalache does not, at the model-checking level. This means that we can translate recursive Python functions as-written in \texttt{Spec 1}, with the knowledge that we will need to remove them in \texttt{Spec 2} to facilitate model checking.
+In principle, it is up to the translator to evaluate which of the two better
+captures the semantics of the Python code. However, as we have noted, the Python
+code is mostly functional over immutable data structures. In this project, we
+have observed that we can establish a clear separation, which always translates
+local/auxiliary variables to LET-IN definitions, and keeps the state-variable
+updates for the state of the system.
 
-As an example, Figure~\ref{py_adr} shows a crucial operator, \textsf{is\_ancestor\_descendant\_relationship}, as it is expressed in Python, and Figure~\ref{tla_adr} shows its \tlap{} equivalent.
+\paragraph{Runtime exceptions.} Python code may throw at any time.
+In this project in particular, the Python code is written in a defensive
+manner, with many runtime checks in the form of \texttt{Requires} assertions
+that perform as preconditions. 
+In general, this behavior is impossible to replicate without very convoluted
+\tlap{} code, so we either have to omit those assertions, or return an
+unspecified value of the correct type if the requirement is not met.
+We note, however, that in the present Python specification, functions are only
+called if their preconditions are met (for example, the function
+\texttt{get\_parent(block, node\_state)} contains a precondition
+\texttt{Requires(has\_parent(block, node\_state))}, but is only ever called on
+code paths where this precondition holds). Thus, we can safely omit these
+assertions in the translation.
+
+\paragraph{Control flow.} Given the functional nature of the Python
+specification, and given that both languages support if-statements, those
+translate directly (although since \texttt{elif} in Python has no direct
+equivalent, we have to chain two IF-ELSEs in \tlap{}). Iteration (in the form of
+\texttt{for}-\texttt{in} loops) only occurs in the Python code to compute the set
+comprehension \texttt{pset\_filter} which we directly translate to the \tlap{}
+set comprehension operator as discussed above.
+
+\paragraph{Recursion.} As we have mentioned, the Python code contains a number
+of (mutually) recursive functions. Native \tlap{} supports recursive operators
+at the language level, which must be explicitly annotated with the keyword
+\texttt{RECURSIVE}, which we introduce manually.
+
+However, Apalache does not support recursive \tlap{} operators at the
+model-checking level. This means that we can translate recursive Python
+functions -- as written -- into \tlap{} \SpecOne{}, with the knowledge that we
+will need to transform them into equivalent constructs in \SpecTwo{} to
+facilitate model checking. We discuss this in more detail in the next section on
+\SpecTwo{}.
+
+\subsection{Overall Example}
+
+As a final example, Figure~\ref{py_adr} shows a crucial operator of the Python
+specification, \texttt{is\_ancestor\_descendant\_relationship}, and
+Figure~\ref{tla_adr} shows its \tlap{} equivalent. It is a recursive function,
+uses if-else control flow, and references \texttt{has\_parent} and
+\texttt{get\_parent}, which are \tlap{}-translated python operators themselves. 
+
+In summary, this example demonstrates that our translation strongly preserves
+the syntactic shape between Python functions / compound statements and \tlap{}
+operators.
 
 \begin{figure}
   %\includegraphics[width=\textwidth]{images/is_ancestor_descendant_relationship.png}
@@ -75,9 +179,7 @@ As an example, Figure~\ref{py_adr} shows a crucial operator, \textsf{is\_ancesto
                 get_parent(descendant, node_state),
                 node_state
             )
-        )
-  \end{lstlisting}
-
+        )\end{lstlisting}
   \caption{Python definition
       of~\textsf{is\_ancestor\_descendant\_relationship} Python}\label{py_adr}
 \end{figure}
@@ -88,7 +190,3 @@ As an example, Figure~\ref{py_adr} shows a crucial operator, \textsf{is\_ancesto
     of~\textsf{is\_ancestor\_descendant\_relationship} in \tlap{}}\label{tla_adr}
 \end{figure}
 
-We can see that the \tlap{} specification requires us to explicitly annotate the operator as recursive. 
-Beyond that, since both languages support if-statements, those translate directly (though since \textsf{elif} in Python has no equivalent, we chain two ifs). 
-Lastly, the \tlap{} operator references \textsf{has\_parent} and \textsf{get\_parent}, which are \tlap{}-translated python operators themselves. 
-In summary, this example demonstrates that our translation strongly preserves the syntactic shape of nonbasic operators.
