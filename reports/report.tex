@@ -35,8 +35,11 @@
 \maketitle
 
 \begin{abstract}
-    TODO
+  \colorbox{yellow}{TODO}
 \end{abstract}
+
+\setcounter{tocdepth}{2}  % hide anything at or below \subsubsection
+\tableofcontents
 
 \input{intro}
 
@@ -53,6 +56,10 @@
 \input{spec3-alloy}
 \input{spec4}
 \input{spec4b}
+
+% Discussion
+
+\input{discussion}
 
 \bibliographystyle{plain}
 \bibliography{ref}

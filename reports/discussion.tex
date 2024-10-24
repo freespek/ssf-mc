@@ -1,0 +1,61 @@
+%! TeX root = report.tex
+
+\section{Discussion}%
+\label{sec:discussion}
+
+We have presented a series of specifications modeling the 3SF protocol from
+various perspectives. Initially, we developed a direct translation of the
+protocol's Python specification into \tlap{}, but this approach proved
+unsatisfactory due to the reliance on recursion. To address this, we modified
+the specification to use folds in place of recursion, theoretically enabling
+model-checking. However, this approach also proved impractical due to the high
+computational complexity involved. Subsequently, we applied a series of
+abstractions to improve the model's model-checking efficiency.
+
+In addition to the \tlap{} specifications, we also introduced an SMT encoding
+and an Alloy specification. The SMT encoding proved to be fairly performant,
+while the Alloy specification demonstrated exceptional performance.
+
+We summarize the key outcomes of the project:
+
+\paragraph{Exhaustive checking of \textit{AccountableSafety}.} Our primary
+objective was to verify the \textit{AccountableSafety} property of the 3SF
+protocol. Model-checking this property proved to be computationally challenging
+due to the unexpectedly high combinatorial complexity of the protocol.
+Nonetheless, we performed systematic experiments across various specifications
+in \tlap{}, Alloy, and SMT, representing both a direct translation and different
+levels of abstraction of the protocol. The largest instances we exhaustively
+verified to satisfy \textit{AccountableSafety} include up to 7 checkpoints and
+24 validator votes (see Table~\ref{tab:alloy-mc}). This comprehensive
+verification gives us absolute confidence that the modeled protocol satisfies
+\textit{AccountableSafety} for systems up to this size.
+
+\paragraph{No falsification of \textit{AccountableSafety}.} In addition to the
+instances where we conducted exhaustive model-checking, we ran experiments on
+larger instances, which exceeded generous time limits and resulted in timeouts.
+Even in these cases, no counterexamples to \textit{AccountableSafety} were
+found. Furthermore, in instances where we deliberately introduced bugs into the
+specifications (akin to mutation testing), Apalache, Alloy and CVC5 quickly
+generated counterexamples. This increases our confidence that the protocol
+remains accountably safe, even for system sizes substantially larger than
+those we were able to exhaustively verify.
+
+\paragraph{Advantages of human expertise over automated translation.} Applying
+translation rules to derive checkable specifications from existing artifacts can
+serve as a valuable starting point. However, such translations often introduce
+inefficiencies because they cannot fully capture the nuances of the specific
+context. This can result in suboptimal performance. Therefore, while
+translations provide a baseline, manually crafting specifications from the
+outset is usually more effective. When relying on translated specifications, it is
+essential to apply manual optimizations to ensure both accuracy and efficiency.
+
+\paragraph{Value of \tlap{}.} \tlap{} is a powerful language for specifying and
+verifying distributed systems. Although our most promising experimental results
+were derived from the Alloy specification, the insights gained through iterative
+abstraction in \tlap{} were indispensable.\ \tlap{} enabled us to start with an
+almost direct translation of the Python code and progressively refine it into
+higher levels of abstraction. This iterative process provided a deeper
+understanding of the protocol and laid the groundwork for the more efficient
+Alloy specification.
+
+\colorbox{yellow}{TODO: anything else?}
