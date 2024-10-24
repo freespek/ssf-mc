@@ -59,7 +59,6 @@ IndInit ==
         /\ fork_number \in -MAX_BLOCK_BODY..0
         /\ chain2_fork_block_number = fork_number
     /\ justified_checkpoints = Gen(5)
-    /\ InitAccountableSafety
     /\ IndInv
 
 IndInit_C1 ==
@@ -82,8 +81,12 @@ IndInit_C1 ==
       /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
       /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
       /\ justified_checkpoints = Gen(5)
-      /\ InitAccountableSafety
       /\ VotesInv
       /\ CheckpointsInv
+
+\* restrict the initial condition to have accountable safety
+IndInit_C1_AS ==
+    /\ IndInit_C1
+    /\ InitAccountableSafety
 
 =============================================================================

@@ -68,11 +68,16 @@ IndInit_C1 ==
       /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
       /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
       /\ justified_checkpoints = Gen(5)
-      \*/\ InitAccountableSafety
       /\ VotesInv
-      /\ CheckpointsApproxInv
-      \*/\ CheckpointsInv
+      /\ CheckpointsInv
+      \*/\ CheckpointsApproxInv
 
+\* restrict the initial condition to have accountable safety
+IndInit_C1_AS ==
+    /\ IndInit_C1
+    /\ InitAccountableSafety
+
+\* a very restricted initial condition
 IndInit_C1_1_2_3_4 ==
     (*
            / [+1] - [+2]
@@ -121,9 +126,13 @@ IndInit_C2 ==
       /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
       /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
       /\ justified_checkpoints = Gen(5)
-      /\ InitAccountableSafety
       /\ VotesInv
       /\ CheckpointsInv
+
+\* restrict the initial condition to have accountable safety
+IndInit_C2_AS ==
+    /\ IndInit_C2
+    /\ InitAccountableSafety
 
 IndInit_C3 ==
     (*
@@ -147,9 +156,13 @@ IndInit_C3 ==
       /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
       /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
       /\ justified_checkpoints = Gen(5)
-      /\ InitAccountableSafety
       /\ VotesInv
       /\ CheckpointsInv
+
+\* restrict the initial condition to have accountable safety
+IndInit_C3_AS ==
+    /\ IndInit_C3
+    /\ InitAccountableSafety
 
 IndInit_C4 ==
     (*
@@ -173,8 +186,12 @@ IndInit_C4 ==
       /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
       /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
       /\ justified_checkpoints = Gen(5)
-      /\ InitAccountableSafety
       /\ VotesInv
       /\ CheckpointsInv
+
+\* restrict the initial condition to have accountable safety
+IndInit_C4_AS ==
+    /\ IndInit_C4
+    /\ InitAccountableSafety
 
 =============================================================================
