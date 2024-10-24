@@ -2,11 +2,44 @@
 
 \section{Introduction}
 
-TODO\footnote{RS, TH: A short intro to the protocol?}
+\colorbox{yellow}{RS, TH: A short intro to the protocol}
 
-TODO: say we want to model-check the protocol, thus translate it to \tlap{}
+\paragraph{}\colorbox{yellow}{TODO:}
 
-TODO: introduce Apalache
+\begin{itemize}
+  \item what we want to model-check
+  \item why \tlap{}
+  \item introduce Apalache
+\end{itemize}
+
+\paragraph{Complexity of (model-checking) the protocol.} The 3SF protocol is
+intricate, with a high degree of combinatorial complexity, making it challenging
+to reason about. We have observed multiple layers of complexity in the protocol:
+\begin{itemize}
+  \item The Python specification considers all possible graphs over all proposed
+    blocks. From graph theory~\cite{cayley1878theorem}, we know that the number
+    of labelled rooted forests on $n$ vertices is ${(n+1)}^{n-1}$. (Observe that
+    this number grows faster than the factorial~$n!$.) This is the number of
+    possible block graphs that the model checker has to consider for $n$ blocks.
+  \item The protocol introduces a directed graph of checkpoints (pairs $(b,n)$
+    of a block $b$ and an integer $n$) \emph{on top} of the block graph.
+    Validator-signed votes form a third labeled directed graph over pairs of
+    checkpoints. In addition, all of these edges have to satisfy arithmetic
+    constraints.
+  \item Justified and finalized checkpoints introduce an inductive structure
+    that the model checker has to reason about. Essentially, the solvers have to
+    reason about chains of checkpoints on top of chains of blocks.
+  \item Finally, the protocol introduces cardinalities, both for determining a
+    quorum of validators and as a threshold for \textit{AccountableSafety}.
+    Cardinalities are known to be a source of inefficiency in automated
+    reasoning.
+\end{itemize}
+
+\subsection{Key Outcomes}
+
+\colorbox{yellow}{TODO: summarize the key outcomes from Section~\ref{sec:discussion}}
+
+\subsection{Overview of the report}
 
 Figure~\ref{fig:artifacts} depicts the relations between the specifications
 that we have produced in the project:
@@ -27,7 +60,7 @@ that we have produced in the project:
         and Spec 1 is that Spec 2 uses ``folds'' (also known as ``reduce'')
         instead of recursion.
 
-    \item TBD
+      \item \colorbox{yellow}{TBD}
 
 \end{enumerate}
 
