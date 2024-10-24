@@ -29,7 +29,7 @@ to reason about. We have observed multiple layers of complexity in the protocol:
   \item Justified and finalized checkpoints introduce an inductive structure
     that the model checker has to reason about. Essentially, the solvers have to
     reason about chains of checkpoints on top of chains of blocks.
-  \item Finally, the protocol introduces cardinalities, both for determining a
+  \item Finally, the protocol introduces set cardinalities, both for determining a
     quorum of validators and as a threshold for \textit{AccountableSafety}.
     Cardinalities are known to be a source of inefficiency in automated
     reasoning.

@@ -10,7 +10,7 @@ unsatisfactory due to the reliance on recursion. To address this, we modified
 the specification to use folds in place of recursion, theoretically enabling
 model-checking. However, this approach also proved impractical due to the high
 computational complexity involved. Subsequently, we applied a series of
-optimizations to improve the model's model-checking efficiency.
+abstractions to improve the model's model-checking efficiency.
 
 In addition to the \tlap{} specifications, we also introduced an SMT encoding
 and an Alloy specification. The SMT encoding proved to be fairly performant,
@@ -46,7 +46,7 @@ serve as a valuable starting point. However, such translations often introduce
 inefficiencies because they cannot fully capture the nuances of the specific
 context. This can result in suboptimal performance. Therefore, while
 translations provide a baseline, manually crafting specifications from the
-outset may be more effective. When relying on translated specifications, it is
+outset is usually more effective. When relying on translated specifications, it is
 essential to apply manual optimizations to ensure both accuracy and efficiency.
 
 \paragraph{Value of \tlap{}.} \tlap{} is a powerful language for specifying and
