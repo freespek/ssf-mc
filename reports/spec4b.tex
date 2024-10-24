@@ -5,7 +5,7 @@
 Disappointed with the results in Section~\ref{sec:spec4}, we have decided to
 push abstractions even further. These abstractions helped us to verify
 accountable safety for the configuration in Figure~\ref{fig:three}.
-Unfortunately, they did not scale to larger configurations. In any case, we
+Unfortunately, they do not scale to larger configurations. In any case, we
 find these abstractions quite important for further research on model checking
 of algorithms similar to 3SF\@.
 
@@ -20,7 +20,7 @@ of algorithms similar to 3SF\@.
 
 In the general case, the symbolic model checker has to encode constraints for
 the cardinality computation in Equation~(\ref{eq:card-comparison}). If a set
-$S$ contains up to~$n$ elements, Apalache produces~$O(n^2)$ constraints for
+$S$ contains up to $n$~elements, Apalache produces $O(n^2)$~constraints for
 $\textit{Cardinality(S)}$.
 
 To partially remediate the above issue in~\SpecFour{}, we introduce a
@@ -70,7 +70,7 @@ Equation~(\ref{eq:card-comparison3}):
 
 Recall Figure~\ref{figFork} from Section~\ref{sec:spec4-indinv}, which poses
 constraints on the chains and the fork points. While these constraints should
-be easier for an SMT solver than the general reachability properties, they
+be easier for an SMT solver than general reachability properties, they
 still produce a number of arithmetic constraints. On the other hand, when we do
 model checking for small parameters, there is a relatively small set of
 possible chain configurations.  Figure~\ref{fig:block-graphs} shows some of
@@ -79,7 +79,7 @@ these configurations for the graphs of 3 to 7 blocks.
 This observation led us to the following idea. Instead of using the constraints
 over blocks such as in Figure~\ref{figFork}, we introduce one instance per
 chain configuration. It is thus sufficient to verify accountable safety for all
-of these instances and combine the model checking results.
+of these instances and aggregate the model checking results.
 
 Figure~\ref{fig:indinit-c3} shows an initialization predicate for the
 configuration shown in Figure~\ref{fig:five2}. This predicate replaces the
@@ -97,8 +97,8 @@ Section~\ref{sec:spec4-indinv}.
 Table~\ref{tab:spec4b-experiments} summarizes our experiments with Apalache for
 various configurations. One interesting effect of the optimizations,
 especially of the ones presented in Section~\ref{sec:decomposition}, is
-significant drop in the memory consumption by the SMT solver. In our
-experiments, Z3 required from 700~MB to 1.5~GB\@. While this is still factor of
+a significant drop in the memory consumption of the SMT solver. In our
+experiments, Z3 required from 700~MB to 1.5~GB\@. While this is still a factor of
 20 in comparison to the Alloy experiments in Section~\ref{sec:alloy}, this is
 significantly better than our initial experiments with~\SpecTwo{}
 and~\SpecThree{}, which required up to 20~GB of RAM\@.
