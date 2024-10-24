@@ -389,6 +389,53 @@ $ JVM_ARGS=-Xmx20G ~/devl/apalache/bin/apalache-mc check \
 
 This experiment took 19 hours 48 min 29 sec.
 
+## 7. Induction checking with Spec 4b
+
+### 7.1. Checking Accountable Safety for M3
+
+```sh
+$ apalache-mc check --length=0 --init=IndInit_C1 \
+  --inv=AccountableSafety MC_ffg_b1_ffg5_v12.tla
+```
+
+This experiment took XXX sec.
+
+### 7.2. Checking Accountable Safety for M4a
+
+```sh
+$ apalache-mc check --length=0 --init=IndInit_C4 \
+  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
+```
+
+This experiment took XXX sec.
+
+### 7.3. Checking Accountable Safety for M4b
+
+```sh
+$ apalache-mc check --length=0 --init=IndInit_C2 \
+  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
+```
+
+This experiment took XXX sec.
+
+### 7.4. Checking Accountable Safety for M5a
+
+```sh
+$ apalache-mc check --length=0 --init=IndInit_C1 \
+  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
+```
+
+This experiment took XXX sec.
+
+### 7.5. Checking Accountable Safety for M5b
+
+```sh
+$ apalache-mc check --length=0 --init=IndInit_C3 \
+  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
+```
+
+This experiment took XXX sec.
+
 
 [Apalache]: https://apalache-mc.org/
 [Apalache installation]: https://apalache-mc.org/docs/apalache/installation/index.html
