@@ -58,6 +58,8 @@ conduct experiments for the same kinds of inputs:
 | [ffg-exp6] |    5    |      6       |      4      |      6     |   15   | 245 sec  |  57 MB  |
 | [ffg-exp7] |    6    |      6       |      4      |      6     |   15   | 360 sec  |  82 MB  |
 | [ffg-exp8] |    5    |      7       |      4      |      6     |   24   | 1h 27m   |  156 MB |
+| [ffg-exp9] |    5    |      10      |      4      |      8     |   24   | XXX      |  YYY MB |
+| [ffg-exp9a] |    5   |      10      |      4      |      8     |   32   | XXX      |  YYY MB |
 
 In addition to the above experiments, we ran a few experiments that have
 inputs comparable in size to those produced by our TLA+ specification:
