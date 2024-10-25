@@ -1,6 +1,6 @@
 %! TeX root = report.tex
 
-\section{M2: Spec 2: Fold-Based Specification}
+\section{Spec 2: Fold-Based Specification}\label{sec:spec2}
 
 \SpecTwo{} addresses some of the limitations inherent in the straightforward
 translation of \SpecOne{} from the Python executable specification.
@@ -132,12 +132,28 @@ complexity of the specification.
 
 These results are not surprising -- the solver has to consider both reachability
 properties for all possible block graphs, and all possible FFG voting scenarios
-on top of these graphs. To further evaluate \SpecTwo{}, we fix the block graph
--- this way the solver only has to reason about voting. We encode three example
-block graphs: a single, linear chain (\texttt{SingleChain}), a minimal forked
-chain of three blocks (\texttt{ShortFork}), and a forest of disconnected chains
+on top of these graphs.
+
+
+To further evaluate \SpecTwo{}, we fix the block graph --- this way the solver
+only has to reason about voting. We encode three example block graphs: a
+single, linear chain (\texttt{SingleChain}), a minimal forked chain of three
+blocks (\texttt{ShortFork}), and a forest of disconnected chains
 (\texttt{Forest}). Table~\ref{tab:spec2_fixed} shows the results of model
 checking \SpecTwo{} for these fixed block graphs.
+
+To understand the structure of those small graphs, see
+Figure~\ref{fig:block-graphs} shows small graphs. In the simple
+cases~\ref{fig:three}--\ref{fig:single}, we have one or two chains that form a
+tree. In a more general case like in Figure~\ref{fig:forest}, a graph is a
+forest. The graphs in Figures~\ref{fig:tricky1}--\ref{fig:tricky2} do not
+represent chains.  The graph~\texttt{I1} is a direct-acyclic graph but not a
+forest. The graph~\texttt{I2} has a loop.
+
+\begin{figure}
+  \input{block-graphs}
+  \caption{Small instances of chains and non-chains}\label{fig:block-graphs}
+\end{figure}
 
 \begin{table}
     \centering

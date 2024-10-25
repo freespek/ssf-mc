@@ -6,11 +6,24 @@
 
 \paragraph{}\colorbox{yellow}{TODO:}
 
-\begin{itemize}
-  \item what we want to model-check
-  \item why \tlap{}
-  \item introduce Apalache
-\end{itemize}
+We have started this project with the Python specification of accountable
+safety in the 3SF Protocol\footnote{URL to the Python specification:
+\url{https://github.com/freespek/ssf-mc/3sf.txt}}. The main goal of the project
+was to demonstrate accountable safety of this protocol by the means of model
+checking.
+
+We have chosen the specification language~\tlap{} and the model checker
+Apalache for the following reasons.\ \tlap{} remains a goto language for
+specifying consensus algorithms. Among the rich spectrum of
+specifications~\cite{tla-examples}, the most notable for our project are the
+specifications of Paxos~\cite{lamport2001paxos}, Raft~\cite{Ongaro14}, and
+Tendermint~\cite{abs-1807-04938,TendermintSpec2020}. Since consensus algorithms
+are quite challenging for the classical model checkers such as TLC, we chose
+Apalache~\cite{Apalache2024,KT19,KonnovKM22}. Apalache was used for model
+checking of agreement and accountable safety of
+Tendermint~\cite{TendermintSpec2020}. As an added benefit, four of the project
+participants worked on Apalache in the past and know its strenghts and
+weaknesses.
 
 \paragraph{Complexity of (model-checking) the protocol.} The 3SF protocol is
 intricate, with a high degree of combinatorial complexity, making it challenging
@@ -35,11 +48,17 @@ to reason about. We have observed multiple layers of complexity in the protocol:
     reasoning.
 \end{itemize}
 
-\subsection{Key Outcomes}
+\subsection{Key Outcomes}\label{sec:discussion}
 
-\colorbox{yellow}{TODO: summarize the key outcomes from Section~\ref{sec:discussion}}
+% we embed the discussion right in the introduction
+\input{discussion}
 
-\subsection{Overview of the report}
+\subsection{Structure of the report}
+
+\begin{figure}
+  \input{artifacts}
+  \caption{The relation between the specification artifacts}\label{fig:artifacts}
+\end{figure}
 
 Figure~\ref{fig:artifacts} depicts the relations between the specifications
 that we have produced in the project:
@@ -47,38 +66,50 @@ that we have produced in the project:
 \begin{enumerate}
     \item We have started with the executable specification in Python.
 
-    \item \textbf{Spec 1}: This is the specification
+    \item \SpecOne{}: This is the specification
         \texttt{spec1-2/ffg\_recursive.tla}. It is the result of a manual
         mechanical translation of the original executable specification in
         Python, which can be found in \texttt{ffg.py}. This specification is
         using mutually recursive operators, which are not supported by
         Apalache. As a result, we are not checking this specification. This
         specification is the result of our work in Milestone 1.
+        This specification is discussed in Section~\ref{sec:spec1}.
 
-    \item \textbf{Spec 2}: This is the specification \texttt{spec1-2/ffg.tla}. It
-        is a manual adaptation of Spec 1. The main difference between Spec 2
-        and Spec 1 is that Spec 2 uses ``folds'' (also known as ``reduce'')
-        instead of recursion.
+    \item \SpecTwo{}: This is the specification \texttt{spec1-2/ffg.tla}. It is
+        a manual adaptation of Spec 1. The main difference between Spec 2 and
+        Spec 1 is that Spec 2 uses ``folds'' (also known as ``reduce'') instead
+        of recursion. This specification is discussed in
+        Section~\ref{sec:spec2}.
 
-      \item \colorbox{yellow}{TBD}
+    \item \SpecThree{}: This is the further abstraction of~\SpecTwo{} that uses
+        the concept of a state machine, instead of a purely sequential
+        specification (such as the Python code). This specification is
+        discussed in Section~\ref{sec:spec3}.
+
+    \item \SpecFour{}: This is an extension of~\SpecThree{} that contains
+        an inductive invariant in~\texttt{spec4/ffg\_inductive.tla}.
+        This specification is discussed in Section~\ref{sec:spec4}.
+
+    \item \SpecFourB{} contains further abstractions and decomposition of
+        configurations. This is the first~\tlap{} specification that allowed us
+        to show accountable safety for models of very small sizes. This
+        specification is discussed in Section~\ref{sec:spec4b}.
+
+    \item \SpecThreeB{} contains a specification in SMT using the theory of
+        finite sets and cardinalities. In combination with the solver
+        CVC5~\cite{BarbosaBBKLMMMN22}, this specification allowed us to push
+        verification of accountable safety even further. This specification is
+        discussed in Section~\ref{sec:smt}.
+
+    \item \SpecThreeC{} contains a specification in
+        Alloy~\cite{jackson2012software,alloytools}. With this specification,
+        we managed to check all small configurations that cover the base case
+        and one inductive step of the definitions.  This specification is
+        discussed in Section~\ref{sec:alloy}.
 
 \end{enumerate}
 
-\begin{figure}
-  \input{artifacts}
-  \caption{The relation between the specification artifacts}\label{fig:artifacts}
-\end{figure}
+\subsection{Potential extensions of this project}\label{sec:future}
 
-Figure~\ref{fig:block-graphs} shows small graphs, most of which form one or
-more chains. In the simple cases~\ref{fig:three}--\ref{fig:single}, we have one
-or two chains that form a tree. In a more general case like in
-Figure~\ref{fig:forest}, a graph is a forest. The graphs in
-Figures~\ref{fig:tricky1}--\ref{fig:tricky2} do not represent chains.  The
-graph~\texttt{I1} is a direct-acyclic graph but not a forest. The
-graph~\texttt{I2} has a loop.
-
-\begin{figure}
-  \input{block-graphs}
-  \caption{Small instances of chains and non-chains}\label{fig:block-graphs}
-\end{figure}
+\input{future}
 
