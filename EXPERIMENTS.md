@@ -337,7 +337,7 @@ executions up to some bound.
 
 ```sh
 $ cd ./spec3
-$ JVM_ARGS=-Xmx20G apalache-mc check --inv=AccountableSafety MC_ffg.tla
+$ JVM_ARGS=-Xmx20G apalache-mc check --length=6 --inv=AccountableSafety MC_ffg.tla
 ```
 
 This experiment takes about **TODO**.
@@ -350,19 +350,17 @@ random symbolic runs, each consisting of up to 10 steps:
 ```sh
 $ cd ./spec3
 $ JVM_ARGS=-Xmx20G apalache-mc simulate \
-  simulate --max-run=100 --length=10 --timeout-smt=10800 \
+  --max-run=100 --length=6 \
   --inv=AccountableSafety MC_ffg.tla
 ```
 
-In addition, we bound the running time of individual SMT queries to 3 hours. If
-the timeout is reached, the query is skipped. This command typically finds
-counterexamples much quicker than `check`. Therefore, when `simulate` does not
-find counterexamples, it gives us relatively high confidence that the property
-holds true.
+This command typically finds counterexamples much quicker than `check`.
+Therefore, when `simulate` does not find counterexamples, it gives us relatively
+high confidence that the property holds true.
 
-This experiment takes about **TODO** on a single node. The interesting thing is
-that we can parallelize the enumeration of 100 runs across multiple cores. For
-instance, we use 20 CPU cores to check 5 symbolic runs each.
+This experiment takes about 37 minutes on a single node. The interesting thing
+is that we can parallelize the enumeration of 100 runs across multiple cores.
+For instance, we use 20 CPU cores to check 5 symbolic runs each.
 
 ## 6. Induction checking Spec 4
 
