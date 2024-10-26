@@ -1,6 +1,6 @@
 %! TeX root = report.tex
 
-\section{Spec 4: Two chains in \tlap{}}\label{sec:spec4}
+\section{\SpecFour{}: Two chains in \tlap{}}\label{sec:spec4}
 
 We obtain this specification by preserving the vote and checkpoint behavior from \SpecThree{}, but we restrict the block-graph to exactly two chains, which are allowed to fork, i.e., they always share a common prefix.
 To this end, we restrict block bodies of the two chains as follows:
@@ -53,5 +53,46 @@ Fundamentally, this demonstrates the intrinsic complexity of the problem itself,
 
 \subsection{Model checking experiments}
 
-TODO\footnote{IK: describe the further optimizations}
+Table~\ref{tab:spec4-experiments} summarizes our experiments on checking
+inductiveness and accountable safety of~\SpecFourB{}. Interestingly, checking
+inductiveness of~\texttt{IndInv} takes seconds. However,
+checking~\texttt{AccountableSafety} against the inductive invariant times out.
+
+\begin{table}
+    \centering
+    \begin{tabular}{lllrrr}
+            \tbh{Init}
+            & \tbh{Step}
+            & \tbh{Invariant}
+            & \tbh{Depth}
+            & \tbh{Memory}
+            & \tbh{Time}
+            \\ \toprule
+            \texttt{Init}
+            & \texttt{Next}
+            & \texttt{IndInv}
+            & 0
+            & 0.6 GB
+            & 2sec
+            \\
+            \texttt{IndInit}
+            & \texttt{Next}
+            & \texttt{IndInv}
+            & 1
+            & 0.6 GB
+            & 2sec
+            \\
+            \texttt{IndInit}
+            & \texttt{Next}
+            & \texttt{AccountableSafety}
+            & 0
+            & XXX
+            & XXX
+            \\
+            \bottomrule
+    \end{tabular}
+    \caption{Model checking experiments
+        with~\SpecFourB{} on the instance~\texttt{MC\_ffg\_b3\_ffg5\_v12}
+    }\label{tab:spec4-experiments}
+\end{table}
 

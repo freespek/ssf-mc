@@ -1,17 +1,19 @@
 %! TeX root = report.tex
 
-\section{M4: Spec 3}
+\section{\SpecThree{}: Adding a state machine}\label{sec:spec3}
 
-\paragraph{Motivation.} In the course of writing \texttt{Spec 2}, we realized
+In the course of writing \texttt{Spec 2}, we realized
 that the executable Python specification is essentially sequential. In other
 words, even though the 3SF algorithm is distributed, its Python
 specification as well as \texttt{Spec 1} and \texttt{Spec 2} are encoding
 all possible protocol states in a single specification state.
 
+\subsection{State machines in \tlap{}}
+
 Since \tlap{} is designed for reasoning about state machines, Apalache is tuned
 towards incremental model checking of the executions. For instance, if a state
 machine is composed of $n$ kinds of state-transitions (called actions), that
-is, $\mathit{Next} = A_1 \vee \dots \vee A_N$, then model checker tries to find
+is, $\mathit{Next} = A_1 \vee \dots \vee A_N$, the model checker tries to find
 a violation to a state invariant~$\textit{Inv}$ by assuming that a single
 symbolic transition $A_i$ took place. If there is no violation, that instance
 of the invariant~$\textit{Inv}$ can be discarded. By doing so, the model
@@ -20,8 +22,19 @@ same applies to checking an inductive invariant. When there is no such
 decomposition of $\mathit{Next}$, the model checker produces harder problems
 for SMT\@.
 
-\paragraph{Introducing a state machine.} Having this observation in mind, we
-introduced \texttt{Spec 3} that incrementally builds the following data structures:
+\paragraph{Symbolic simulation.} In addition to model checking, Apalache offers
+support for symbolic simulation. In this mode, the model checker
+non-deterministically selects \emph{one} symbolic transition at each step and
+applies it to the current state. While symbolic simulation is not exhaustive
+like model checking, it allows for more efficient exploration of deep system
+states. Importantly, any counterexample discovered through symbolic simulation
+is just as valid as one found via exhaustive model checking.
+
+\subsection{Introducing a state machine}
+
+Having the observations above in mind, we introduce \texttt{Spec 3} in which we
+specify a state machine that incrementally builds possible protocol states by
+constructing the following data structures:
 
 \begin{itemize}
 
@@ -67,33 +80,50 @@ actions.
     \caption{The transition predicate of Spec 3}\label{fig:abstract-ffg-next}
 \end{figure}
 
-\paragraph{Model checking experiments.} We have conducted model checking
-experiments with this specification. They are summarized in
-Table~\ref{tab:abstract-ffg-mc}.
+\subsection{Model checking experiments}
+
+We have conducted model checking experiments with this specification. They are
+summarized in Table~\ref{tab:abstract-ffg-mc}. Two things to notice:
+
+\begin{itemize}
+
+  \item The model checker finds examples of justified and conflicting blocks
+    very fast.
+
+  \item Model checking accountable safety gets stuck very fast, just after 6
+    steps. Note that justified blocks are recomputed after every step that
+    casts votes.
+
+\end{itemize}
 
 % 
 
 \begin{table}
     \centering
-    \begin{tabular}{llr}
-        \tbh{State invariant}
-            & \tbh{Command}
+    \begin{tabular}{llrr}
+        \tbh{Command}
+            & \tbh{State invariant}
+            & \tbh{Depth}
             & \tbh{Time}
             \\ \toprule
-        $\textit{ExistsJustifiedNonGenesisInv}$
-            & \texttt{check}
+        \texttt{check}
+            & $\textit{ExistsJustifiedNonGenesisInv}$
+            & 2
             & 5s
             \\ \midrule
-        $\textit{ExistTwoFinalizedConflictingBlocks}$
-            & \texttt{check}
+        \texttt{check}
+            & $\textit{ExistTwoFinalizedConflictingBlocks}$
+            & N
             & 1h 27min
             \\ \midrule
-        $\textit{AccountableSafety}$
-            & \texttt{simulate}
-            & N
+        \texttt{simulate}
+            & $\textit{AccountableSafety}$
+            & 6
+            & 37min
             \\ \midrule
-        $\textit{AccountableSafety}$
-            & \texttt{check}
+        \texttt{check}
+            & $\textit{AccountableSafety}$
+            & 6
             & N
             \\ \bottomrule
     \end{tabular}

@@ -1,8 +1,8 @@
 %! TeX root = report.tex
 
-\section{Spec 3c in Alloy}\label{sec:alloy}
+\section{\SpecThreeB{} in Alloy}\label{sec:alloy}
 
-Once we saw that our specifications \texttt{Spec 3} and \texttt{Spec 4}
+Once we saw that our specifications~\SpecThree{} and~\SpecFour{}
 were too challenging for the \tlap{} tools, we have decided to employ
 Alloy~\cite{jackson2012software,alloytools}, as an alternative to our tooling.
 Alloy has two features that are attractive for our project:
@@ -22,8 +22,10 @@ Alloy has two features that are attractive for our project:
 
 \end{itemize}
 
-Having \texttt{Spec 3} in~\tlap{}, it was relatively easy for us to write down
-the Alloy specification, as \texttt{Spec 3} is already quite abstract. However, as
+\subsection{From \tlap{} to Alloy}
+
+Having~\SpecThree{} in~\tlap{}, it was relatively easy for us to write down
+the Alloy specification, as~\SpecThree{} is already quite abstract. However, as
 Alloy's core abstractions are objects and relations between them, the
 specification looks quite differently. For example, here is how we declare
 signatures for the blocks and checkpoints:
@@ -47,9 +49,9 @@ signatures for the blocks and checkpoints:
   one sig GenesisBlock extends Block {}
 \end{lstlisting}
 
-In contrast to~\texttt{Spec 3}, our Alloy specification does not describe a
+In contrast to~\SpecThree{}, our Alloy specification does not describe a
 state machine, but it specifies an arbitrary single state of the protocol. As
-in~\texttt{Spec 3}, we compute the set of justified checkpoints as a fixpoint:
+in~\SpecThree{}, we compute the set of justified checkpoints as a fixpoint:
 
 \begin{lstlisting}[language=alloy,columns=fullflexible]
   one sig JustifiedCheckpoints {
@@ -60,6 +62,8 @@ in~\texttt{Spec 3}, we compute the set of justified checkpoints as a fixpoint:
       c.slot = 0 or 3.mul[#justifyingVotes[c].validator] >= 2.mul[#Signature]
   }
 \end{lstlisting}
+
+\subsection{Model Checking with Alloy}
 
 Similar to our experiments with Apalache, we produce examples of configurations
 that satisfy simple properties. For example:
@@ -96,17 +100,19 @@ number of FFG votes and validators bound the number of votes. Hence, if we only
 increase the number of votes without increasing the number of FFG votes, we may
 miss the cases when longer chains of justifications must be constructed.
 
-As we can see, we have managed to show accountable safety for chain
+\subsection{Model Checking Results}\label{sec:alloy-results}
+
+As we can see, we have managed to show \textit{AccountableSafety} for chain
 configurations of up to 6 blocks, including the genesis block. While the
 configurations up to 4 blocks are important to analyze, they do not capture the
 general case, namely, of two finalized checkpoints building on top of justified
-checkpoints that are not the genesis. Thus, the configurations of 5 blocks are
-the most important ones, as they capture the general case.
+checkpoints that are not the genesis. Thus, configurations of 5 or more blocks
+are the most important ones, as they capture the general case.
 
-To see, whether we could go a bit further beyond 5 blocks, we have tried the
-configuration of 7 blocks. This configuration happened to be quite challenging
-for Alloy and Kissat. We have run Kissat for over 16 days, and it was stuck
-at the remaining seven percent for many days. At that point, it has introduced:
+To see if we could go a bit further beyond 5 blocks, we have tried a
+configuration with 7 blocks. This configuration happened to be quite challenging
+for Alloy and Kissat. We have run Kissat for over 16 days, and it was stuck at
+the remaining seven percent for many days. At that point, it has introduced:
 
 \begin{itemize}
   \item 60 thousand Boolean variables,
