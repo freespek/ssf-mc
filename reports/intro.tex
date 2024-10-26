@@ -18,7 +18,7 @@ specifying consensus algorithms. Among the rich spectrum of
 specifications~\cite{tla-examples}, the most notable for our project are the
 specifications of Paxos~\cite{lamport2001paxos}, Raft~\cite{Ongaro14}, and
 Tendermint~\cite{abs-1807-04938,TendermintSpec2020}. Since consensus algorithms
-are quite challenging for the classical model checkers such as TLC, we chose
+are quite challenging for classical model checkers like TLC, we choose
 Apalache~\cite{Apalache2024,KT19,KonnovKM22}. This model checker utilizes the
 SMT solver~Z3~\cite{MouraB08} in the background. Apalache was used for model
 checking of agreement and accountable safety of
@@ -96,20 +96,20 @@ that we have produced in the project:
 
     \item \SpecFourB{} contains further abstractions and decomposition of
         configurations. This is the first~\tlap{} specification that allowed us
-        to show accountable safety for models of very small sizes. This
+        to show accountable safety for models of very small size. This
         specification is the result of our work in Milestone~4.
         It is discussed in Section~\ref{sec:spec4b}.
 
     \item \SpecThreeB{} contains a specification in SMT using the theory of
         finite sets and cardinalities. In combination with the solver
-        CVC5~\cite{BarbosaBBKLMMMN22}, this specification allowed us to push
+        CVC5~\cite{BarbosaBBKLMMMN22}, this specification allows us to push
         verification of accountable safety even further. This specification is
         the result of our work in Milestone~4. It is discussed in
         Section~\ref{sec:smt}.
 
     \item \SpecThreeC{} contains a specification in
         Alloy~\cite{jackson2012software,alloytools}. With this specification,
-        we managed to check all small configurations that cover the base case
+        we manage to check all small configurations that cover the base case
         and one inductive step of the definitions. This specification is the
         result of our work in Milestone~4. It is discussed in
         Section~\ref{sec:alloy}.
