@@ -71,6 +71,7 @@ IndInit_C1 ==
       LET b1 == [ body |-> 1, slot |-> i ]
           b2 == [ body |-> -1, slot |-> j ]
       IN
+      /\ 0 < i /\ 0 < j
       /\ all_blocks = { GenesisBlock, b1, b2 }
       /\ chain1 = { GenesisBlock, b1 }
       /\ chain1_tip = b1
