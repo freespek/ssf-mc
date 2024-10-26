@@ -14,31 +14,31 @@
 
     \node[mynode, minimum width=4cm,
         minimum height=1cm, below=1cm of py] (spec1)
-        {\textbf{\textsf{Spec 1}}: {\small\texttt{spec1-2/ffg\_recursive.tla}}};
+        {\SpecOne{}: {\small\texttt{spec1-2/ffg\_recursive.tla}}};
 
     \node[mynode, minimum width=3cm,
         minimum height=1cm, right=1cm of spec1] (spec2)
-        {\textbf{\textsf{Spec 2}}: {\small\texttt{spec1-2/ffg.tla}}};
+        {\SpecTwo{}: {\small\texttt{spec1-2/ffg.tla}}};
 
     \node[mynode, minimum width=3cm,
         minimum height=1cm, below=1cm of spec2] (spec3)
-        {\textbf{\textsf{Spec 3}}: {\small\texttt{spec3/ffg.tla}}};
+        {\SpecThree{}: {\small\texttt{spec3/ffg.tla}}};
 
     \node[mynode, minimum width=3cm,
         minimum height=1cm, left=1cm of spec3] (spec4)
-        {\textbf{\textsf{Spec 4}}: {\small\texttt{spec4/ffg\_inductive.tla}}};
+        {\SpecFour{}: {\small\texttt{spec4/ffg\_inductive.tla}}};
 
     \node[mynode, minimum width=3cm,
         minimum height=1cm, below=1cm of spec4] (spec4b)
-        {\textbf{\textsf{Spec 4b}}};
+        {\SpecFourB{}};
 
     \node[mynode, minimum width=3cm,
         minimum height=1cm, below left=1cm and -2cm of spec3] (spec3b)
-        {\textbf{\textsf{Spec 3b}}: SMT};
+        {\SpecThreeB{}: SMT};
 
     \node[mynode, minimum width=3cm,
         minimum height=1cm, below right=1cm and -2cm of spec3] (spec3c)
-        {\textbf{\textsf{Spec 3c}}: Alloy/SAT };
+        {\SpecThreeC{}: Alloy/SAT };
 
     \draw[a] (py) -- (spec1);
     \draw[a] (spec1) -- (spec2);

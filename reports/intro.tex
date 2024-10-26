@@ -19,10 +19,11 @@ specifications~\cite{tla-examples}, the most notable for our project are the
 specifications of Paxos~\cite{lamport2001paxos}, Raft~\cite{Ongaro14}, and
 Tendermint~\cite{abs-1807-04938,TendermintSpec2020}. Since consensus algorithms
 are quite challenging for the classical model checkers such as TLC, we chose
-Apalache~\cite{Apalache2024,KT19,KonnovKM22}. Apalache was used for model
+Apalache~\cite{Apalache2024,KT19,KonnovKM22}. This model checker utilizes the
+SMT solver~Z3~\cite{MouraB08} in the background. Apalache was used for model
 checking of agreement and accountable safety of
-Tendermint~\cite{TendermintSpec2020}. As an added benefit, four of the project
-participants worked on Apalache in the past and know its strenghts and
+Tendermint~\cite{TendermintSpec2020}. As added benefit, four of the project
+participants developed Apalache in the past and know its strenghts and
 weaknesses.
 
 \paragraph{Complexity of (model-checking) the protocol.} The 3SF protocol is
@@ -72,40 +73,49 @@ that we have produced in the project:
         Python, which can be found in \texttt{ffg.py}. This specification is
         using mutually recursive operators, which are not supported by
         Apalache. As a result, we are not checking this specification. This
-        specification is the result of our work in Milestone 1.
-        This specification is discussed in Section~\ref{sec:spec1}.
+        specification is the result of our work in Milestones~1 and~3.
+        It is discussed in Section~\ref{sec:spec1}.
 
     \item \SpecTwo{}: This is the specification \texttt{spec1-2/ffg.tla}. It is
-        a manual adaptation of Spec 1. The main difference between Spec 2 and
-        Spec 1 is that Spec 2 uses ``folds'' (also known as ``reduce'') instead
-        of recursion. This specification is discussed in
+        a manual adaptation of~\SpecOne{}. The main difference
+        between~\SpecTwo{} and~\SpecOne{} is that~\SpecTwo{} uses ``folds''
+        (also known as ``reduce'') instead of recursion. This specification is
+        the result of our work in Milestones~1 and~2. It is discussed in
         Section~\ref{sec:spec2}.
 
     \item \SpecThree{}: This is the further abstraction of~\SpecTwo{} that uses
         the concept of a state machine, instead of a purely sequential
-        specification (such as the Python code). This specification is
-        discussed in Section~\ref{sec:spec3}.
+        specification (such as the Python code). This specification is the
+        result of our work in Milestone~2. It is discussed in
+        Section~\ref{sec:spec3}.
 
     \item \SpecFour{}: This is an extension of~\SpecThree{} that contains
         an inductive invariant in~\texttt{spec4/ffg\_inductive.tla}.
-        This specification is discussed in Section~\ref{sec:spec4}.
+        This specification is the result of our work in Milestone~4.
+        It is discussed in Section~\ref{sec:spec4}.
 
     \item \SpecFourB{} contains further abstractions and decomposition of
         configurations. This is the first~\tlap{} specification that allowed us
         to show accountable safety for models of very small sizes. This
-        specification is discussed in Section~\ref{sec:spec4b}.
+        specification is the result of our work in Milestone~4.
+        It is discussed in Section~\ref{sec:spec4b}.
 
     \item \SpecThreeB{} contains a specification in SMT using the theory of
         finite sets and cardinalities. In combination with the solver
         CVC5~\cite{BarbosaBBKLMMMN22}, this specification allowed us to push
         verification of accountable safety even further. This specification is
-        discussed in Section~\ref{sec:smt}.
+        the result of our work in Milestone~4. It is discussed in
+        Section~\ref{sec:smt}.
 
     \item \SpecThreeC{} contains a specification in
         Alloy~\cite{jackson2012software,alloytools}. With this specification,
         we managed to check all small configurations that cover the base case
-        and one inductive step of the definitions.  This specification is
-        discussed in Section~\ref{sec:alloy}.
+        and one inductive step of the definitions. This specification is the
+        result of our work in Milestone~4. It is discussed in
+        Section~\ref{sec:alloy}.
+
+    \item Section~\ref{section3} contains the translation rules and proofs
+        that were conducted in Milestone~3.
 
 \end{enumerate}
 

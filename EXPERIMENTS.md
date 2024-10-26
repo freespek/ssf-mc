@@ -315,7 +315,7 @@ In this experiment, we aim at finding an example of at least one justified
 checkpoint that is different from genesis:
 
 ```sh
-$ apalache-mc simulate --length=20 --inv=ExistsJustifiedNonGenesisInv MC_ffg.tla
+$ apalache-mc check --length=20 --inv=ExistsJustifiedNonGenesisInv MC_ffg.tla
 ```
 
 It takes 5 seconds to find an example.
@@ -368,23 +368,31 @@ instance, we use 20 CPU cores to check 5 symbolic runs each.
 
 ### 6.1. Inductiveness check
 
-In this experiment, we show that `Inv0` is an inductive invariant for `Spec 3`:
+In this experiment, we show that `IndInv` is an inductive invariant for `Spec 4`:
 
 ```sh
-$ cd ./spec3
-$ apalache-mc check --length=1 --inv=Inv0 \
-  --init=Init0 --next=Next0 MC_ffg.tla
+$ cd ./spec4
+$ apalache-mc check --length=0 --init=Init --inv=IndInv \
+  --next=Next MC_ffg_b3_ffg5_v12.tla
 ```
 
-This experiment takes about **TODO**.
+This experiment takes about 2 seconds.
+
+```sh
+$ cd ./spec4
+$ apalache-mc check --length=1 --inv=IndInv \
+  --init=Init --next=Next MC_ffg_b3_ffg5_v12.tla
+```
+
+This experiment takes about 2 seconds.
 
 ### 6.2. Inductive checking of Accountable Safety
 
 ```sh
-$ cd ./spec3
-$ JVM_ARGS=-Xmx20G ~/devl/apalache/bin/apalache-mc check \
-  --length=0 --init=Init0 --inv=AccountableSafety \
-  MC_ffg.tla
+$ cd ./spec4
+$ JVM_ARGS=-Xmx20G apalache-mc check \
+  --length=0 --init=IndInv --inv=AccountableSafety \
+  MC_ffg_b3_ffg5_v12.tla
 ```
 
 This experiment took 19 hours 48 min 29 sec.

@@ -5,9 +5,9 @@ various perspectives. Initially, we developed a direct translation of the
 protocol's Python specification into \tlap{}, but this approach proved
 unsatisfactory due to the reliance on recursion. To address this, we modified
 the specification to use folds in place of recursion, theoretically enabling
-model-checking. However, this approach also proved impractical due to the high
-computational complexity involved. Subsequently, we applied a series of
-abstractions to improve the model's model-checking efficiency.
+model-checking with Apalache. However, this approach also proved impractical
+due to the high computational complexity involved. Subsequently, we applied a
+series of abstractions to improve the model-checking efficiency.
 
 In addition to the \tlap{} specifications, we also introduced an SMT encoding
 and an Alloy specification. The SMT encoding proved to be fairly performant,

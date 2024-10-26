@@ -1,6 +1,6 @@
 %! TeX root = ./report.tex
 
-\section{Spec 4b: Decomposition \& abstractions}\label{sec:spec4b}
+\section{\SpecFourB{}: Decomposition \& abstractions}\label{sec:spec4b}
 
 Disappointed with the results in Section~\ref{sec:spec4}, we have decided to
 push abstractions even further. These abstractions helped us to verify
@@ -103,6 +103,12 @@ experiments, Z3 required from 700~MB to 1.5~GB\@. While this is still a factor o
 significantly better than our initial experiments with~\SpecTwo{}
 and~\SpecThree{}, which required up to 20~GB of RAM\@.
 
+We notice significant variations in the running times on different
+configurations. This is probably due to the effect of different runs of the Z3
+SMT solve having great variety of running times, which is well-known in the
+computer-aided community. To further confirm these variations, we could run
+multiple experiments with `hyperfine`.
+
 \begin{table}
     \centering
     \begin{tabular}{lllrr}
@@ -116,7 +122,7 @@ and~\SpecThree{}, which required up to 20~GB of RAM\@.
             & \texttt{MC\_ffg\_b1\_ffg5\_v12}
             & \texttt{Init\_C1}
             & 1.2 GB
-            & 11h 31 min
+            & 11h 31min
             \\
         M4a: Fig.~\ref{fig:four-top}
             & \texttt{MC\_ffg\_b3\_ffg5\_v12}
@@ -127,14 +133,14 @@ and~\SpecThree{}, which required up to 20~GB of RAM\@.
         M4b: Fig.~\ref{fig:four-bottom}
             & \texttt{MC\_ffg\_b3\_ffg5\_v12}
             & \texttt{Init\_C2}
-            & XXX
-            & XXX
+            & 1.3 GB
+            & 1day 6h
             \\
         M5a: Fig.~\ref{fig:five1}
             & \texttt{MC\_ffg\_b3\_ffg5\_v12}
             & \texttt{Init\_C3}
             & 1.2 GB
-            & 1h 53 min
+            & 1h 53min
             \\
         M5b: Fig.~\ref{fig:five2}
             & \texttt{MC\_ffg\_b3\_ffg5\_v12}
@@ -144,6 +150,7 @@ and~\SpecThree{}, which required up to 20~GB of RAM\@.
             \\
             \bottomrule
     \end{tabular}
-    \caption{Model checking experiments with Spec 4b}\label{tab:spec4b-experiments}
+    \caption{Model checking experiments
+             with~\SpecFourB{}}\label{tab:spec4b-experiments}
 \end{table}
 
