@@ -2,10 +2,10 @@
 
 \section{\SpecThree{}: Adding a state machine}\label{sec:spec3}
 
-In the course of writing \texttt{Spec 2}, we realized
+In the course of writing~\SpecTwo{}, we realized
 that the executable Python specification is essentially sequential. In other
 words, even though the 3SF algorithm is distributed, its Python
-specification as well as \texttt{Spec 1} and \texttt{Spec 2} are encoding
+specification as well as~\SpecOne{} and~\SpecTwo{} are encoding
 all possible protocol states in a single specification state.
 
 \subsection{State machines in \tlap{}}
@@ -32,7 +32,7 @@ is just as valid as one found via exhaustive model checking.
 
 \subsection{Introducing a state machine}
 
-Having the observations above in mind, we introduce \texttt{Spec 3} in which we
+Having the observations above in mind, we introduce~\SpecThree{} in which we
 specify a state machine that incrementally builds possible protocol states by
 constructing the following data structures:
 
@@ -77,7 +77,7 @@ actions.
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/abstract-ffg-next.pdf}  % Include the PDF file
-    \caption{The transition predicate of Spec 3}\label{fig:abstract-ffg-next}
+    \caption{The transition predicate of~\SpecThree{}}\label{fig:abstract-ffg-next}
 \end{figure}
 
 \subsection{Model checking experiments}
@@ -113,8 +113,8 @@ summarized in Table~\ref{tab:abstract-ffg-mc}. Two things to notice:
             \\ \midrule
         \texttt{check}
             & $\textit{ExistTwoFinalizedConflictingBlocks}$
-            & N
-            & 1h 27min
+            & 6
+            & 52min
             \\ \midrule
         \texttt{simulate}
             & $\textit{AccountableSafety}$
@@ -127,6 +127,7 @@ summarized in Table~\ref{tab:abstract-ffg-mc}. Two things to notice:
             & N
             \\ \bottomrule
     \end{tabular}
-    \caption{Model checking experiments with Spec 3}\label{tab:abstract-ffg-mc}
+    \caption{Model checking experiments
+             with~\SpecThree{}}\label{tab:abstract-ffg-mc}
 \end{table}
 

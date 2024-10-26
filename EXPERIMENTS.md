@@ -405,6 +405,17 @@ We ran the experiments using the following scripts:
  - [check-accountable-safety.sh](./spec4b-optimizations/check-accountable-safety.sh)
    to check accountable safety against the inductive invariant.
 
+The table below summarizes the experiments with inductiveness checking.
+
+| Instance               | Init     | Invariant | Memory | Time       |
+|------------------------|----------|-----------|--------|------------|
+| MC_ffg_b1_ffg5_v12     | Init     | IndInv    | 580 MB | 7s         |
+| MC_ffg_b3_ffg5_v12     | Init     | IndInv    | 700 MB | 7s         |
+| MC_ffg_b1_ffg5_v12     | Init_C1  | IndInv    | 1.4 GB | 2min 8s    |
+| MC_ffg_b3_ffg5_v12     | Init_C1  | IndInv    | 1.8 GB | 19min 10s  |
+| MC_ffg_b3_ffg5_v12     | Init_C2  | IndInv    | 1.6 GB | 13min 16s  |
+| MC_ffg_b3_ffg5_v12     | Init_C3  | IndInv    | 1.6 GB | 17min 39s  |
+| MC_ffg_b3_ffg5_v12     | Init_C4  | IndInv    | 1.6 GB | 16min 23s  |
 
 [Apalache]: https://apalache-mc.org/
 [Apalache installation]: https://apalache-mc.org/docs/apalache/installation/index.html
