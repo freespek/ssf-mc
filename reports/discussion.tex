@@ -70,7 +70,9 @@ this unique value of specifications that are supported by model checkers:
 
   \item Executable specifications in Python require the user to provide program
     inputs. These inputs can be also generated randomly, though in the case of
-    3SF, this would be challenging.
+    3SF, this would be challenging. However, the probability of hitting
+    ``interesting'' values, such as producing finalizing checkpoints, would be
+    quite low.
 
   \item Specifications in the languages supported by proof systems usually do
     not support model finding. The TLAPS Proof System is probably a unique
