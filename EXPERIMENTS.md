@@ -397,50 +397,13 @@ This experiment took 19 hours 48 min 29 sec.
 
 ## 7. Induction checking with Spec 4b
 
-### 7.1. Checking Accountable Safety for M3
+We ran the experiments using the following scripts:
 
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C1 \
-  --inv=AccountableSafety MC_ffg_b1_ffg5_v12.tla
-```
+ - [check-inductive.sh](./spec4b-optimizations/check-inductive.sh)
+   to check inductiveness of our invariants.
 
-This experiment took XXX sec.
-
-### 7.2. Checking Accountable Safety for M4a
-
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C4 \
-  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
-```
-
-This experiment took XXX sec.
-
-### 7.3. Checking Accountable Safety for M4b
-
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C2 \
-  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
-```
-
-This experiment took XXX sec.
-
-### 7.4. Checking Accountable Safety for M5a
-
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C1 \
-  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
-```
-
-This experiment took XXX sec.
-
-### 7.5. Checking Accountable Safety for M5b
-
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C3 \
-  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
-```
-
-This experiment took XXX sec.
+ - [check-accountable-safety.sh](./spec4b-optimizations/check-accountable-safety.sh)
+   to check accountable safety against the inductive invariant.
 
 
 [Apalache]: https://apalache-mc.org/
