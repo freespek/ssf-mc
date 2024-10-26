@@ -9,4 +9,5 @@ fi
 
 parallel --joblog joblog.txt --results out/ --colsep ',' \
     -a experiments-accountable-safety.csv \
-    /usr/bin/time -f "'%Uuser %Ssystem %elapsed %Mmaxk'" ${APALACHE_HOME}/bin/apalache-mc check --init={2} --inv={3} {1}
+    /usr/bin/time -f "'%Uuser %Ssystem %elapsed %Mmaxk'" \
+    ${APALACHE_HOME}/bin/apalache-mc check --length=0 --init={2} --inv={3} {1}
