@@ -7,7 +7,7 @@ if [ "$APALACHE_HOME" == "" ]; then
     exit 1
 fi
 
-parallel --joblog joblog.txt --results out/ --colsep ',' \
+parallel --joblog joblog-inductive.txt --results out/ --colsep ',' \
     -a experiments-inductive.csv \
     /usr/bin/time -f "'%Uuser %Ssystem %elapsed %Mmaxk'" \
     ${APALACHE_HOME}/bin/apalache-mc check --init={2} --length={3} --inv={4} {1}
