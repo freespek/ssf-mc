@@ -1,6 +1,6 @@
 %! TeX root = report.tex
 
-\section{Spec 3: Adding a state machine}\label{sec:spec3}
+\section{\SpecThree{}: Adding a state machine}\label{sec:spec3}
 
 In the course of writing \texttt{Spec 2}, we realized
 that the executable Python specification is essentially sequential. In other
@@ -83,31 +83,47 @@ actions.
 \subsection{Model checking experiments}
 
 We have conducted model checking experiments with this specification. They are
-summarized in Table~\ref{tab:abstract-ffg-mc}.
+summarized in Table~\ref{tab:abstract-ffg-mc}. Two things to notice:
+
+\begin{itemize}
+
+  \item The model checker finds examples of justified and conflicting blocks
+    very fast.
+
+  \item Model checking accountable safety gets stuck very fast, just after 6
+    steps. Note that justified blocks are recomputed after every step that
+    casts votes.
+
+\end{itemize}
 
 % 
 
 \begin{table}
     \centering
-    \begin{tabular}{llr}
-        \tbh{State invariant}
-            & \tbh{Command}
+    \begin{tabular}{llrr}
+        \tbh{Command}
+            & \tbh{State invariant}
+            & \tbh{Depth}
             & \tbh{Time}
             \\ \toprule
-        $\textit{ExistsJustifiedNonGenesisInv}$
-            & \texttt{check}
+        \texttt{check}
+            & $\textit{ExistsJustifiedNonGenesisInv}$
+            & 2
             & 5s
             \\ \midrule
-        $\textit{ExistTwoFinalizedConflictingBlocks}$
-            & \texttt{check}
+        \texttt{check}
+            & $\textit{ExistTwoFinalizedConflictingBlocks}$
+            & N
             & 1h 27min
             \\ \midrule
-        $\textit{AccountableSafety}$
-            & \texttt{simulate}
-            & N
+        \texttt{simulate}
+            & $\textit{AccountableSafety}$
+            & 6
+            & 37min
             \\ \midrule
-        $\textit{AccountableSafety}$
-            & \texttt{check}
+        \texttt{check}
+            & $\textit{AccountableSafety}$
+            & 6
             & N
             \\ \bottomrule
     \end{tabular}

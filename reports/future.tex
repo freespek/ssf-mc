@@ -1,0 +1,25 @@
+%! TeX root = report.tex
+
+\begin{enumerate}
+
+  \item \emph{Generating inputs to the Python specification.} As we have noted,
+    the power of our~\tlap{} specifications is the ability to generate examples
+    with Apalache. This would help the authors of the Python specification to
+    produce tests for their specifications.
+
+  \item \emph{Specifications of a refined protocol.} The current version of the
+    Python specification is very abstract. On one hand, it is usually
+    beneficial to specify a high-level abstraction. On the other hand, as we
+    found, the current level of abstraction is quite close to the general
+    inductive definitions of justified and finalized checkpoints. We expect a
+    refined protocol specification to be more amenable to model checking.
+
+  \item \emph{Transferring the Alloy encoding to Apalache.} As we have found in
+    this project, Alloy offers richer options for fine tuning in terms of the
+    search scope. In combination with steady advances in SAT solving, adapting
+    the Alloy encoding to Apalache would improve model checking performance,
+    ultimately leading to a faster feedback loop and faster specification
+    development.
+
+\end{enumerate}
+
