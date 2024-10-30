@@ -122,7 +122,8 @@ IsValidCheckpoint(checkpoint) ==
         /\\/ checkpoint = GenesisCheckpoint
             \* Section 3.Checkpoints: "Importantly, the slot c for the checkpoint occurs after the slot B.p where the block was proposed"
           \//\ checkpoint_slot \in CheckpointSlots
-            /\ checkpoint_slot > block.slot
+            \* COMMENTED OUT AS AN EXPERIMENT
+            \* /\ checkpoint_slot > block.slot
 
 \* @type: ($ffgVote) => Bool;
 IsValidFFGVote(vote) ==
