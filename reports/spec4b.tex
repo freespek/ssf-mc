@@ -95,7 +95,7 @@ Section~\ref{sec:spec4-indinv}.
 \subsection{Model checking experiments}
 
 Tables~\ref{tab:spec4b-experiments} and~\ref{tab:spec4b-inductiveness}
-summarizes our experiments with Apalache for various configurations. One
+summarize our experiments with Apalache for various configurations. One
 interesting effect of the optimizations, especially of the ones presented in
 Section~\ref{sec:decomposition}, is a significant drop in the memory
 consumption of the SMT solver. In our experiments, Z3 required from 700~MB to
@@ -107,9 +107,9 @@ Table~\ref{tab:spec4b-inductiveness} take significantly longer than in the case
 of~\SpecFour{}. We conjecture that this is caused by the need to check more
 specialized graphs in conjunction with steps.
 
-We notice significant variations in the running times on different
-configurations. This is probably due to the effect of different runs of the Z3
-SMT solve having great variation of running times, which is well-known in the
+We observe that the run-times depend on the different
+configurations used. This is probably due to the effect of built-in variance of runs of the Z3
+SMT solver, which is well-known in the
 community of computer-aided verification. To further confirm these variations,
 we could run multiple experiments with~\texttt{hyperfine}.
 
