@@ -26,7 +26,7 @@
     \and
     Thanh Hai Tran \\ \small Consensys
 }
-\date{\today}
+\date{}
 
 \input{preambule}
 
@@ -35,7 +35,25 @@
 \maketitle
 
 \begin{abstract}
-  \colorbox{yellow}{TODO}
+
+We explore automated model-checking of the Ethereum specification, specifically
+the accountable safety of the 3SF protocol. We use~\tlap{} as our primary
+specification language and the Apalache model checker with the Z3 SMT solver as
+a backend. As a first step, we manually translate the Python specification
+into~\tlap{}. This reveals the high combinatorial complexity related to the
+definitions of accountable safety in the 3SF protocol.
+
+To address these challenges, we apply multiple layers of manual abstractions,
+such as (1) using folds instead of recursion, (2) integers in place of abstract
+graphs, and (3) decomposing chain configurations. We also develop
+specifications in SMT and Alloy. Despite the challenges, our results show that
+exhaustive verification of accountable safety is feasible for small
+instances with up to 7 checkpoints and 24 validator votes, and we found no
+falsification of accountable safety in slightly larger configurations. Our
+study underscores the value of manual abstraction and expertise in enhancing
+model-checking efficiency and highlights \tlap{}'s flexibility in handling
+abstractions.
+
 \end{abstract}
 
 \setcounter{tocdepth}{2}  % hide anything at or below \subsubsection

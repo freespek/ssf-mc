@@ -50,24 +50,26 @@ conduct experiments for the same kinds of inputs:
 
 | Input      | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime  | memory  |
 |------------|--------:|-------------:|------------:|-----------:|-------:|---------:|--------:|
-| [ffg-exp1] |    3    |      5       |      4      |      5     |   12   |  4 sec   |  35 MB  |
-| [ffg-exp2] |    4    |      5       |      4      |      5     |   12   | 10 sec   |  40 MB  |
-| [ffg-exp3] |    5    |      5       |      4      |      5     |   12   | 15 sec   |  45 MB  |
-| [ffg-exp4] |    3    |      6       |      4      |      6     |   15   | 57 sec   |  52 MB  |
-| [ffg-exp5] |    4    |      6       |      4      |      6     |   15   | 167 sec  |  55 MB  |
-| [ffg-exp6] |    5    |      6       |      4      |      6     |   15   | 245 sec  |  57 MB  |
-| [ffg-exp7] |    6    |      6       |      4      |      6     |   15   | 360 sec  |  82 MB  |
-| [ffg-exp8] |    5    |      7       |      4      |      6     |   24   | 1h 27m   |  156 MB |
+| [ffg-exp1][] |    3    |      5       |      4      |      5     |   12   |  4 sec   |  35 MB  |
+| [ffg-exp2][] |    4    |      5       |      4      |      5     |   12   | 10 sec   |  40 MB  |
+| [ffg-exp3][] |    5    |      5       |      4      |      5     |   12   | 15 sec   |  45 MB  |
+| [ffg-exp4][] |    3    |      6       |      4      |      6     |   15   | 57 sec   |  52 MB  |
+| [ffg-exp5][] |    4    |      6       |      4      |      6     |   15   | 167 sec  |  55 MB  |
+| [ffg-exp6][] |    5    |      6       |      4      |      6     |   15   | 245 sec  |  57 MB  |
+| [ffg-exp7][] |    6    |      6       |      4      |      6     |   15   | 360 sec  |  82 MB  |
+| [ffg-exp8][] |    5    |      7       |      4      |      6     |   24   | 1h 27m   |  156 MB |
+| [ffg-exp9][] |    5    |      10      |      4      |      8     |   24   | >8 days (timeout)  |  198 MB |
+| [ffg-exp9a][] |    5   |      10      |      4      |      8     |   32   | >8 days (timeout)  |  220 MB |
 
 In addition to the above experiments, we ran a few experiments that have
 inputs comparable in size to those produced by our TLA+ specification:
 
 | Input       | #blocks | #checkpoints | #signatures | #ffg_votes | #votes | runtime | memory  |
 |-------------|--------:|-------------:|------------:|-----------:|-------:|--------:|--------:|
-| [ffg-exp10] |    3    |      15      |      4      |      5     |   12   | 31 sec  | 56 MB   |
-| [ffg-exp11] |    4    |      20      |      4      |      5     |   12   | 152 sec | 94 MB   |
-| [ffg-exp12] |    5    |      25      |      4      |      5     |   12   | 234 sec | 117 MB  |
-| [ffg-exp13] |    7    |      15      |      4      |      10    |   40   | >10 days | 300 MB  |
+| [ffg-exp10][] |    3    |      15      |      4      |      5     |   12   | 31 sec  | 56 MB   |
+| [ffg-exp11][] |    4    |      20      |      4      |      5     |   12   | 152 sec | 94 MB   |
+| [ffg-exp12][] |    5    |      25      |      4      |      5     |   12   | 234 sec | 117 MB  |
+| [ffg-exp13][] |    7    |      15      |      4      |      10    |   40   | >16 days (timeout) | 300 MB  |
 
 As we can see, the running times increase dramatically, when we increase the
 maximum number of FFG votes and votes. While we do not have a precise
@@ -77,6 +79,11 @@ votes are required to finalize a justified block. Hence, the budget of 40 votes,
 gives us approximately 9 justified checkpoints. Since justified checkpoints may
 refer to on another (via FFG votes), 9 checkpoints may build longer
 justification chains.
+
+The experiments [ffg-exp9][], [ffg-exp9a][], and [ffg-exp13][] push the boundary
+beyond the minimal interesting small instances. In all of them the SAT solver
+did not terminated. Interestingly, in case of [ffg-exp9][] and [ffg-exp9a][],
+Kissat was solving the remaining 3% for multiple days.
 
 <!-- References -->
 
@@ -91,6 +98,8 @@ justification chains.
 [ffg-exp6]: ./ffg-exp6.als
 [ffg-exp7]: ./ffg-exp7.als
 [ffg-exp8]: ./ffg-exp8.als
+[ffg-exp9]: ./ffg-exp9.als
+[ffg-exp9a]: ./ffg-exp9a.als
 [ffg-exp10]: ./ffg-exp10.als
 [ffg-exp11]: ./ffg-exp11.als
 [ffg-exp12]: ./ffg-exp12.als

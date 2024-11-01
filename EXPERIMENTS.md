@@ -362,9 +362,17 @@ This experiment takes about 37 minutes on a single node. The interesting thing
 is that we can parallelize the enumeration of 100 runs across multiple cores.
 For instance, we use 20 CPU cores to check 5 symbolic runs each.
 
-## 6. Induction checking Spec 4
+## 8. Spec3b-smt: Checking Accountable Safety with SMT
 
-### 6.1. Inductiveness check
+See the detailed experiments in [README.md](./spec3b-smt/README.md).
+
+## 7. Spec3c-alloy: Checking Accountable Safety with Alloy
+
+See the detailed experiments in [README.md](./spec3c-alloy/README.md).
+
+## 8. Induction checking Spec 4
+
+### 8.1. Inductiveness check
 
 In this experiment, we show that `IndInv` is an inductive invariant for `Spec 4`:
 
@@ -384,7 +392,7 @@ $ apalache-mc check --length=1 --inv=IndInv \
 
 This experiment takes about 2 seconds.
 
-### 6.2. Inductive checking of Accountable Safety
+### 8.2. Inductive checking of Accountable Safety
 
 ```sh
 $ cd ./spec4
@@ -395,7 +403,7 @@ $ JVM_ARGS=-Xmx20G apalache-mc check \
 
 This experiment did not finish after 6 days.
 
-## 7. Induction checking with Spec 4b
+## 9. Induction checking with Spec 4b
 
 We ran the experiments using the following scripts:
 
