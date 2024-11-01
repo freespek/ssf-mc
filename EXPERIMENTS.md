@@ -362,9 +362,17 @@ This experiment takes about 37 minutes on a single node. The interesting thing
 is that we can parallelize the enumeration of 100 runs across multiple cores.
 For instance, we use 20 CPU cores to check 5 symbolic runs each.
 
-## 6. Induction checking Spec 4
+## 8. Spec3b-smt: Checking Accountable Safety with SMT
 
-### 6.1. Inductiveness check
+See the detailed experiments in [README.md](./spec3b-smt/README.md).
+
+## 7. Spec3c-alloy: Checking Accountable Safety with Alloy
+
+See the detailed experiments in [README.md](./spec3c-alloy/README.md).
+
+## 8. Induction checking Spec 4
+
+### 8.1. Inductiveness check
 
 In this experiment, we show that `IndInv` is an inductive invariant for `Spec 4`:
 
@@ -384,7 +392,7 @@ $ apalache-mc check --length=1 --inv=IndInv \
 
 This experiment takes about 2 seconds.
 
-### 6.2. Inductive checking of Accountable Safety
+### 8.2. Inductive checking of Accountable Safety
 
 ```sh
 $ cd ./spec4
@@ -395,9 +403,9 @@ $ JVM_ARGS=-Xmx20G apalache-mc check \
 
 This experiment took 19 hours 48 min 29 sec.
 
-## 7. Induction checking with Spec 4b
+## 9. Induction checking with Spec 4b
 
-### 7.1. Checking Accountable Safety for M3
+### 9.1. Checking Accountable Safety for M3
 
 ```sh
 $ apalache-mc check --length=0 --init=IndInit_C1 \
@@ -406,7 +414,7 @@ $ apalache-mc check --length=0 --init=IndInit_C1 \
 
 This experiment took XXX sec.
 
-### 7.2. Checking Accountable Safety for M4a
+### 9.2. Checking Accountable Safety for M4a
 
 ```sh
 $ apalache-mc check --length=0 --init=IndInit_C4 \
@@ -415,7 +423,7 @@ $ apalache-mc check --length=0 --init=IndInit_C4 \
 
 This experiment took XXX sec.
 
-### 7.3. Checking Accountable Safety for M4b
+### 9.3. Checking Accountable Safety for M4b
 
 ```sh
 $ apalache-mc check --length=0 --init=IndInit_C2 \
@@ -424,7 +432,7 @@ $ apalache-mc check --length=0 --init=IndInit_C2 \
 
 This experiment took XXX sec.
 
-### 7.4. Checking Accountable Safety for M5a
+### 9.4. Checking Accountable Safety for M5a
 
 ```sh
 $ apalache-mc check --length=0 --init=IndInit_C1 \
@@ -433,7 +441,7 @@ $ apalache-mc check --length=0 --init=IndInit_C1 \
 
 This experiment took XXX sec.
 
-### 7.5. Checking Accountable Safety for M5b
+### 9.5. Checking Accountable Safety for M5b
 
 ```sh
 $ apalache-mc check --length=0 --init=IndInit_C3 \
@@ -441,7 +449,6 @@ $ apalache-mc check --length=0 --init=IndInit_C3 \
 ```
 
 This experiment took XXX sec.
-
 
 [Apalache]: https://apalache-mc.org/
 [Apalache installation]: https://apalache-mc.org/docs/apalache/installation/index.html
