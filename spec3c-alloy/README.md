@@ -69,7 +69,7 @@ inputs comparable in size to those produced by our TLA+ specification:
 | [ffg-exp10][] |    3    |      15      |      4      |      5     |   12   | 31 sec  | 56 MB   |
 | [ffg-exp11][] |    4    |      20      |      4      |      5     |   12   | 152 sec | 94 MB   |
 | [ffg-exp12][] |    5    |      25      |      4      |      5     |   12   | 234 sec | 117 MB  |
-| [ffg-exp13][] |    7    |      15      |      4      |      10    |   40   | >10 days (timeout) | 300 MB  |
+| [ffg-exp13][] |    7    |      15      |      4      |      10    |   40   | >16 days (timeout) | 300 MB  |
 
 As we can see, the running times increase dramatically, when we increase the
 maximum number of FFG votes and votes. While we do not have a precise
