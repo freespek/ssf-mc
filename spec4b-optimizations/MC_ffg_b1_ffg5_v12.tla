@@ -59,7 +59,6 @@ IndInit ==
         /\ fork_number \in -MAX_BLOCK_BODY..0
         /\ chain2_fork_block_number = fork_number
     /\ justified_checkpoints = Gen(5)
-    /\ InitAccountableSafety
     /\ IndInv
 
 IndInit_C1 ==
@@ -72,6 +71,7 @@ IndInit_C1 ==
       LET b1 == [ body |-> 1, slot |-> i ]
           b2 == [ body |-> -1, slot |-> j ]
       IN
+      /\ 0 < i /\ 0 < j
       /\ all_blocks = { GenesisBlock, b1, b2 }
       /\ chain1 = { GenesisBlock, b1 }
       /\ chain1_tip = b1
@@ -82,8 +82,12 @@ IndInit_C1 ==
       /\ ffg_votes = Gen(5) \* must be >= 4 to observe disagreement
       /\ votes = Gen(12)    \* must be >= 12 to observe disagreement
       /\ justified_checkpoints = Gen(5)
-      /\ InitAccountableSafety
       /\ VotesInv
       /\ CheckpointsInv
+
+\* restrict the initial condition to have accountable safety
+IndInit_C1_AS ==
+    /\ IndInit_C1
+    /\ InitAccountableSafety
 
 =============================================================================

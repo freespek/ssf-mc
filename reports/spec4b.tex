@@ -94,20 +94,24 @@ Section~\ref{sec:spec4-indinv}.
 
 \subsection{Model checking experiments}
 
-Table~\ref{tab:spec4b-experiments} summarizes our experiments with Apalache for
-various configurations. One interesting effect of the optimizations,
-especially of the ones presented in Section~\ref{sec:decomposition}, is
-a significant drop in the memory consumption of the SMT solver. In our
-experiments, Z3 required from 700~MB to 1.5~GB\@. While this is still a factor of
-20 in comparison to the Alloy experiments in Section~\ref{sec:alloy}, this is
-significantly better than our initial experiments with~\SpecTwo{}
-and~\SpecThree{}, which required up to 20~GB of RAM\@.
+Tables~\ref{tab:spec4b-experiments} and~\ref{tab:spec4b-inductiveness}
+summarize our experiments with Apalache for various configurations. One
+interesting effect of the optimizations, especially of the ones presented in
+Section~\ref{sec:decomposition}, is a significant drop in the memory
+consumption of the SMT solver. In our experiments, Z3 required from 700~MB to
+1.5~GB\@. While this is still a factor of 20 in comparison to the Alloy
+experiments in Section~\ref{sec:alloy}, this is significantly better than our
+initial experiments with~\SpecTwo{} and~\SpecThree{}, which required up to
+20~GB of RAM\@. Interestingly, inductiveness checks in
+Table~\ref{tab:spec4b-inductiveness} take significantly longer than in the case
+of~\SpecFour{}. We conjecture that this is caused by the need to check more
+specialized graphs in conjunction with steps.
 
-We notice significant variations in the running times on different
-configurations. This is probably due to the effect of different runs of the Z3
-SMT solve having great variety of running times, which is well-known in the
-computer-aided community. To further confirm these variations, we could run
-multiple experiments with `hyperfine`.
+We observe that the run-times depend on the different
+configurations used. This is probably due to the effect of built-in variance of runs of the Z3
+SMT solver, which is well-known in the
+community of computer-aided verification. To further confirm these variations,
+we could run multiple experiments with~\texttt{hyperfine}.
 
 \begin{table}
     \centering
@@ -127,8 +131,8 @@ multiple experiments with `hyperfine`.
         M4a: Fig.~\ref{fig:four-top}
             & \texttt{MC\_ffg\_b3\_ffg5\_v12}
             & \texttt{Init\_C4}
-            & XXX
-            & XXX
+            & 1.4 GB
+            & TO ($>6$d)
             \\
         M4b: Fig.~\ref{fig:four-bottom}
             & \texttt{MC\_ffg\_b3\_ffg5\_v12}
@@ -145,12 +149,70 @@ multiple experiments with `hyperfine`.
         M5b: Fig.~\ref{fig:five2}
             & \texttt{MC\_ffg\_b3\_ffg5\_v12}
             & \texttt{Init\_C1}
-            & XXX
-            & XXX
+            & 1.5 GB
+            & TO ($>6$d)
             \\
             \bottomrule
     \end{tabular}
     \caption{Checking accountable safety
-             against~\SpecFourB{}}\label{tab:spec4b-experiments}
+             against~\SpecFourB{} (``TO'' means timeout)}%
+             \label{tab:spec4b-experiments}
+\end{table}
+
+\begin{table}
+    \centering
+    \begin{tabular}{lllrr}
+        \tbh{Instance}
+            & \tbh{Init}
+            & \tbh{Invariant}
+            & \tbh{Memory}
+            & \tbh{Time}
+            \\ \toprule
+        \texttt{MC\_ffg\_b1\_ffg5\_v12}
+            & \texttt{Init}
+            & \texttt{IndInv}
+            & 580 MB
+            & 7s
+            \\
+        \texttt{MC\_ffg\_b3\_ffg5\_v12}
+            & \texttt{Init}
+            & \texttt{IndInv}
+            & 700 MB
+            & 7s
+            \\
+        \texttt{MC\_ffg\_b1\_ffg5\_v12}
+            & \texttt{Init\_C1}
+            & \texttt{IndInv}
+            & 1.4 GB
+            & 2min 8s
+            \\
+        \texttt{MC\_ffg\_b3\_ffg5\_v12}
+            & \texttt{Init\_C1}
+            & \texttt{IndInv}
+            & 1.8 GB
+            & 19min 10s
+            \\
+        \texttt{MC\_ffg\_b3\_ffg5\_v12}
+            & \texttt{Init\_C2}
+            & \texttt{IndInv}
+            & 1.6 GB
+            & 13min 16s
+            \\
+        \texttt{MC\_ffg\_b3\_ffg5\_v12}
+            & \texttt{Init\_C3}
+            & \texttt{IndInv}
+            &  1.6 GB
+            & 17min 39s
+            \\
+        \texttt{MC\_ffg\_b3\_ffg5\_v12}
+            & \texttt{Init\_C4}
+            & \texttt{IndInv}
+            & 1.6 GB
+            & 16min 23s
+            \\
+            \bottomrule
+    \end{tabular}
+    \caption{Checking inductiveness
+             for~\SpecFourB{}}\label{tab:spec4b-inductiveness}
 \end{table}
 

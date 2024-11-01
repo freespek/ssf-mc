@@ -401,54 +401,39 @@ $ JVM_ARGS=-Xmx20G apalache-mc check \
   MC_ffg_b3_ffg5_v12.tla
 ```
 
-This experiment took 19 hours 48 min 29 sec.
+This experiment did not finish after 6 days.
 
 ## 9. Induction checking with Spec 4b
 
-### 9.1. Checking Accountable Safety for M3
+We ran the experiments using the following scripts:
 
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C1 \
-  --inv=AccountableSafety MC_ffg_b1_ffg5_v12.tla
-```
+ - [check-inductive.sh](./spec4b-optimizations/check-inductive.sh)
+   to check inductiveness of our invariants.
 
-This experiment took XXX sec.
+ - [check-accountable-safety.sh](./spec4b-optimizations/check-accountable-safety.sh)
+   to check accountable safety against the inductive invariant.
 
-### 9.2. Checking Accountable Safety for M4a
+The table below summarizes the experiments with inductiveness checking:
 
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C4 \
-  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
-```
+| Instance               | Init     | Invariant | Memory | Time       |
+|------------------------|----------|-----------|--------|------------|
+| MC_ffg_b1_ffg5_v12     | Init     | IndInv    | 580 MB | 7s         |
+| MC_ffg_b3_ffg5_v12     | Init     | IndInv    | 700 MB | 7s         |
+| MC_ffg_b1_ffg5_v12     | Init_C1  | IndInv    | 1.4 GB | 2min 8s    |
+| MC_ffg_b3_ffg5_v12     | Init_C1  | IndInv    | 1.8 GB | 19min 10s  |
+| MC_ffg_b3_ffg5_v12     | Init_C2  | IndInv    | 1.6 GB | 13min 16s  |
+| MC_ffg_b3_ffg5_v12     | Init_C3  | IndInv    | 1.6 GB | 17min 39s  |
+| MC_ffg_b3_ffg5_v12     | Init_C4  | IndInv    | 1.6 GB | 16min 23s  |
 
-This experiment took XXX sec.
+The table below summarizes the experiments with accountable safety:
 
-### 9.3. Checking Accountable Safety for M4b
-
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C2 \
-  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
-```
-
-This experiment took XXX sec.
-
-### 9.4. Checking Accountable Safety for M5a
-
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C1 \
-  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
-```
-
-This experiment took XXX sec.
-
-### 9.5. Checking Accountable Safety for M5b
-
-```sh
-$ apalache-mc check --length=0 --init=IndInit_C3 \
-  --inv=AccountableSafety MC_ffg_b3_ffg5_v12.tla
-```
-
-This experiment took XXX sec.
+| Instance               | Init    | Invariant         | Memory | Time       |
+|------------------------|---------|-------------------|--------|------------|
+| MC_ffg-b1_ffg5_v12     | Init_C1 | AccountableSafety | 1.2 GB | 11h 31min  |
+| MC_ffg-b3_ffg5_v12     | Init_C4 | AccountableSafety | 1.4 GB | TO (> 6d)  |
+| MC_ffg-b3_ffg5_v12     | Init_C2 | AccountableSafety | 1.3 GB | 1day 6h    |
+| MC_ffg-b3_ffg5_v12     | Init_C3 | AccountableSafety | 1.2 GB | 1h 53min   |
+| MC_ffg-b3_ffg5_v12     | Init_C1 | AccountableSafety | 1.5 GB | TO (> 6d)  |
 
 [Apalache]: https://apalache-mc.org/
 [Apalache installation]: https://apalache-mc.org/docs/apalache/installation/index.html
