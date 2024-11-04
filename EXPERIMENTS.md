@@ -430,7 +430,7 @@ The table below summarizes the experiments with accountable safety:
 | Instance               | Init    | Invariant         | Memory | Time       |
 |------------------------|---------|-------------------|--------|------------|
 | MC_ffg-b1_ffg5_v12     | Init_C1 | AccountableSafety | 1.2 GB | 11h 31min  |
-| MC_ffg-b3_ffg5_v12     | Init_C4 | AccountableSafety | 1.4 GB | TO (> 6d)  |
+| MC_ffg-b3_ffg5_v12     | Init_C4 | AccountableSafety | 1.4 GB | 6d 16h     |
 | MC_ffg-b3_ffg5_v12     | Init_C2 | AccountableSafety | 1.3 GB | 1day 6h    |
 | MC_ffg-b3_ffg5_v12     | Init_C3 | AccountableSafety | 1.2 GB | 1h 53min   |
 | MC_ffg-b3_ffg5_v12     | Init_C1 | AccountableSafety | 1.5 GB | TO (> 6d)  |
