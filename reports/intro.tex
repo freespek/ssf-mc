@@ -2,7 +2,24 @@
 
 \section{Introduction}
 
-\colorbox{yellow}{RS, TH: A short intro to the protocol}
+\colorbox{yellow}{RS: Review a short intro to the protocol}
+
+Gasper~\cite{buterin2020combining}, Ethereum’s current consensus protocol, typically requires 64 to 95 slots to finalize a block. 
+This delay in finality makes the network more vulnerable to potential reorganizations  during changes in network conditions, 
+such as periods of asynchrony. 
+Particularly, this finalization delay heightens the network’s exposure to Maximum Extractable Value (MEV) exploits, 
+which could undermine the network’s integrity.
+Additionally, the extended finalization period forces users to weigh the trade-off between economic security and transaction speed.
+
+To address these issues and speed up finality, D’Amato et al.~\cite{d20243} have recently introduced a partially synchronous finality gadget,
+which combines with two dynamically available consensus protocols – synchronous protocols that ensure safety, accountable safety, and liveness even 
+with fluctuating validator participation levels. 
+This integration results in secure ebb-and-flow protocols, achieving finality within three slots after a proposal and realizing 3-slot
+finality (3SF).
+This feature is particularly beneficial in practical scenarios, where periods of synchrony and robust honest participation often 
+last much longer than the time needed for finalization in the 3SF protocol.
+Finally, the 3SF protocol enhances the practicality of large-scale blockchain networks by enabling the dynamically-available component 
+to recover from extended asynchrony, provided at least two-thirds of validators remain honest and online for sufficient time. 
 
 \paragraph{}\colorbox{yellow}{TODO:}
 
