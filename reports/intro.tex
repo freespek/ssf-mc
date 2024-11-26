@@ -2,13 +2,19 @@
 
 \section{Introduction}
 
-Gasper~\cite{buterin2020combining}, Ethereum’s current consensus protocol, typically requires 64 to 95 slots – the units of time 
-during which a new chain extending the previous one by one block is proposed and voted – to finalize. 
-This delay in finality makes the network more vulnerable to potential reorganizations  during changes in network conditions, 
-such as periods of asynchrony. 
-Particularly, this finalization delay heightens the network’s exposure to Maximum Extractable Value (MEV) exploits, 
+At the time of writing this report, Ethereum is using
+Gasper~\cite{buterin2020combining} as the underlying consensus protocol.
+It operates in terms of slots that are the units of time 
+during which a new chain extending the previous one by one block is proposed and
+voted, and it typically needs 64 to 95 slots to finalize.
+This delay in finality makes the network more vulnerable to potential
+block reorganizations when the network conditions change, 
+e.g., when the network stops being synchronous for a period of time. 
+In particular, this finalization delay heightens the network’s exposure to
+Maximal Extractable Value (MEV) exploits, 
 which could undermine the network’s integrity.
-Additionally, the extended finalization period forces users to weigh the trade-off between economic security and transaction speed.
+Additionally, the extended finalization period forces users to weigh the
+trade-off between economic security and transaction speed.
 
 To address these issues and speed up finality, D’Amato et al.~\cite{d20243} have recently introduced the \emph{3-slot-finality} (3SF) protocols 
 for Ethereum that achieve finality within three slots after a proposal and realizing 3-slot finality.
@@ -27,6 +33,8 @@ The first confirmation rule defines what is known as the \emph{available chain},
 The second confirmation rule defines the \emph{finalized chain}, and provides safety even under network partitions, but loses liveness 
 either under asynchrony or in case of fluctuation in the participation level.
 
+Since complete verification of the 3SF protocols is beyond the scope of this
+project, we focus on the logic that deals with accountability.
 In this project, we targeted the 3SF specification in Python \footnote{URL to the Python specification:
 \url{https://github.com/freespek/ssf-mc/3sf.txt}} as the case study, and our main goal was to demonstrate 
 \emph{Accountable Safety} of this protocol by the means of model checking. 
