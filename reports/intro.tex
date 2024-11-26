@@ -2,32 +2,44 @@
 
 \section{Introduction}
 
-\colorbox{yellow}{RS: Review a short intro to the protocol}
-
-Gasper~\cite{buterin2020combining}, Ethereum’s current consensus protocol, typically requires 64 to 95 slots to finalize a block. 
+Gasper~\cite{buterin2020combining}, Ethereum’s current consensus protocol, typically requires 64 to 95 slots – the units of time 
+during which a new chain extending the previous one by one block is proposed and voted – to finalize. 
 This delay in finality makes the network more vulnerable to potential reorganizations  during changes in network conditions, 
 such as periods of asynchrony. 
 Particularly, this finalization delay heightens the network’s exposure to Maximum Extractable Value (MEV) exploits, 
 which could undermine the network’s integrity.
 Additionally, the extended finalization period forces users to weigh the trade-off between economic security and transaction speed.
 
-To address these issues and speed up finality, D’Amato et al.~\cite{d20243} have recently introduced a partially synchronous finality gadget,
-which combines with two dynamically available consensus protocols – synchronous protocols that ensure safety, accountable safety, and liveness even 
-with fluctuating validator participation levels. 
-This integration results in secure ebb-and-flow protocols, achieving finality within three slots after a proposal and realizing 3-slot
-finality (3SF).
+To address these issues and speed up finality, D’Amato et al.~\cite{d20243} have recently introduced the \emph{3-slot-finality} (3SF) protocols 
+for Ethereum that achieve finality within three slots after a proposal and realizing 3-slot finality.
 This feature is particularly beneficial in practical scenarios, where periods of synchrony and robust honest participation often 
 last much longer than the time needed for finalization in the 3SF protocol.
 Finally, the 3SF protocol enhances the practicality of large-scale blockchain networks by enabling the dynamically-available component 
 to recover from extended asynchrony, provided at least two-thirds of validators remain honest and online for sufficient time. 
 
-\paragraph{}\colorbox{yellow}{TODO:}
+To that end, the 3SF protocols combine a partially synchronous finality gadget with two dynamically available consensus protocols – 
+synchronous protocols that ensure safety, accountable safety, and liveness even with fluctuating validator participation levels. 
+This design is based on the \emph{ebb-and-flow} approach introduced in~\cite{neu2021ebb}. 
+An ebb-and-flow protocol comprises two sub-protocols, each with its own confirmation rule, and each outputting a chain, with one serving 
+as a prefix of the other. 
+The first confirmation rule defines what is known as the \emph{available chain}, which provides liveness under dynamic participation
+(and synchrony). 
+The second confirmation rule defines the \emph{finalized chain}, and provides safety even under network partitions, but loses liveness 
+either under asynchrony or in case of fluctuation in the participation level.
 
-We have started this project with the Python specification of accountable
-safety in the 3SF Protocol\footnote{URL to the Python specification:
-\url{https://github.com/freespek/ssf-mc/3sf.txt}}. The main goal of the project
-was to demonstrate accountable safety of this protocol by the means of model
-checking.
+In this project, we targeted the 3SF specification in Python \footnote{URL to the Python specification:
+\url{https://github.com/freespek/ssf-mc/3sf.txt}} as the case study, and our main goal was to demonstrate 
+\emph{Accountable Safety} of this protocol by the means of model checking. 
+Intuitively, we say that a protocol has Accountable Safety with resilience $f > 0$, if, upon a safety violation, by having access to 
+all messages sent, it is possible to identify at least $f$ responsible participants. 
+
+% \paragraph{}\colorbox{yellow}{TODO:}
+
+% We have started this project with the Python specification of accountable
+% safety in the 3SF Protocol\footnote{URL to the Python specification:
+% \url{https://github.com/freespek/ssf-mc/3sf.txt}}. The main goal of the project
+% was to demonstrate accountable safety of this protocol by the means of model
+% checking.
 
 We have chosen the specification language~\tlap{} and the model checker
 Apalache for the following reasons.\ \tlap{} remains a goto language for

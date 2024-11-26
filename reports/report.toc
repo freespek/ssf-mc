@@ -1,0 +1,88 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {paragraph}{Complexity of (model-checking) the protocol.}{4}{section*.2}%
+\contentsline {subsection}{\numberline {1.1}Key Outcomes}{5}{subsection.1.1}%
+\contentsline {paragraph}{Exhaustive checking of \textit {AccountableSafety}.}{5}{section*.3}%
+\contentsline {paragraph}{No falsification of \textit {AccountableSafety}.}{6}{section*.4}%
+\contentsline {paragraph}{Advantages of human expertise over automated translation.}{6}{section*.5}%
+\contentsline {paragraph}{Value of $\textsc {TLA}^{+}${}.}{6}{section*.6}%
+\contentsline {paragraph}{Value of producing examples.}{7}{section*.7}%
+\contentsline {subsection}{\numberline {1.2}Structure of the report}{7}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Potential extensions of this project}{9}{subsection.1.3}%
+\contentsline {section}{\numberline {2}$\textit {Spec}_1${}: Translation from Python}{9}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Shape of the Python Specification}{11}{subsection.2.1}%
+\contentsline {paragraph}{Data structures and types.}{11}{section*.10}%
+\contentsline {paragraph}{Functions.}{11}{section*.11}%
+\contentsline {paragraph}{Similarities between Python and $\textsc {TLA}^{+}${}.}{11}{section*.12}%
+\contentsline {subsection}{\numberline {2.2}Translating Basic Operators}{11}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Translating Complex Operators}{12}{subsection.2.3}%
+\contentsline {paragraph}{Assignments and local variables.}{12}{section*.14}%
+\contentsline {paragraph}{Runtime exceptions.}{13}{section*.15}%
+\contentsline {paragraph}{Control flow.}{13}{section*.16}%
+\contentsline {paragraph}{Recursion.}{13}{section*.17}%
+\contentsline {subsection}{\numberline {2.4}Overall Example}{14}{subsection.2.4}%
+\contentsline {section}{\numberline {3}$\textit {Spec}_2${}: Fold-Based Specification}{14}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Translating Recursive $\textsc {TLA}^{+}${} Operators}{15}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}An Optimization: Flattening Nested Folds}{16}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Checking the Specification}{18}{subsection.3.3}%
+\contentsline {section}{\numberline {4}$\textit {Spec}_3${}: Adding a state machine}{20}{section.4}%
+\contentsline {subsection}{\numberline {4.1}State machines in $\textsc {TLA}^{+}${}}{20}{subsection.4.1}%
+\contentsline {paragraph}{Symbolic simulation.}{21}{section*.28}%
+\contentsline {subsection}{\numberline {4.2}Introducing a state machine}{21}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Model checking experiments}{22}{subsection.4.3}%
+\contentsline {section}{\numberline {5}$\textit {Spec}_{3b}${} in SMT}{23}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Modeling}{24}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Checking the Specification}{25}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Experimental Results}{25}{subsection.5.3}%
+\contentsline {section}{\numberline {6}$\textit {Spec}_{3b}${} in Alloy}{26}{section.6}%
+\contentsline {subsection}{\numberline {6.1}From $\textsc {TLA}^{+}${} to Alloy}{26}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Model Checking with Alloy}{27}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Model Checking Results}{28}{subsection.6.3}%
+\contentsline {section}{\numberline {7}$\textit {Spec}_4${}: Two chains in $\textsc {TLA}^{+}${}}{29}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Inductive Invariant}{30}{subsection.7.1}%
+\contentsline {paragraph}{Justified checkpoints.}{32}{section*.36}%
+\contentsline {subsection}{\numberline {7.2}Model checking experiments}{33}{subsection.7.2}%
+\contentsline {section}{\numberline {8}$\textit {Spec}_{4b}${}: Decomposition \& abstractions}{33}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Constraints over set cardinalities}{33}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Quorum sets}{34}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Decomposition of chain configurations}{34}{subsection.8.3}%
+\contentsline {subsection}{\numberline {8.4}Model checking experiments}{35}{subsection.8.4}%
+\contentsline {section}{\numberline {A}Translating Python specifications to $\textsc {TLA}^{+}${}}{39}{appendix.A}%
+\contentsline {subsection}{\numberline {A.1}Translation rules}{40}{subsection.A.1}%
+\contentsline {subsubsection}{\numberline {A.1.1}Singleton vector}{40}{subsubsection.A.1.1}%
+\contentsline {subsubsection}{\numberline {A.1.2}Vector concatenation}{40}{subsubsection.A.1.2}%
+\contentsline {subsubsection}{\numberline {A.1.3}Set sequentialization}{40}{subsubsection.A.1.3}%
+\contentsline {subsubsection}{\numberline {A.1.4} Empty set}{40}{subsubsection.A.1.4}%
+\contentsline {subsubsection}{\numberline {A.1.5} Set union}{41}{subsubsection.A.1.5}%
+\contentsline {subsubsection}{\numberline {A.1.6} Set flattening}{41}{subsubsection.A.1.6}%
+\contentsline {subsubsection}{\numberline {A.1.7}Set intersection}{41}{subsubsection.A.1.7}%
+\contentsline {subsubsection}{\numberline {A.1.8}Set difference}{41}{subsubsection.A.1.8}%
+\contentsline {subsubsection}{\numberline {A.1.9}Singleton set}{41}{subsubsection.A.1.9}%
+\contentsline {subsubsection}{\numberline {A.1.10}Set extension}{42}{subsubsection.A.1.10}%
+\contentsline {subsubsection}{\numberline {A.1.11}Element choice}{42}{subsubsection.A.1.11}%
+\contentsline {subsubsection}{\numberline {A.1.12}Set filter}{42}{subsubsection.A.1.12}%
+\contentsline {subsubsection}{\numberline {A.1.13} Set maximum}{42}{subsubsection.A.1.13}%
+\contentsline {paragraph}{Instance 1:}{43}{section*.44}%
+\contentsline {paragraph}{Instance 2:}{43}{section*.45}%
+\contentsline {subsubsection}{\numberline {A.1.14} Set sum}{43}{subsubsection.A.1.14}%
+\contentsline {subsubsection}{\numberline {A.1.15} Set emptiness check}{43}{subsubsection.A.1.15}%
+\contentsline {subsubsection}{\numberline {A.1.16}Vector-to-Set conversion}{43}{subsubsection.A.1.16}%
+\contentsline {subsubsection}{\numberline {A.1.17}Set mapping}{44}{subsubsection.A.1.17}%
+\contentsline {subsubsection}{\numberline {A.1.18}Function domain inclusion check}{44}{subsubsection.A.1.18}%
+\contentsline {subsubsection}{\numberline {A.1.19} Function application}{44}{subsubsection.A.1.19}%
+\contentsline {subsubsection}{\numberline {A.1.20} Empty function}{44}{subsubsection.A.1.20}%
+\contentsline {subsubsection}{\numberline {A.1.21} Function update}{45}{subsubsection.A.1.21}%
+\contentsline {subsubsection}{\numberline {A.1.22}Function combination}{45}{subsubsection.A.1.22}%
+\contentsline {subsubsection}{\numberline {A.1.23}Function domain}{45}{subsubsection.A.1.23}%
+\contentsline {subsubsection}{\numberline {A.1.24} Function codomain}{45}{subsubsection.A.1.24}%
+\contentsline {subsection}{\numberline {A.2}Meta-rules for translating recursive definitions}{46}{subsection.A.2}%
+\contentsline {subsubsection}{\numberline {A.2.1}Bounded recursion rule}{46}{subsubsection.A.2.1}%
+\contentsline {paragraph}{Example.}{48}{section*.46}%
+\contentsline {paragraph}{Optimization for associative $G$.}{49}{section*.47}%
+\contentsline {subsubsection}{\numberline {A.2.2} Mutual recursion cycles}{49}{subsubsection.A.2.2}%
+\contentsline {subsubsection}{\numberline {A.2.3}One-to-many recursion}{50}{subsubsection.A.2.3}%
+\contentsline {paragraph}{Example.}{50}{section*.48}%
+\contentsline {paragraph}{Example.}{51}{section*.49}%
+\contentsline {section}{\numberline {B}Detailed proofs}{52}{appendix.B}%
+\contentsline {subsection}{\numberline {B.1}Additional definitions}{52}{subsection.B.1}%
+\contentsline {subsection}{\numberline {B.2}Proofs}{53}{subsection.B.2}%
