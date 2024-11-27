@@ -14,6 +14,7 @@ Alloy has two features that are attractive for our project:
       restrict the number of checkpoints and votes to 5 and 12, respectively.
       Although we introduced similar restrictions with Apalache, Alloy has even
       finer level of parameter tuning.
+      \rs{Is there some inherent limitation of Apalache that we should discuss?}
 
   \item Alloy translates the model checking problem to a Boolean satisfiability
       problem (SAT), in constrast to Apalache, which translates it to satisfiability-modulo-theory (SMT).  This
@@ -50,7 +51,7 @@ signatures for the blocks and checkpoints:
 \end{lstlisting}
 
 In contrast to~\SpecThree{}, our Alloy specification does not describe a
-state machine, but it specifies an arbitrary single state of the protocol. As
+state machine, but it specifies an arbitrary single state of the protocol.\rs{Like the SMT spec, right? if so, perhaps we should say so} As
 in~\SpecThree{}, we compute the set of justified checkpoints as a fixpoint:
 
 \begin{lstlisting}[language=alloy,columns=fullflexible]

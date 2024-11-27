@@ -4,7 +4,7 @@ We have presented a series of specifications modeling the 3SF protocol from
 various perspectives. Initially, we developed a direct translation of the
 protocol's Python specification into \tlap{}, but this approach proved
 unsatisfactory due to the reliance on recursion. To address this, we modified
-the specification to use folds in place of recursion, theoretically enabling
+the specification to use folds\rs{if possible, quickly explain what folds are or provide a reference} in place of recursion, theoretically enabling
 model-checking with Apalache. However, this approach also proved impractical
 due to the high computational complexity involved. Subsequently, we applied a
 series of abstractions to improve the model-checking efficiency.
