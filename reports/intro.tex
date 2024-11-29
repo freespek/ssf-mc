@@ -33,11 +33,11 @@ The first confirmation rule defines what is known as the \emph{available chain},
 The second confirmation rule defines the \emph{finalized chain}, and provides safety even under network partitions, but loses liveness 
 either under asynchrony or in case of fluctuation in the participation level.
 
-In this project, we targeted the 3SF specification in Python \footnote{Link to the Python specification:
+In this research project, we targeted the 3SF specification in Python \footnote{Link to the Python specification:
 \href{https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py}{https://github.com/saltiniroberto/ssf/.../ffg.py}} as the case study focusing only on the finality gadget protocol, which is mostly specified in the file \texttt{ffg.py}.
 Our main goal was to demonstrate 
 \emph{Accountable Safety} of this protocol by the means of model checking. 
-Accountable Safety is the property which ensures that if two conflicting chain (i.e. chains where neither is a prefix of the other) are finalized then, by having access to all messages sent, it is possible to identify at least 1/3 responsible participants. 
+Accountable Safety is the property which ensures that if two conflicting chains (i.e. chains where neither is a prefix of the other) are finalized then, by having access to all messages sent, it is possible to identify at least $\frac{1}{3}$ responsible participants. 
 
 % \paragraph{}\colorbox{yellow}{TODO:}
 
