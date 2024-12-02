@@ -10,4 +10,5 @@ _build
 *.fls
 *.log
 *.out
+*.toc
 *.synctex.gz

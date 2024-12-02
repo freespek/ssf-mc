@@ -2,15 +2,50 @@
 
 \section{Introduction}
 
-\colorbox{yellow}{RS, TH: A short intro to the protocol}
+At the time of writing this report, Ethereum is using
+Gasper~\cite{buterin2020combining} as the underlying consensus protocol.
+In Gasper, time is divided into slots, which represent intervals during which a new block is proposed to extend the blockchain and undergoes voting. 
+Finalizing a block--ensuring that it is permanently added to the blockchain and cannot be reversed--typically requires 64 to 95 slots.
+This delay in finality makes the network more vulnerable to potential
+block reorganizations when the network conditions change, 
+e.g., during periods of asynchronous network conditions.
+In particular, this finalization delay heightens the network’s exposure to
+Maximal Extractable Value (MEV) exploits, 
+which could undermine the network’s integrity.
+Additionally, the extended finalization period forces users to weigh the
+trade-off between economic security and transaction speed.
 
-\paragraph{}\colorbox{yellow}{TODO:}
+To address these issues and speed up finality, D’Amato et al.~\cite{d20243} have recently introduced the \emph{3-slot-finality} (3SF) protocols 
+for Ethereum that achieve finality within three slots after a proposal, hence realizing 3-slot finality.
+This feature is particularly beneficial in practical scenarios where periods of synchrony and robust honest participation often 
+last much longer than the time needed for finalization in the 3SF protocol.
+Finally, the 3SF protocol enhances the practicality of large-scale blockchain networks by enabling the dynamically-available component, 
+which handles honest participants who may go offline and come back online~\cite{pass2017sleepy}, 
+to recover from extended asynchrony, provided at least two-thirds of validators remain honest and online for sufficient time. 
 
-We have started this project with the Python specification of accountable
-safety in the 3SF Protocol\footnote{URL to the Python specification:
-\url{https://github.com/freespek/ssf-mc/3sf.txt}}. The main goal of the project
-was to demonstrate accountable safety of this protocol by the means of model
-checking.
+To that end, the 3SF protocols combine a partially synchronous finality gadget with two dynamically available consensus protocols – 
+synchronous protocols that ensure safety and liveness even with fluctuating validator participation levels. 
+This design is based on the \emph{ebb-and-flow} approach introduced in~\cite{neu2021ebb}. 
+An ebb-and-flow protocol comprises two sub-protocols, each with its own confirmation rule, and each outputting a chain, with one serving 
+as a prefix of the other. 
+The first confirmation rule defines what is known as the \emph{available chain}, which provides liveness under dynamic participation
+(and synchrony). 
+The second confirmation rule defines the \emph{finalized chain}, and provides safety even under network partitions, but loses liveness 
+either under asynchrony or in case of fluctuation in the participation level.
+
+In this research project, we targeted the 3SF specification in Python \footnote{Link to the Python specification:
+\href{https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py}{https://github.com/saltiniroberto/ssf/.../ffg.py}} as the case study focusing only on the finality gadget protocol, which is mostly specified in the file \texttt{ffg.py}.
+Our main goal was to demonstrate 
+\emph{Accountable Safety} of this protocol by the means of model checking. 
+Accountable Safety is the property which ensures that if two conflicting chains (i.e. chains where neither is a prefix of the other) are finalized then, by having access to all messages sent, it is possible to identify at least $\frac{1}{3}$ responsible participants. 
+
+% \paragraph{}\colorbox{yellow}{TODO:}
+
+% We have started this project with the Python specification of accountable
+% safety in the 3SF Protocol\footnote{URL to the Python specification:
+% \url{https://github.com/freespek/ssf-mc/3sf.txt}}. The main goal of the project
+% was to demonstrate accountable safety of this protocol by the means of model
+% checking.
 
 We have chosen the specification language~\tlap{} and the model checker
 Apalache for the following reasons.\ \tlap{} remains a goto language for
