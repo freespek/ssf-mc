@@ -2,12 +2,13 @@
 
 \section{\SpecFourB{}: Decomposition \& abstractions}\label{sec:spec4b}
 
-Disappointed with the results in Section~\ref{sec:spec4}, we have decided to
+Disappointed with the results in Section~\ref{sec:spec4}, we decided to
 push abstractions even further. These abstractions helped us to verify
 accountable safety for the configuration in Figure~\ref{fig:three}.
 Unfortunately, they do not scale to larger configurations. In any case, we
 find these abstractions quite important for further research on model checking
 of algorithms similar to 3SF\@.
+
 
 \subsection{Constraints over set cardinalities}
 
@@ -37,7 +38,7 @@ Equation~(\ref{eq:card-comparison2}). Essentially, the solver has to find $2
 \cdot T + 1$ set elements to show that Equation~(\ref{eq:card-comparison2})
 holds true. This gives us a linear number of constraints, instead of a
 quadratic one. For example, when $T=1$ and the set may contain up to~$n$
-elements, the model checker produces $3 \cdot O(n)$ constraints to check
+elements, the model checker produces $3 \cdot O(n)$\rs{Why write $3\cdot O(n)$ rather than just $O(n)$ given that $3 \cdot O(n) \in O(n)$.} constraints to check
 Equation~(\ref{eq:card-comparison2}). A similar optimization is used in the
 specification of Tendermint~\cite{TendermintSpec2020}.
 
@@ -45,7 +46,7 @@ specification of Tendermint~\cite{TendermintSpec2020}.
 
 To further optimize the constraints over set cardinalities, we have applied the
 well-known pattern of replacing cardinality tests with quorum sets. For
-example, this approach is used in the specification of Paxos\footnote{%
+example, this approach is used in the specification of Paxos\rs{Why use footnote here rather than a citation?}\footnote{%
     \tlap{} specification of Paxos:
 \url{https://github.com/tlaplus/Examples/blob/master/specifications/Paxos/Paxos.tla}.}
 
