@@ -3,7 +3,7 @@
 \section{\SpecThreeB{} in Alloy}\label{sec:alloy}
 
 Once we saw that our specifications~\SpecThree{} and~\SpecFour{}
-were too challenging for the \tlap{} tools, we have decided\rs{we decided (without ``have'')} to employ
+were too challenging for the \tlap{} tools, we decided to employ
 Alloy~\cite{jackson2012software,alloytools}, as an alternative to our tooling.
 Alloy has two features that are attractive for our project:
 
@@ -17,8 +17,7 @@ Alloy has two features that are attractive for our project:
       \rs{Is there some inherent limitation of Apalache that we should discuss?}
 
   \item Alloy translates the model checking problem to a Boolean satisfiability
-      problem (SAT), in constrast to Apalache, which translates it to satisfiability-modulo-theory (SMT).\rs{It may good to explain SMT vs SAT}  This
-      allows us to run the latest off-the-shelf solvers such as Kissat, the
+      problem (SAT), in contrast to Apalache, which translates it to satisfiability-modulo-theory (SMT).  This allows us to run the latest off-the-shelf solvers such as Kissat, the
       winner of the SAT Competition 2024~\cite{SAT-Competition-2024-solvers}.
 
 \end{itemize}
@@ -51,7 +50,7 @@ signatures for the blocks and checkpoints:
 \end{lstlisting}
 
 In contrast to~\SpecThree{}, our Alloy specification does not describe a
-state machine, but it specifies an arbitrary single state of the protocol.\rs{this is similar to the SMT spec} As
+state machine, but it specifies an arbitrary single state of the protocol.\rs{Like the SMT spec, right? if so, perhaps we should say so} As
 in~\SpecThree{}, we compute the set of justified checkpoints as a fixpoint:
 
 \begin{lstlisting}[language=alloy,columns=fullflexible]

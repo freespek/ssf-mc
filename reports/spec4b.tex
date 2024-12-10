@@ -9,7 +9,6 @@ Unfortunately, they do not scale to larger configurations. In any case, we
 find these abstractions quite important for further research on model checking
 of algorithms similar to 3SF\@.
 
-\textcolor{purple}{RS: Done till here}
 
 \subsection{Constraints over set cardinalities}
 
@@ -22,7 +21,7 @@ of algorithms similar to 3SF\@.
 
 In the general case, the symbolic model checker has to encode constraints for
 the cardinality computation in Equation~(\ref{eq:card-comparison}). If a set
-$S$ contains up to $n$~elements, Apalache produces $O(n^2)$~constraints\rs{it may be good to provide an intuition for why $O(n^2)$.} for
+$S$ contains up to $n$~elements, Apalache produces $O(n^2)$~constraints for
 $\textit{Cardinality(S)}$.
 
 To partially remediate the above issue in~\SpecFour{}, we introduce a
