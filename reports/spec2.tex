@@ -18,11 +18,10 @@ not scale to model-checking of this problem.
 
 To resolve this, we reformulate \SpecOne{} into \SpecTwo{}, by substituting
 (mutually) recursive constructs with bounded
-\texttt{fold}~operations\footnote{In functional programming, \texttt{fold} is a
+\texttt{fold}~operations\footnote{In functional programming, \texttt{fold} (sometimes \texttt{reduce}) is a
 higher-order function that accepts a combining operation and an iterable data
 structure, and applies the operation to each element of the data structure
-to compute a single return value. \texttt{fold} is also known as
-\texttt{reduce} in some languages.}, which enable the same iterative
+to compute a single return value.}, which enable the same iterative
 computations to be performed in a non-recursive manner. We provide a set of
 translation rules to convert recursive operators to bounded \texttt{fold}
 operations, see Appendix~\ref{subsec:recrules}.
