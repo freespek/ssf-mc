@@ -2,6 +2,11 @@
 
 \begin{enumerate}
 
+  \item \emph{Prove some of the other properties guaranteed by 3SF.} This project focused on verifying AccountableSafety, arguably the most critical property that the 3SF protocol must satisfy.
+  However, it is also arguably the most challenging to verify through model checking, as it is the only property involving all honest participants that must hold true under fully asynchronous network conditions.
+  In contrast, proving that honest nodes never commit slashable offenses (a non-distributed system property dependent only on the behavior of a single node) or properties reliant on network synchrony, such as reorg-resilience and dynamic-availability, is expected to be simpler, albeit this would require extending the \tlap{} encoding to include the behavior of honest nodes, which was unnecessary for verifying AccountableSafety.
+
+
   \item \emph{Generating inputs to the Python specification.} As we have noted,
     the power of our~\tlap{} specifications is the ability to generate examples
     with Apalache. This would help the authors of the Python specification to
