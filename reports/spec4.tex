@@ -5,7 +5,7 @@
 We obtain this specification by preserving the vote and checkpoint behavior from \SpecThree{}, but we restrict the block-graph to exactly two chains, which are allowed to fork, i.e., they always share a common prefix.
 To this end, we restrict block bodies of the two chains as follows:
 \begin{enumerate}
-	\item Block bodies on the first chain have nonnegative sequential integer numbers starting from 0 (genesis), e.g. $0, 1, 2,3, 4$.
+	\item Block bodies on the first chain have non-negative sequential integer numbers starting from 0 (genesis), e.g. $0, 1, 2,3, 4$.
 	\item Block bodies on the second chain are the same as the ones on the first chain \emph{up to the fork point}, after which they change sign, but otherwise maintain their sequence in absolute value terms, e.g. $0, 1,2,-3,-4$.
 \end{enumerate}
 
@@ -25,7 +25,7 @@ Since our goal is ultimately to prove or disprove \textit{AccountableSafety}, we
 The challenge, typically, is that inductive invariants are more difficult to write, compared to state invariants.
 They are usually composed of several lemmas, i.e. properties that we are less interested in on their own, but which are crucial in establishing property (2.).
 
-As we explain below, the inductive invariant introduced in \SpecFour{} mainly contains of two sets of lemmas, one for characterizing the chain-fork scenarios, and a second one for characterizing justified checkpoints, shown in Figure~\ref{figFork} and Figure~\ref{figJC} respectively.
+As we explain below, the inductive invariant introduced in \SpecFour{} mainly consists of two sets of lemmas, one for characterizing the chain-fork scenarios, and a second one for characterizing justified checkpoints, shown in Figure~\ref{figFork} and Figure~\ref{figJC} respectively.
 
 \begin{figure}
   \includegraphics[width=\textwidth]{images/chain-and-fork-inv.pdf}
@@ -45,7 +45,7 @@ Additionally, we require validity predicates for the vote set and checkpoints, a
 	\item Consistency: Every checkpoint in the set is justified, and 
 	\item Completeness: Every justified checkpoint belongs to the set.
 \end{enumerate}
-It is worth noting that both of these properties are required for an inductive invariant; if we don't specify consistency, the solver can trivially infer that the set contains all possible checkpoints, and that all checkpoints are finalized, which leads to bogus counterexamples to \textit{AccountableSafety}.
+It is worth noting that both of these properties are required for an inductive invariant; if we do not specify consistency, the solver can trivially infer that the set contains all possible checkpoints, and that all checkpoints are finalized, which leads to bogus counterexamples to \textit{AccountableSafety}.
 On the other hand, if we don't specify completeness, the solver can trivially infer that the set of justified checkpoints is empty (or contains exactly the genesis checkpoint). This leads us to be unable to detect real violations of \textit{AccountableSafety}, since we can never observe conflicting finalized checkpoints, even when the votes cast necessitate their existence.
 
 This is critical, because including both constraints places a heavy burden on the solver. No matter how we define the justification predicate, it will inevitably appear in both positive and negative form, forcing the solver to contend with both quantifier alternations and double universal quantification, both of which are known to be hard.
