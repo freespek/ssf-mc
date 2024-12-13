@@ -3,7 +3,7 @@
 \section{\SpecThreeB{} in Alloy}\label{sec:alloy}
 
 Once we saw that our specifications~\SpecThree{} and~\SpecFour{}
-were too challenging for the \tlap{} tools, we have decided to employ
+were too challenging for the \tlap{} tools, we decided to employ
 Alloy~\cite{jackson2012software,alloytools}, as an alternative to our tooling.
 Alloy has two features that are attractive for our project:
 
@@ -16,7 +16,7 @@ Alloy has two features that are attractive for our project:
       finer level of parameter tuning.
 
   \item Alloy translates the model checking problem to a Boolean satisfiability
-      problem (SAT), in constrast to Apalache, which translates it to satisfiability-modulo-theory (SMT).  This
+      problem (SAT), in contrast to Apalache, which translates it to satisfiability-modulo-theory (SMT).  This
       allows us to run the latest off-the-shelf solvers such as Kissat, the
       winner of the SAT Competition 2024~\cite{SAT-Competition-2024-solvers}.
 
@@ -112,7 +112,7 @@ are the most important ones, as they capture the general case.
 To see if we could go a bit further beyond 5 blocks, we have tried a
 configuration with 7 blocks. This configuration happened to be quite challenging
 for Alloy and Kissat. We have run Kissat for over 16 days, and it was stuck at
-the remaining seven percent for many days. At that point, it has introduced:
+the remaining seven percent for many days. At that point, it had introduced:
 
 \begin{itemize}
   \item 60 thousand Boolean variables,
