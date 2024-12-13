@@ -37,7 +37,7 @@ Also, $\C < \C'$ means $\C \leq \C' \land \C \neq \C'$.
 Validators cast two main types of votes: \textsc{ffg-vote}s and \textsc{vote}s. 
 Each \textsc{vote} includes an \textsc{ffg-vote}.
 The specification targeted by this project only deals with \textsc{ffg-vote}s as the extra information included in  \textsc{vote}s has no impact on AccountableSafety.
-An \textsc{ffg-vote} is represented as a tuple \([\textsc{ffg-vote}, \C_1, \C_2, v_i]\), where {$v_i$ is the validator sending the \textsc{ffg-vote}\footnote{Digital signature are employed to ensure that $v_i$ is the actual sender and it is assumed that such digital signatures are unforgeable.}, while} \(\C_1\) and \(\C_2\) are checkpoints.
+An \textsc{ffg-vote} is represented as a tuple \([\textsc{ffg-vote}, \C_1, \C_2, v_i]\), where {$v_i$ is the validator sending the \textsc{ffg-vote}\footnote{Digital signatures are employed to ensure that $v_i$ is the actual sender and it is assumed that such digital signatures are unforgeable.}, while} \(\C_1\) and \(\C_2\) are checkpoints.
 These checkpoints are respectively referred to as the \emph{source} (\(\C_1\)) and the \emph{target} (\(\C_2\)) of the \textsc{ffg-vote}.
 Such an \textsc{ffg-vote} is \emph{valid}
 %(i.e., $\mathrm{valid}(\C_1 \to \C_2$)) 
