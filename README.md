@@ -8,7 +8,7 @@ proposal by D'Amato, Saltini, Tran, and Zanolini.
 **Spec 1.**: This is the specification
 [spec1-2/ffg_recursive.tla](./spec1-2/ffg_recursive.tla). It is the result of a
 manual mechanical translation of the original executable specification in
-Python, which can be found in [ffg.py](./spec1-2/ffg.tla). This specification is
+Python, which can be found in [ffg.py][]. This specification is
 using mutually recursive operators, which are not supported by Apalache. As a
 result, we are not checking this specification.
 
@@ -56,7 +56,7 @@ Experimental results are reported in [EXPERIMENTS.md].
 [spec1-2/MC_ffg]: ./spec1-2/MC_ffg.tla
 [spec3/MC_ffg]: ./spec3/MC_ffg.tla
 [spec3/ffg]: ./spec3/ffg.tla
-[ffg.py]: ./ssf/high_level/common/ffg.py
+[ffg.py]: https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py
 [spec1-2/ffg_recursive.tla]: ./spec1-2/ffg-recursive.tla
 [spec1-2/ffg.tla]: ./spec1-2/ffg.tla
 [spec3/ffg.tla]: ./spec3/ffg.tla
