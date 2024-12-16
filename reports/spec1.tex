@@ -31,9 +31,9 @@ automatically generates constructors, comparator methods, and other boilerplate
 code. Composite types are defined using the \texttt{pyrsistent} library, which
 provides immutable data structures such as sets and maps.
 
-\paragraph{Functions.} The function definitions are mostly pure functions that
+\paragraph{Functions.} The function definitions are pure functions that
 take some input and return some output -- side-effects are rare and limited to
-auxiliary state when computing the function output.\rs{Not sure this is correct as all functions should be side-effect free.} Some functions are
+local state. Some functions are
 (mutually) recursive, as can be seen in Figure~\ref{fig:callgraph}.
 
 \paragraph{Similarities between Python and \tlap{}.} Despite being a programming
