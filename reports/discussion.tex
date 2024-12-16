@@ -1,20 +1,9 @@
 %! TeX root = report.tex
 
-We have presented a series of specifications modeling the 3SF protocol from
-various perspectives. Initially, we developed a direct translation of the
-protocol's Python specification into \tlap{}, but this approach proved
-unsatisfactory due to the reliance on recursion. To address this, we modified
-the specification to use folds in place of recursion, theoretically enabling
-model-checking with Apalache. However, this approach also proved impractical
-due to the high computational complexity involved. Subsequently, we applied a
-series of abstractions to improve the model-checking efficiency.
-
-In addition to the \tlap{} specifications, we also introduced an SMT encoding
-and an Alloy specification. The SMT encoding proved to be fairly performant,
-while the Alloy specification demonstrated exceptional performance in
-combination with the Kissat solver~\cite{SAT-Competition-2024-solvers}.
-
-We summarize the key outcomes of the project:
+During the course of this project, we have developed a series of specifications
+in \tlap{}, Alloy, and SMT, each representing a different level of abstraction
+of the 3SF protocol. Before we delve into the technical details, we summarize
+the key outcomes of the project:
 
 \paragraph{Exhaustive checking of \textit{AccountableSafety}.} Our primary
 objective was to verify the \textit{AccountableSafety} property of the 3SF
