@@ -12,23 +12,24 @@
 \newcommand{\tth}[1]{\footnote{\textcolor{blue}{#1}}}
 \newcommand{\tbh}[1]{\textsc{\textbf{#1}}}
 
-\title{Technical Report:\\
+\title{Technical Report:
     Exploring Automatic Model-Checking of the Ethereum specification\footnote{%
         The specifications, scripts, and experimental results can be accessed at:\\
         \url{https://github.com/freespek/ssf-mc}
     }}
 \author{%
     Igor Konnov\thanks{This work was supported by Ethereum Foundation
-    under grant FY24--1535.}\\ \small Independent Researcher \\
+    under grant FY24--1535.}\\ \footnotesize Independent Researcher%
     \and
-    Jure Kukovec\footnotemark[2] \\ \small Independent Researcher \\
+    Jure Kukovec\footnotemark[2] \\ \footnotesize Independent Researcher%
     \and
-    Thomas Pani\footnotemark[2] \\ \small Independent Researcher \\
+    Thomas Pani\footnotemark[2] \\ \footnotesize Independent Researcher%
     \and
     Roberto Saltini\thanks{This work was supported by Ethereum Foundation
-    under grant FY24--1536 and was partially done while at Consensys.} \\ \small Independent Researcher \\
+    under grant FY24--1536 and was partially done while at Consensys.} \\
+    \footnotesize Independent Researcher%
     \and
-    Thanh Hai Tran\footnotemark[3] \\ \small Independent Researcher
+    Thanh Hai Tran\footnotemark[3] \\ \footnotesize Independent Researcher%
 }
 \date{}
 
@@ -38,8 +39,7 @@
 
 \maketitle
 
-\begin{abstract}
-
+\begin{abstract}%
 We explore automated model-checking of the Ethereum specification, specifically
 the accountable safety of the 3SF protocol. We use~\tlap{} as our primary
 specification language and the Apalache model checker with the Z3 SMT solver as
@@ -56,9 +56,9 @@ instances with up to 7 checkpoints and 24 validator votes, and we found no
 falsification of accountable safety in slightly larger configurations. Our
 study underscores the value of manual abstraction and expertise in enhancing
 model-checking efficiency and highlights \tlap{}'s flexibility in handling
-abstractions.
-
-\end{abstract}
+abstractions.%
+\end{abstract}%
+\newpage%
 
 \setcounter{tocdepth}{2}  % hide anything at or below \subsubsection
 \tableofcontents
