@@ -18,7 +18,7 @@ A \emph{block} is a pair of elements, denoted as \( B = (b,p) \). Here, \( b \) 
 Each block body contains a reference pointing to its \emph{parent} block. 
 The second element of the pair, \( p \geq 0 \), indicates the \emph{slot} where the block \( B \) is proposed.
 By definition, if $B_p$ is the parent of $B$, then $B_p.p < B.p$.
-The \emph{genesis block} is the only block that does not have a parent {and has a negative slot}.
+The \emph{genesis block} is the only block that does not have a parent. Its slot is \( p = 0 \).
 Given the definition above, each different block $B$ implicitly identifies a different finite \emph{chain} of blocks starting from block $B$, down to the genesis block, by recursively moving from a block to its parent.
 Hence, there is no real distinction between a block and the chain that it identifies.
 So, by chain $\chain$, we mean the chain identified by the block $\chain$.
