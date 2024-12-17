@@ -2,8 +2,14 @@
 
 \section{Introduction}
 
-\paragraph{Quick intro to 3SF.} At the time of writing this report, Ethereum is using
-Gasper~\cite{buterin2020combining} as the underlying consensus protocol.
+\subsection{Key Outcomes}\label{sec:outcomes}
+
+% we embed the discussion right in the introduction
+\input{discussion}
+
+\subsection{Quick intro to 3SF}
+
+At the time of writing this report, Ethereum is using Gasper~\cite{buterin2020combining} as the underlying consensus protocol.
 In Gasper, time is divided into slots, which represent intervals during which a new block is proposed to extend the blockchain and undergoes voting. 
 Finalizing a block -- ensuring that it is permanently added to the blockchain and cannot be reversed -- typically requires 64 to 95 slots.
 This delay in finality makes the network more vulnerable to potential
@@ -62,11 +68,6 @@ checking of agreement and accountable safety of
 Tendermint~\cite{TendermintSpec2020}. As added benefit, four of the project
 participants have developed Apalache in the past and know its strenghts and
 weaknesses.
-
-\subsection{Key Outcomes}\label{sec:outcomes}
-
-% we embed the discussion right in the introduction
-\input{discussion}
 
 \subsection{Structure of the report}
 
