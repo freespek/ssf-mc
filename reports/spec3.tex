@@ -1,6 +1,6 @@
 %! TeX root = report.tex
 
-\section{\SpecThree{}: Adding a state machine}\label{sec:spec3}
+\section{\SpecThree{}: Adding a State Machine}\label{sec:spec3}
 
 In the course of writing~\SpecTwo{}, we realized
 that the executable Python specification is essentially sequential. In other
@@ -8,7 +8,7 @@ words, even though the 3SF algorithm is distributed, its Python
 specification as well as~\SpecOne{} and~\SpecTwo{} are encoding
 all possible protocol states in a single specification state.
 
-\subsection{State machines in \tlap{}}
+\subsection{State Machines in \tlap{}}
 
 Since \tlap{} is designed for reasoning about state machines, Apalache is tuned
 towards incremental model checking of the executions. For instance, if a state
@@ -30,7 +30,7 @@ like model checking, it allows for more efficient exploration of deep system
 states. Importantly, any counterexample discovered through symbolic simulation
 is just as valid as one found via exhaustive model checking.
 
-\subsection{Introducing a state machine}
+\subsection{Introducing a State Machine}
 
 Having the observations above in mind, we introduce~\SpecThree{} in which we
 specify a state machine that incrementally builds possible protocol states by
@@ -80,7 +80,7 @@ actions.
     \caption{The transition predicate of~\SpecThree{}}\label{fig:abstract-ffg-next}
 \end{figure}
 
-\subsection{Model checking experiments}
+\subsection{Model Checking Experiments}
 
 We have conducted model checking experiments with this specification. They are
 summarized in Table~\ref{tab:abstract-ffg-mc}. Two things to notice:

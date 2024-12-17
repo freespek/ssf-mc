@@ -1,6 +1,6 @@
 %! TeX root = report.tex
 
-\section{\SpecFour{}: Two chains in \tlap{}}\label{sec:spec4}
+\section{\SpecFour{}: Two Chains in \tlap{}}\label{sec:spec4}
 
 We obtain this specification by preserving the vote and checkpoint behavior from \SpecThree{}, but we restrict the block-graph to exactly two chains, which are allowed to fork, i.e., they always share a common prefix.
 To this end, we restrict block bodies of the two chains as follows:
@@ -51,7 +51,7 @@ On the other hand, if we don't specify completeness, the solver can trivially in
 This is critical, because including both constraints places a heavy burden on the solver. No matter how we define the justification predicate, it will inevitably appear in both positive and negative form, forcing the solver to contend with both quantifier alternations and double universal quantification, both of which are known to be hard.
 Fundamentally, this demonstrates the intrinsic complexity of the problem itself, regardless of the particular characterization of justified sets in \tlap{}.
 
-\subsection{Model checking experiments}
+\subsection{Model Checking Experiments}
 
 Table~\ref{tab:spec4-experiments} summarizes our experiments on checking
 inductiveness and accountable safety of~\SpecFourB{}. Interestingly, checking
