@@ -1,11 +1,11 @@
 %! TeX root = report.tex
 
-\section{Introduction}
-
-\subsection{Key Outcomes}\label{sec:outcomes}
+\section{Key Outcomes}\label{sec:outcomes}
 
 % we embed the discussion right in the introduction
 \input{discussion}
+
+\section{Introduction}
 
 \subsection{Quick intro to 3SF}
 
@@ -39,7 +39,9 @@ The first confirmation rule defines what is known as the \emph{available chain},
 The second confirmation rule defines the \emph{finalized chain}, and provides safety even under network partitions, but loses liveness 
 either under asynchrony or in case of fluctuation in the participation level.
 
-\paragraph{Verifying 3SF.} In this research project, we targeted the 3SF specification in Python\footnote{Link to the Python specification:
+\subsection{Model Checking of 3SF}
+
+In this research project, we targeted the 3SF specification in Python\footnote{Link to the Python specification:
 \href{https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py}{https://github.com/saltiniroberto/ssf/.../ffg.py}} as the case study focusing only on the finality gadget protocol, which is mostly specified in the file \texttt{ffg.py}.
 Our main goal was to demonstrate 
 \emph{Accountable Safety} of this protocol by the means of model checking. 
@@ -133,8 +135,4 @@ that we have produced in the project:
         that were conducted in Milestone~3.
 
 \end{enumerate}
-
-\subsection{Potential extensions of this project}\label{sec:future}
-
-\input{future}
 
