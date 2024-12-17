@@ -75,3 +75,28 @@ A validator \(v_i\) is subject to slashing for sending two \emph{distinct} \text
   % Finally, we also say that a chain is $f$-\emph{accountable} if the protocol outputting it has Accountable Safety with resilience $f$.
   % If a protocol $\Pi$ comprises $k$ subprotocols, $\Pi_i$, each of which outputs a chain, $\Chain_i$, we say that $\Chain_i$ is $f$-accountable if $\Pi_i$ is $f$-accountable.
 \end{definition}
+
+\subsection{Complexity of (model-checking) the protocol}
+
+The 3SF protocol is intricate, with a high degree of combinatorial complexity,
+making it challenging for automatic model checking. During our specification
+work, we have observed multiple layers of complexity in the protocol:
+\begin{itemize}
+  \item The Python specification considers all possible graphs over all proposed
+    blocks. From graph theory~\cite{cayley1878theorem}, we know that the number
+    of labelled rooted forests on $n$ vertices is ${(n+1)}^{n-1}$. (Observe that
+    this number grows faster than the factorial~$n!$.) This is the number of
+    possible block graphs that the model checker has to consider for $n$ blocks.
+  \item The protocol introduces a directed graph of checkpoints (pairs $(b,n)$
+    of a block $b$ and an integer $n$) \emph{on top} of the block graph.
+    Validator-signed votes form a third labeled directed graph over pairs of
+    checkpoints. In addition, all of these edges have to satisfy arithmetic
+    constraints.
+  \item Justified and finalized checkpoints introduce an inductive structure
+    that the model checker has to reason about. Essentially, the solvers have to
+    reason about chains of checkpoints on top of chains of blocks.
+  \item Finally, the protocol introduces set cardinalities, both for determining a
+    quorum of validators and as a threshold for \textit{AccountableSafety}.
+    Cardinalities are known to be a source of inefficiency in automated
+    reasoning.
+\end{itemize}

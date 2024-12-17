@@ -63,29 +63,6 @@ Tendermint~\cite{TendermintSpec2020}. As added benefit, four of the project
 participants have developed Apalache in the past and know its strenghts and
 weaknesses.
 
-\paragraph{Complexity of (model-checking) the protocol.} The 3SF protocol is
-intricate, with a high degree of combinatorial complexity, making it challenging
-for automatic model checking. We have observed multiple layers of complexity in the protocol:
-\begin{itemize}
-  \item The Python specification considers all possible graphs over all proposed
-    blocks. From graph theory~\cite{cayley1878theorem}, we know that the number
-    of labelled rooted forests on $n$ vertices is ${(n+1)}^{n-1}$. (Observe that
-    this number grows faster than the factorial~$n!$.) This is the number of
-    possible block graphs that the model checker has to consider for $n$ blocks.
-  \item The protocol introduces a directed graph of checkpoints (pairs $(b,n)$
-    of a block $b$ and an integer $n$) \emph{on top} of the block graph.
-    Validator-signed votes form a third labeled directed graph over pairs of
-    checkpoints. In addition, all of these edges have to satisfy arithmetic
-    constraints.
-  \item Justified and finalized checkpoints introduce an inductive structure
-    that the model checker has to reason about. Essentially, the solvers have to
-    reason about chains of checkpoints on top of chains of blocks.
-  \item Finally, the protocol introduces set cardinalities, both for determining a
-    quorum of validators and as a threshold for \textit{AccountableSafety}.
-    Cardinalities are known to be a source of inefficiency in automated
-    reasoning.
-\end{itemize}
-
 \subsection{Key Outcomes}\label{sec:outcomes}
 
 % we embed the discussion right in the introduction
