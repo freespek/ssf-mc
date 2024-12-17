@@ -27,7 +27,7 @@ We say that $\chain_1$ \emph{conflicts} with $\chain_2$ if and only if neither $
 
 \paragraph{Checkpoints.}
 In the protocol described in~\cite{d20243}, a \emph{checkpoint} is a tuple $(\chain, c)$, where \(\chain \) is a chain and \( c \) is a slot signifying where \( \chain \) is proposed for justification (this concept is introduced and explained below).
-However, for efficiency reasons, in the specification targeted by this project, a \emph{valid} checkpoint $\C$ is a triple $(H, c, p)$ where $H$ is the hash of a chain $\chain$, $c$ is as per the definition above and $p =  \chain.p$.
+However, for efficiency reasons, in the specification targeted by this project, a \emph{valid} checkpoint $\C$ is a triple $(H, c, p)$ where $H$ is the hash of a chain $\chain$, $c$ is the slot at which chain $\chain$ is proposed for justification, as per the definition above, and $p =  \chain.p$.
 The total pre-order among checkpoints is defined:
 $\C \leq \C'$ if and only if either \(\C.c < \C'.c\) or, in the case where \(\C.c = \C'.c\), then \(\C.p \leq \C'.p\). 
 Also, $\C < \C'$ means $\C \leq \C' \land \C \neq \C'$.
