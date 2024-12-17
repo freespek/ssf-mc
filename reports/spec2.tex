@@ -134,7 +134,7 @@ properties for all possible block graphs, and all possible FFG voting scenarios
 on top of these graphs.
 
 
-To further evaluate \SpecTwo{}, we fix the block graph --- this way the solver
+To further evaluate \SpecTwo{}, we fix the block graph\footnote{We consider forests, rather than just trees, because the specification allows for that. Specifically, forests can occur when only some of the blocks of a given chain are received by a node. In the specification, the set of blocks received corresponds the map \texttt{CommonNodeState.view\_blocks}.} --- this way the solver
 only has to reason about voting. We encode three example block graphs: a
 single, linear chain (\texttt{SingleChain}), a minimal forked chain of three
 blocks (\texttt{ShortFork}), and a forest of disconnected chains
@@ -148,7 +148,6 @@ tree. In a more general case like in Figure~\ref{fig:forest}, a graph is a
 forest. The graphs in Figures~\ref{fig:tricky1}--\ref{fig:tricky2} do not
 represent chains.  The graph~\texttt{I1} is a direct-acyclic graph but not a
 forest. The graph~\texttt{I2} has a loop.
-\rs{Perhaps this was something that we failed to make clear, but there is no need to consider graphs that are not trees. Or perhaps I don't fully understand the point that we are making above. Let's discuss.}
 
 \begin{figure}
   \input{block-graphs}
