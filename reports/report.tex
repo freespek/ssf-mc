@@ -12,11 +12,8 @@
 \newcommand{\tth}[1]{\footnote{\textcolor{blue}{#1}}}
 \newcommand{\tbh}[1]{\textsc{\textbf{#1}}}
 
-\title{Technical Report:
-    Exploring Automatic Model-Checking of the Ethereum specification\footnote{%
-        The specifications, scripts, and experimental results can be accessed at:\\
-        \url{https://github.com/freespek/ssf-mc}
-    }}
+\title{\vspace{-2em}Technical Report: Exploring Automatic Model-Checking of the Ethereum specification\footnote{%
+		The specifications, scripts, and experimental results can be accessed at: \url{https://github.com/freespek/ssf-mc}}}
 \author{%
     Igor Konnov\thanks{This work was supported by Ethereum Foundation
     under grant FY24--1535.}\\ \footnotesize Independent Researcher%
@@ -40,23 +37,28 @@
 \maketitle
 
 \begin{abstract}%
-We explore automated model-checking of the Ethereum specification, specifically
-the accountable safety of the 3SF protocol. We use~\tlap{} as our primary
-specification language and the Apalache model checker with the Z3 SMT solver as
-a backend. As a first step, we manually translate the Python specification
-into~\tlap{}. This reveals the high combinatorial complexity related to the
-definitions of accountable safety in the 3SF protocol.
+We investigate automated model-checking of the Ethereum specification, focusing
+on the \emph{accountable safety} property of the 3SF consensus protocol. We
+select 3SF due to its relevance and the unique challenges it poses for formal
+verification. Our primary tools are~\tlap{} for specification and the Apalache
+model checker for verification.
 
-To address these challenges, we apply multiple layers of manual abstractions,
-such as (1) using folds instead of recursion, (2) integers in place of abstract
-graphs, and (3) decomposing chain configurations. We also develop
-specifications in SMT (CVC5) and Alloy. Despite the challenges, our results show that
-exhaustive verification of accountable safety is feasible for small
-instances with up to 7 checkpoints and 24 validator votes, and we found no
-falsification of accountable safety in slightly larger configurations. Our
-study underscores the value of manual abstraction and expertise in enhancing
-model-checking efficiency and highlights \tlap{}'s flexibility in handling
-abstractions.%
+Our formalization builds on the executable Python specification of 3SF\@. To
+begin, we manually translate this specification into~\tlap{}, revealing
+significant combinatorial complexity in the definition of accountable safety.
+To address these challenges, we introduce several layers of manual abstraction:
+(1) replacing recursion with folds, (2) substituting abstract graphs with
+integers, and (3) decomposing chain configurations.
+To cross-validate our results, we develop alternative encodings in SMT (CVC5)
+and Alloy.
+
+Despite the inherent complexity, our results demonstrate that exhaustive
+verification of accountable safety is feasible for small instances --
+supporting up to 7 checkpoints and 24 validator votes. Moreover, no violations
+of accountable safety are observed, even in slightly larger configurations.
+Beyond these findings, our study highlights the importance of manual
+abstraction and domain expertise in enhancing model-checking efficiency and
+showcases the flexibility of~\tlap{} for managing intricate specifications.%
 \end{abstract}%
 \newpage%
 
