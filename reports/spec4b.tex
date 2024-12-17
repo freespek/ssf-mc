@@ -1,6 +1,6 @@
 %! TeX root = ./report.tex
 
-\section{\SpecFourB{}: Decomposition \& abstractions}\label{sec:spec4b}
+\section{\SpecFourB{}: Decomposition \& Abstractions}\label{sec:spec4b}
 
 Disappointed with the results in Section~\ref{sec:spec4}, we decided to
 push abstractions even further. These abstractions helped us to verify
@@ -9,7 +9,7 @@ Unfortunately, they do not scale to larger configurations. In any case, we
 find these abstractions quite important for further research on model checking
 of algorithms similar to 3SF\@.
 
-\subsection{Constraints over set cardinalities}
+\subsection{Constraints over Set Cardinalities}
 
 \SpecThree{} contains several comparisons over set cardinalities. For example:
 
@@ -41,7 +41,7 @@ elements, the model checker produces $O(n)$ constraints to check
 Equation~(\ref{eq:card-comparison2}). A similar optimization is used in the
 specification of Tendermint~\cite{TendermintSpec2020}.
 
-\subsection{Quorum sets}
+\subsection{Quorum Sets}
 
 To further optimize the constraints over set cardinalities, we have applied the
 well-known pattern of replacing cardinality tests with quorum sets. For
@@ -63,7 +63,7 @@ Equation~(\ref{eq:card-comparison3}):
 \end{equation}
 
 
-\subsection{Decomposition of chain configurations}\label{sec:decomposition}
+\subsection{Decomposition of Chain Configurations}\label{sec:decomposition}
 
 Recall Figure~\ref{figFork} from Section~\ref{sec:spec4-indinv}, which poses
 constraints on the chains and the fork points. While these constraints should
@@ -89,7 +89,7 @@ Section~\ref{sec:spec4-indinv}.
              configuration~\text{M5b}}\label{fig:indinit-c3}
 \end{figure}
 
-\subsection{Model checking experiments}
+\subsection{Model Checking Experiments}
 
 Tables~\ref{tab:spec4b-experiments} and~\ref{tab:spec4b-inductiveness}
 summarize our experiments with Apalache for various configurations. One

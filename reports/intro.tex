@@ -7,7 +7,7 @@
 
 \section{Introduction}
 
-\subsection{Quick intro to 3SF}
+\subsection{Quick Intro to 3SF}
 
 At the time of writing this report, Ethereum is using Gasper~\cite{buterin2020combining} as the underlying consensus protocol.
 In Gasper, time is divided into slots, which represent intervals during which a new block is proposed to extend the blockchain and undergoes voting. 
@@ -39,7 +39,7 @@ The first confirmation rule defines what is known as the \emph{available chain},
 The second confirmation rule defines the \emph{finalized chain}, and provides safety even under network partitions, but loses liveness 
 either under asynchrony or in case of fluctuation in the participation level.
 
-\subsection{Model Checking of 3SF}
+\subsection{This Project: Model Checking of 3SF}
 
 In this research project, we targeted the 3SF specification in Python\footnote{Link to the Python specification:
 \href{https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py}{https://github.com/saltiniroberto/ssf/.../ffg.py}} as the case study focusing only on the finality gadget protocol, which is mostly specified in the file \texttt{ffg.py}.
@@ -71,7 +71,7 @@ Tendermint~\cite{TendermintSpec2020}. As added benefit, four of the project
 participants have developed Apalache in the past and know its strenghts and
 weaknesses.
 
-\subsection{Structure of the report}
+\subsection{Structure of the Report}
 
 \begin{figure}
   \input{artifacts}
@@ -82,7 +82,10 @@ Figure~\ref{fig:artifacts} depicts the relations between the specifications
 that we have produced in the project:
 
 \begin{enumerate}
-    \item We have started with the executable specification in Python.
+    \setcounter{enumi}{0}
+    \item Section~\ref{sec:3sf} provides an introduction to the technical
+    details of the 3SF protocol. We start our specification work from the
+    executable specification in Python \texttt{ffg.py}.
 
     \item \SpecOne{}: This is the specification
         \texttt{spec1-2/ffg\_recursive.tla}. It is the result of a manual
