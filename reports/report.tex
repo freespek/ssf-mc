@@ -38,14 +38,14 @@
 
 \begin{abstract}%
 We investigate automated model-checking of the Ethereum specification, focusing
-on the \emph{accountable safety} property of the 3SF consensus protocol. We
+on the \emph{Accountable Safety} property of the 3SF consensus protocol. We
 select 3SF due to its relevance and the unique challenges it poses for formal
 verification. Our primary tools are~\tlap{} for specification and the Apalache
 model checker for verification.
 
 Our formalization builds on the executable Python specification of 3SF\@. To
 begin, we manually translate this specification into~\tlap{}, revealing
-significant combinatorial complexity in the definition of accountable safety.
+significant combinatorial complexity in the definition of Accountable Safety.
 To address these challenges, we introduce several layers of manual abstraction:
 (1) replacing recursion with folds, (2) substituting abstract graphs with
 integers, and (3) decomposing chain configurations.
@@ -53,9 +53,9 @@ To cross-validate our results, we develop alternative encodings in SMT (CVC5)
 and Alloy.
 
 Despite the inherent complexity, our results demonstrate that exhaustive
-verification of accountable safety is feasible for small instances --
+verification of Accountable Safety is feasible for small instances --
 supporting up to 7 checkpoints and 24 validator votes. Moreover, no violations
-of accountable safety are observed, even in slightly larger configurations.
+of Accountable Safety are observed, even in slightly larger configurations.
 Beyond these findings, our study highlights the importance of manual
 abstraction and domain expertise in enhancing model-checking efficiency and
 showcases the flexibility of~\tlap{} for managing intricate specifications.%
