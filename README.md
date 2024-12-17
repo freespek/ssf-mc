@@ -39,7 +39,7 @@ instances in [MC_ffg_b3_ffg5_v12](./spec4/MC_ffg_b3_ffg5_v12.tla) and
 
 **Spec 4b.** This spec
 contains further abstractions and decomposition of configurations. This is the
-first TLA<sup>+</spec> specification that allowed us to show accountable safety
+first TLA<sup>+</sup> specification that allowed us to show accountable safety
 for models of very small size. Check [ffg](./spec4b-optimizations/ffg.tla),
 [MC_ffg_b3_ffg5_v12](./spec4b-optimizations/MC_ffg_b3_ffg5_v12.tla), and
 [MC_ffg_b5_ffg10_v20](./spec4b-optimizations/MC_ffg_b5_ffg10_v20.tla).
