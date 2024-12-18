@@ -134,7 +134,7 @@ properties for all possible block graphs, and all possible FFG voting scenarios
 on top of these graphs.
 
 
-To further evaluate \SpecTwo{}, we fix the block graph\footnote{We consider forests, rather than just trees, because the specification allows for that. Specifically, forests can occur when only some of the blocks of a given chain are received by a node. In the specification, the set of blocks received corresponds the map \texttt{CommonNodeState.view\_blocks}.} --- this way the solver
+To further evaluate \SpecTwo{}, we fix the block graph\footnote{We consider forests, rather than just trees, because the specification allows for that. Specifically, forests can occur when only some of the blocks of a given chain are received by a node. In the specification, the set of blocks received corresponds to the map \texttt{CommonNodeState.view\_blocks}.} --- this way the solver
 only has to reason about voting. We encode three example block graphs: a
 single, linear chain (\texttt{SingleChain}), a minimal forked chain of three
 blocks (\texttt{ShortFork}), and a forest of disconnected chains
