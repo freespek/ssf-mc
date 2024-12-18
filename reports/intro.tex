@@ -1,11 +1,17 @@
 %! TeX root = report.tex
 
+\section{Key Outcomes}\label{sec:outcomes}
+
+% we embed the discussion right in the introduction
+\input{discussion}
+
 \section{Introduction}
 
-At the time of writing this report, Ethereum is using
-Gasper~\cite{buterin2020combining} as the underlying consensus protocol.
+\subsection{Quick Intro to 3SF}
+
+At the time of writing this report, Ethereum is using Gasper~\cite{buterin2020combining} as the underlying consensus protocol.
 In Gasper, time is divided into slots, which represent intervals during which a new block is proposed to extend the blockchain and undergoes voting. 
-Finalizing a block--ensuring that it is permanently added to the blockchain and cannot be reversed--typically requires 64 to 95 slots.
+Finalizing a block -- ensuring that it is permanently added to the blockchain and cannot be reversed -- typically requires 64 to 95 slots.
 This delay in finality makes the network more vulnerable to potential
 block reorganizations when the network conditions change, 
 e.g., during periods of asynchronous network conditions.
@@ -33,11 +39,15 @@ The first confirmation rule defines what is known as the \emph{available chain},
 The second confirmation rule defines the \emph{finalized chain}, and provides safety even under network partitions, but loses liveness 
 either under asynchrony or in case of fluctuation in the participation level.
 
-In this research project, we targeted the 3SF specification in Python \footnote{Link to the Python specification:
+\subsection{This Project: Model Checking of 3SF}
+
+In this research project, we targeted the 3SF specification in Python\footnote{Link to the Python specification:
 \href{https://github.com/saltiniroberto/ssf/blob/ad3ba2c21bc1cd554a870a6e0e4d87040558e129/high_level/common/ffg.py}{https://github.com/saltiniroberto/ssf/.../ffg.py}} as the case study focusing only on the finality gadget protocol, which is mostly specified in the file \texttt{ffg.py}.
 Our main goal was to demonstrate 
 \emph{Accountable Safety} of this protocol by the means of model checking. 
-Accountable Safety is the property which ensures that if two conflicting chains (i.e. chains where neither is a prefix of the other) are finalized then, by having access to all messages sent, it is possible to identify at least $\frac{1}{3}$ responsible participants. 
+Accountable Safety is the property which ensures that if two conflicting chains
+(i.e. chains where neither is a prefix of the other) are finalized, then -- by
+having access to all messages sent -- it is possible to identify at least $\frac{1}{3}$ responsible participants.
 
 % \paragraph{}\colorbox{yellow}{TODO:}
 
@@ -54,42 +64,14 @@ specifications~\cite{tla-examples}, the most notable for our project are the
 specifications of Paxos~\cite{lamport2001paxos}, Raft~\cite{Ongaro14}, and
 Tendermint~\cite{abs-1807-04938,TendermintSpec2020}. Since consensus algorithms
 are quite challenging for classical model checkers like TLC, we choose
-Apalache~\cite{Apalache2024,KT19,KonnovKM22}. This model checker utilizes the
+the symbolic model checker Apalache~\cite{Apalache2024,KT19,KonnovKM22}. This model checker utilizes the
 SMT solver~Z3~\cite{MouraB08} in the background. Apalache was used for model
 checking of agreement and accountable safety of
 Tendermint~\cite{TendermintSpec2020}. As added benefit, four of the project
-participants developed Apalache in the past and know its strenghts and
+participants have developed Apalache in the past and know its strenghts and
 weaknesses.
 
-\paragraph{Complexity of (model-checking) the protocol.} The 3SF protocol is
-intricate, with a high degree of combinatorial complexity, making it challenging
-for automatic model checking. We have observed multiple layers of complexity in the protocol:
-\begin{itemize}
-  \item The Python specification considers all possible graphs over all proposed
-    blocks. From graph theory~\cite{cayley1878theorem}, we know that the number
-    of labelled rooted forests on $n$ vertices is ${(n+1)}^{n-1}$. (Observe that
-    this number grows faster than the factorial~$n!$.) This is the number of
-    possible block graphs that the model checker has to consider for $n$ blocks.
-  \item The protocol introduces a directed graph of checkpoints (pairs $(b,n)$
-    of a block $b$ and an integer $n$) \emph{on top} of the block graph.
-    Validator-signed votes form a third labeled directed graph over pairs of
-    checkpoints. In addition, all of these edges have to satisfy arithmetic
-    constraints.
-  \item Justified and finalized checkpoints introduce an inductive structure
-    that the model checker has to reason about. Essentially, the solvers have to
-    reason about chains of checkpoints on top of chains of blocks.
-  \item Finally, the protocol introduces set cardinalities, both for determining a
-    quorum of validators and as a threshold for \textit{AccountableSafety}.
-    Cardinalities are known to be a source of inefficiency in automated
-    reasoning.
-\end{itemize}
-
-\subsection{Key Outcomes}\label{sec:discussion}
-
-% we embed the discussion right in the introduction
-\input{discussion}
-
-\subsection{Structure of the report}
+\subsection{Structure of the Report}
 
 \begin{figure}
   \input{artifacts}
@@ -100,7 +82,10 @@ Figure~\ref{fig:artifacts} depicts the relations between the specifications
 that we have produced in the project:
 
 \begin{enumerate}
-    \item We have started with the executable specification in Python.
+    \setcounter{enumi}{0}
+    \item Section~\ref{sec:3sf} provides an introduction to the technical
+    details of the 3SF protocol. We start our specification work from the
+    executable specification in Python \texttt{ffg.py}.
 
     \item \SpecOne{}: This is the specification
         \texttt{spec1-2/ffg\_recursive.tla}. It is the result of a manual
@@ -153,8 +138,4 @@ that we have produced in the project:
         that were conducted in Milestone~3.
 
 \end{enumerate}
-
-\subsection{Potential extensions of this project}\label{sec:future}
-
-\input{future}
 

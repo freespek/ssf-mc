@@ -1,0 +1,102 @@
+%! TeX root = report.tex
+
+\section{Basic 3SF concepts}\label{sec:3sf}
+
+In this section, we summarize the basic concepts of the 3SF protocol that this project depends on.
+We refer the reader to the 3SF paper~\cite{d20243} for a more comprehensive explanation.
+
+\paragraph*{Validators.} Participants of the protocol are referred to as \emph{validators} with $n$ being their total number.
+Every validator is identified by a unique cryptographic identity and the public keys are common knowledge. 
+Each validator has a \emph{stake} but for the purpose of this project each validator's stake is set to 1.
+% If a validator $v_i$ misbehaves and a proof of this misbehavior is given, it loses a part of its stake ($v_i$ gets \emph{slashed}). 
+
+\paragraph*{Slots.} Time is divided into \emph{slots}. 
+In ideal conditions a new block (see below) is expected to be proposed at the beginning of each slot.
+
+\paragraph{Blocks and Chains.} 
+A \emph{block} is a pair of elements, denoted as \( B = (b,p) \). Here, \( b \) represents the \emph{block body} -- essentially, the main content of the block which contains a batch of transactions grouped together.
+Each block body contains a reference pointing to its \emph{parent} block. 
+The second element of the pair, \( p \geq 0 \), indicates the \emph{slot} where the block \( B \) is proposed.
+By definition, if $B_p$ is the parent of $B$, then $B_p.p < B.p$.
+The \emph{genesis block} is the only block that does not have a parent. Its slot is \( p = 0 \).
+Given the definition above, each different block $B$ implicitly identifies a different finite \emph{chain} of blocks starting from block $B$, down to the genesis block, by recursively moving from a block to its parent.
+Hence, there is no real distinction between a block and the chain that it identifies.
+So, by chain $\chain$, we mean the chain identified by the block $\chain$.
+We write $\chain_1 \preceq \chain_2$ to mean that $\chain_1$ is a non-strict prefix of $\chain_2$.
+We say that $\chain_1$ \emph{conflicts} with $\chain_2$ if and only if neither $\chain_1 \preceq \chain_2$ nor $\chain_2 \preceq \chain_1$ holds. 
+
+\paragraph{Checkpoints.}
+In the protocol described in~\cite{d20243}, a \emph{checkpoint} is a tuple $(\chain, c)$, where \(\chain \) is a chain and \( c \) is a slot signifying where \( \chain \) is proposed for justification (this concept is introduced and explained below).
+However, for efficiency reasons, in the specification targeted by this project, a \emph{valid} checkpoint $\C$ is a triple $(H, c, p)$ where $H$ is the hash of a chain $\chain$, $c$ is the slot at which chain $\chain$ is proposed for justification, as per the definition above, and $p =  \chain.p$.
+The total pre-order among checkpoints is defined:
+$\C \leq \C'$ if and only if either \(\C.c < \C'.c\) or, in the case where \(\C.c = \C'.c\), then \(\C.p \leq \C'.p\). 
+Also, $\C < \C'$ means $\C \leq \C' \land \C \neq \C'$.
+
+
+\paragraph*{FFG Votes.}
+Validators cast two main types of votes: \textsc{ffg-vote}s and \textsc{vote}s. 
+Each \textsc{vote} includes an \textsc{ffg-vote}.
+The specification targeted by this project only deals with \textsc{ffg-vote}s as the extra information included in  \textsc{vote}s has no impact on AccountableSafety.
+An \textsc{ffg-vote} is represented as a tuple \([\textsc{ffg-vote}, \C_1, \C_2, v_i]\), where {$v_i$ is the validator sending the \textsc{ffg-vote}\footnote{Digital signatures are employed to ensure that $v_i$ is the actual sender and it is assumed that such digital signatures are unforgeable.}, while} \(\C_1\) and \(\C_2\) are checkpoints.
+These checkpoints are respectively referred to as the \emph{source} (\(\C_1\)) and the \emph{target} (\(\C_2\)) of the \textsc{ffg-vote}.
+Such an \textsc{ffg-vote} is \emph{valid}
+%(i.e., $\mathrm{valid}(\C_1 \to \C_2$)) 
+if and only if both checkpoints are valid, 
+\(\C_1.c < \C_2.c\) and  \(\C_1.\chain \preceq \C_2.\chain\). 
+\textsc{ffg-vote}s effectively act as \emph{links} connecting the source and target checkpoints. Sometimes the whole \textsc{ffg-vote} is simply denoted as \(\C_1 \to \C_2\).
+
+\paragraph*{Justification.}
+A set of \textsc{ffg-vote}s is a \emph{supermajority set} if it contains valid \textsc{ffg-vote}s from at least \(\frac{2}{3}n\) distinct validators.
+A checkpoint \(\C\) is considered \emph{justified} if it either corresponds to the genesis block, i.e., \(\C = (B_\text{genesis}, 0)\), or if there exists a supermajority set of links \(\{\C_i \to \C_j\}\) satisfying the following conditions. First,  for each link $\C_i \to \C_j$ in the set, {\(\C_i \to \C_j\) is valid and} \(\C_i.\chain \preceq \C.\chain \preceq \C_j.\chain\). Moreover, all source checkpoints \(\C_i\) in these links need to be already justified, and the checkpoint slot of \(\C_j\) needs to be the same as that of \(\C\) (\(\C_j.c=\C.c\)), for every \(j\). It is important to note that the source and target chain may vary across different votes.
+% This justification rule is formalized by the binary function $\mathsf{J}(\V,\C)$ in Algorithm~\ref{alg:justification-finalization} which outputs \textsc{true} if and only if checkpoint $\C$ is justified according to the set of messages $\V$.
+% Lastly, we say that a {chain \(\chain\)} \emph{is justified} if and only if there exists a justified checkpoint \(\C\) for which {\(\C.\chain = \chain\)}.
+
+% \paragraph*{Greatest justified checkpoint and chain.}
+% A checkpoint is considered justified in a view \(\V\) if \(\V\) contains a supermajority set of links justifying it. A \emph{justified} checkpoint which is maximal in \(\V\) with respect to the previously defined lexicographic ordering is referred to as the \emph{greatest justified checkpoint} in \(\V\), denoted as \(\GJ(\V)\). In the event of ties, they are broken arbitrarily. Chain \(\GJ(\V).\chain\) is referred to as the \emph{greatest justified chain}.
+
+\paragraph*{Finality.}
+A checkpoint \(\C\) is \emph{finalized} if it is justified and there exists a supermajority link with source \(\C\) and potentially different targets \(\C_j\) where \(\C_j.c = \C.c + 1\). A chain \(\chain\) is finalized if there exists a finalized checkpoint \(\C\) with \(\chain = \C.\chain\). The checkpoint \(\C = (B_\text{genesis}, 0)\) is finalized by definition.
+% This finalization rule is formalized by the binary function $\mathsf{F}(\V,\C)$ in Algorithm~\ref{alg:justification-finalization} which outputs \textsc{true} if and only if checkpoint $\C$ is finalized according to the set of messages $\V$.
+% {Given a view $\V$, a finalized checkpoint which is maximal in \(\V\) with respect to the previously defined lexicographic ordering is referred to as the \emph{greatest finalized checkpoint} in \(\V\), denoted as \(\GF(\V)\).
+% In the event of ties, they are broken arbitrarily.
+% % We say that a chain 
+% We say that a chain $\chain$ is finalized according to a view $\V$ if and only if $\chain \preceq \GF(\V).\chain$.
+
+
+\paragraph*{Slashing.}
+A validator \(v_i\) is subject to slashing for sending two \emph{distinct} \textsc{ffg-vote}s \(\C_1 \to \C_2\) and \(\C_3 \to \C_4\) if either of the following conditions holds: {\(\mathbf{E_1}\) (Double voting)} if \(\C_2.c = \C_4.c\), implying that a validator must not cast distinct \textsc{ffg-vote}s for the same checkpoint slot; or {\(\mathbf{E_2}\) (Surround voting)} if \(\C_3 < \C_1\)
+ and \(\C_2.c < \C_4.c\), indicating that a validator must not vote using a lower checkpoint as source and must avoid voting within the span of its other votes.
+
+
+ \begin{definition}[AccountableSafety]
+  \label{def:acc-safety}
+  AccountableSafety holds if and only if, upon two conflicting chains being finalized, 
+ {by having access to all messages sent,} it is possible to slash at least $\frac{n}{3}$ of the validators.
+  % Finally, we also say that a chain is $f$-\emph{accountable} if the protocol outputting it has Accountable Safety with resilience $f$.
+  % If a protocol $\Pi$ comprises $k$ subprotocols, $\Pi_i$, each of which outputs a chain, $\Chain_i$, we say that $\Chain_i$ is $f$-accountable if $\Pi_i$ is $f$-accountable.
+\end{definition}
+
+\subsection{Complexity of (model-checking) the protocol}
+
+The 3SF protocol is intricate, with a high degree of combinatorial complexity,
+making it challenging for automatic model checking. During our specification
+work, we have observed multiple layers of complexity in the protocol:
+\begin{itemize}
+  \item The Python specification considers all possible graphs over all proposed
+    blocks. From graph theory~\cite{cayley1878theorem}, we know that the number
+    of labelled rooted forests on $n$ vertices is ${(n+1)}^{n-1}$. (Observe that
+    this number grows faster than the factorial~$n!$.) This is the number of
+    possible block graphs that the model checker has to consider for $n$ blocks.
+  \item The protocol introduces a directed graph of checkpoints (pairs $(b,n)$
+    of a block $b$ and an integer $n$) \emph{on top} of the block graph.
+    Validator-signed votes form a third labeled directed graph over pairs of
+    checkpoints. In addition, all of these edges have to satisfy arithmetic
+    constraints.
+  \item Justified and finalized checkpoints introduce an inductive structure
+    that the model checker has to reason about. Essentially, the solvers have to
+    reason about chains of checkpoints on top of chains of blocks.
+  \item Finally, the protocol introduces set cardinalities, both for determining a
+    quorum of validators and as a threshold for \textit{AccountableSafety}.
+    Cardinalities are known to be a source of inefficiency in automated
+    reasoning.
+\end{itemize}

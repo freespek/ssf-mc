@@ -13,23 +13,21 @@
 \newcommand{\tbh}[1]{\textsc{\textbf{#1}}}
 \newcommand{\rs}[1]{\footnote{\textcolor{purple}{#1}}}
 
-\title{Technical Report:\\
-    Exploring Automatic Model-Checking of the Ethereum specification\footnote{%
-        The specifications, scripts, and experimental results can be accessed at:\\
-        \url{https://github.com/freespek/ssf-mc}
-    }}
+\title{\vspace{-2em}Technical Report: Exploring Automatic Model-Checking of the Ethereum specification\footnote{%
+		The specifications, scripts, and experimental results can be accessed at: \url{https://github.com/freespek/ssf-mc}}}
 \author{%
     Igor Konnov\thanks{This work was supported by Ethereum Foundation
-    under grant FY24--1535.}\\ \small Independent Researcher \\
+    under grant FY24--1535.}\\ \footnotesize Independent Researcher%
     \and
-    Jure Kukovec\footnotemark[2] \\ \small Independent Researcher \\
+    Jure Kukovec\footnotemark[2] \\ \footnotesize Independent Researcher%
     \and
-    Thomas Pani\footnotemark[2] \\ \small Independent Researcher \\
+    Thomas Pani\footnotemark[2] \\ \footnotesize Independent Researcher%
     \and
     Roberto Saltini\thanks{This work was supported by Ethereum Foundation
-    under grant FY24--1536 and was partially done while at Consensys.} \\ \small Independent Researcher \\
+    under grant FY24--1536 and was partially done while at Consensys.} \\
+    \footnotesize Independent Researcher%
     \and
-    Thanh Hai Tran\footnotemark[3] \\ \small Independent Researcher
+    Thanh Hai Tran\footnotemark[3] \\ \footnotesize Independent Researcher%
 }
 \date{}
 
@@ -39,32 +37,38 @@
 
 \maketitle
 
-\begin{abstract}
+\begin{abstract}%
+We investigate automated model-checking of the Ethereum specification, focusing
+on the \emph{Accountable Safety} property of the 3SF consensus protocol. We
+select 3SF due to its relevance and the unique challenges it poses for formal
+verification. Our primary tools are~\tlap{} for specification and the Apalache
+model checker for verification.
 
-We explore automated model-checking of the Ethereum specification, specifically
-the accountable safety of the 3SF protocol. We use~\tlap{} as our primary
-specification language and the Apalache model checker with the Z3 SMT solver as
-a backend. As a first step, we manually translate the Python specification
-into~\tlap{}. This reveals the high combinatorial complexity related to the
-definitions of accountable safety in the 3SF protocol.
+Our formalization builds on the executable Python specification of 3SF\@. To
+begin, we manually translate this specification into~\tlap{}, revealing
+significant combinatorial complexity in the definition of Accountable Safety.
+To address these challenges, we introduce several layers of manual abstraction:
+(1) replacing recursion with folds, (2) substituting abstract graphs with
+integers, and (3) decomposing chain configurations.
+To cross-validate our results, we develop alternative encodings in SMT (CVC5)
+and Alloy.
 
-To address these challenges, we apply multiple layers of manual abstractions,
-such as (1) using folds instead of recursion, (2) integers in place of abstract
-graphs, and (3) decomposing chain configurations. We also develop
-specifications in SMT (CVC5) and Alloy. Despite the challenges, our results show that
-exhaustive verification of accountable safety is feasible for small
-instances with up to 7 checkpoints and 24 validator votes, and we found no
-falsification of accountable safety in slightly larger configurations. Our
-study underscores the value of manual abstraction and expertise in enhancing
-model-checking efficiency and highlights \tlap{}'s flexibility in handling
-abstractions.
-
-\end{abstract}
+Despite the inherent complexity, our results demonstrate that exhaustive
+verification of Accountable Safety is feasible for small instances --
+supporting up to 7 checkpoints and 24 validator votes. Moreover, no violations
+of Accountable Safety are observed, even in slightly larger configurations.
+Beyond these findings, our study highlights the importance of manual
+abstraction and domain expertise in enhancing model-checking efficiency and
+showcases the flexibility of~\tlap{} for managing intricate specifications.%
+\end{abstract}%
+\newpage%
 
 \setcounter{tocdepth}{2}  % hide anything at or below \subsubsection
 \tableofcontents
 
 \input{intro}
+
+\input{3sf}
 
 % Milestone 1 - Spec 1
 \input{spec1}
@@ -79,6 +83,29 @@ abstractions.
 \input{spec3-alloy}
 \input{spec4}
 \input{spec4b}
+
+\section{Summary \& Future Work}\label{sec:summary}
+We have presented a series of specifications modeling the 3SF protocol from
+various perspectives. Initially, we developed a direct translation of the
+protocol's Python specification into \tlap{}, but this approach proved
+unsatisfactory due to the reliance on recursion. To address this, we modified
+the specification to use folds in place of recursion, theoretically enabling
+model-checking with Apalache. However, this approach also proved impractical
+due to the high computational complexity involved. Subsequently, we applied a
+series of abstractions to improve the model-checking efficiency.
+
+In addition to the \tlap{} specifications, we also introduced an SMT encoding
+and an Alloy specification. The SMT encoding proved to be fairly performant,
+while the Alloy specification demonstrated exceptional performance in
+combination with the Kissat SAT solver.
+
+\subsection{Key Outcomes of the Project}
+
+To revisit the key outcomes of the project, see Section~\ref{sec:outcomes}.
+
+\subsection{Potential Extensions of this Project}\label{sec:future}
+
+\input{future}
 
 \bibliographystyle{plain}
 \bibliography{ref}

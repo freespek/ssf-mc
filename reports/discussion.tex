@@ -1,20 +1,9 @@
 %! TeX root = report.tex
 
-We have presented a series of specifications modeling the 3SF protocol from
-various perspectives. Initially, we developed a direct translation of the
-protocol's Python specification into \tlap{}, but this approach proved
-unsatisfactory due to the reliance on recursion. To address this, we modified
-the specification to use folds in place of recursion, theoretically enabling
-model-checking with Apalache. However, this approach also proved impractical
-due to the high computational complexity involved. Subsequently, we applied a
-series of abstractions to improve the model-checking efficiency.
-
-In addition to the \tlap{} specifications, we also introduced an SMT encoding
-and an Alloy specification. The SMT encoding proved to be fairly performant,
-while the Alloy specification demonstrated exceptional performance in
-combination with the Kissat solver~\cite{SAT-Competition-2024-solvers}.
-
-We summarize the key outcomes of the project:
+During the course of this project, we have developed a series of specifications
+in \tlap{}, Alloy, and SMT, each representing a different level of abstraction
+of the 3SF protocol. Before we delve into the technical details, we summarize
+the key outcomes of the project:
 
 \paragraph{Exhaustive checking of \textit{AccountableSafety}.} Our primary
 objective was to verify the \textit{AccountableSafety} property of the 3SF
@@ -39,6 +28,25 @@ generated counterexamples. This increases our confidence that the protocol
 remains accountably safe, even for system sizes substantially larger than
 those we were able to exhaustively verify.
 
+\paragraph{Value of producing examples.} Even though checking accountable
+safety proved to be challenging, our specifications are not limited to proving
+only accountable safety. They are also quite useful for producing examples. For
+instance, both Apalache and Alloy are able to quickly produce examples of
+configurations that contain justified and finalized checkpoints. We highlight
+this unique value of specifications that are supported by model checkers:
+
+\begin{itemize}
+  \item Executable specifications in Python require the user to provide program
+    inputs. These inputs can be also generated randomly, though in the case of
+    3SF, this would be challenging: We expect the probability of hitting
+    ``interesting'' values, such as producing finalizing checkpoints, to be
+    quite low.
+  \item Specifications in the languages supported by proof systems usually do
+    not support model finding. The TLAPS Proof System is probably a unique
+    exception here, as~\tlap{} provides a common playground for the prover and the
+    model checkers~\cite{KonnovKM22}.
+\end{itemize}
+
 \paragraph{Advantages of human expertise over automated translation.} Applying
 translation rules to derive checkable specifications from existing artifacts can
 serve as a valuable starting point. However, such translations often introduce
@@ -58,26 +66,3 @@ deeper understanding of the protocol and laid the groundwork for the more
 efficient Alloy specification. The connection between the Python specification
 and the Alloy specification is definitely less obvious than the tower of
 abstractions that we have built in~\tlap{}.
-
-\paragraph{Value of producing examples.} Even though checking accountable
-safety proved to be challenging, our specifications are not limited to proving
-only accountable safety. They are also quite useful for producing examples. For
-instance, both Apalache and Alloy are able to quickly produce examples of
-configurations that contain justified and finalized checkpoints. We highlight
-this unique value of specifications that are supported by model checkers:
-
-\begin{itemize}
-
-  \item Executable specifications in Python require the user to provide program
-    inputs. These inputs can be also generated randomly, though in the case of
-    3SF, this would be challenging: We expect the probability of hitting
-    ``interesting'' values, such as producing finalizing checkpoints, to be
-    quite low.
-
-  \item Specifications in the languages supported by proof systems usually do
-    not support model finding. The TLAPS Proof System is probably a unique
-    exception here, as~\tlap{} provides a common playground for the prover and the
-    model checkers~\cite{KonnovKM22}.
-
-\end{itemize}
-
