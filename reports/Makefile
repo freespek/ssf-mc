@@ -1,7 +1,8 @@
 target = report
 source = report
+camera = final-report
 
-deps := $(source).tex ./*.tex
+deps := $(source).tex ./*.tex ./images/*.*
  
 build_dir = _build
 
@@ -17,6 +18,17 @@ $(target).pdf: $(build_dir) $(target).tex $(wildcard $(deps))
 
 $(build_dir): 
 	@mkdir $(build_dir)
+
+$(camera).pdf: $(build_dir) camera_expand $(wildcard $(deps))
+	latexmk -bibtex -pdf -jobname=$(build_dir)/$(camera) $(camera)
+	cp $(build_dir)/$(camera).pdf $(camera).pdf
+
+camera_expand: $(target).tex $(wildcard $(deps))
+	@latexpand $(target).tex > $(camera).tex
+
+camera: $(camera).pdf
+	@zip $(camera)-source.zip $(camera).tex \
+		$(build_dir)/$(camera).bbl ref.bib *.cls *.sty images/*
 
 clean:
 	@rm -rf $(build_dir)
