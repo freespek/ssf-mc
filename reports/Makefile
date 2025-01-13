@@ -27,8 +27,9 @@ camera_expand: $(target).tex $(wildcard $(deps))
 	@latexpand $(target).tex > $(camera).tex
 
 camera: $(camera).pdf
+	cp $(build_dir)/$(camera).bbl $(camera).bbl
 	@zip $(camera)-source.zip $(camera).tex \
-		$(build_dir)/$(camera).bbl ref.bib *.cls *.sty images/*
+		$(camera).bbl ref.bib *.cls *.sty images/*
 
 clean:
 	@rm -rf $(build_dir)
