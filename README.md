@@ -1,7 +1,18 @@
 # 3SF Automated Model-Checking
 
-EF project for model-checking Accountable Safety on the [3SF protocol]()
-proposal by D'Amato, Saltini, Tran, and Zanolini.
+This repository contains the artifacts produced in the project
+"Exploring Automatic Model-Checking of the Ethereum specification", supported
+by Ethereum Foundation.
+
+The work was done by Igor @konnov, Jure @Kukovec, Thomas Pani @thpani,
+Thanh Hai Tran @bahnday, and Roberto Saltini @saltiniroberto.
+
+As our input, we used the [3SF protocol][] by D'Amato, Saltini, Tran, and
+Zanolini.
+
+## Technical Report
+
+See our [technical report][].
 
 ## TLA+ Specifications
 
@@ -50,11 +61,7 @@ Our translation rules from executable Python specifications to TLA+ can be found
 
 ## Experimental Results
 
-Experimental results are reported in [EXPERIMENTS.md].
-
-## Technical Report
-
-Our [technial report] is published on arXiv.
+Experimental results are reported in [EXPERIMENTS.md][].
 
 [spec1-2/ffg]: ./spec1-2/ffg.tla
 [spec1-2/MC_ffg]: ./spec1-2/MC_ffg.tla
