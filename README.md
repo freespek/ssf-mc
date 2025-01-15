@@ -78,4 +78,4 @@ Experimental results are reported in [EXPERIMENTS.md][].
 [Translation.md]: ./Translation.md
 [EXPERIMENTS.md]: ./EXPERIMENTS.md
 [3SF protocol]: https://arxiv.org/abs/2411.00558
-[technial report]: https://arxiv.org/abs/2501.07958
+[technical report]: https://arxiv.org/abs/2501.07958
