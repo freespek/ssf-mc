@@ -52,6 +52,10 @@ Our translation rules from executable Python specifications to TLA+ can be found
 
 Experimental results are reported in [EXPERIMENTS.md].
 
+## Technical Report
+
+Our [technial report] is published on arXiv.
+
 [spec1-2/ffg]: ./spec1-2/ffg.tla
 [spec1-2/MC_ffg]: ./spec1-2/MC_ffg.tla
 [spec3/MC_ffg]: ./spec3/MC_ffg.tla
@@ -67,3 +71,4 @@ Experimental results are reported in [EXPERIMENTS.md].
 [Translation.md]: ./Translation.md
 [EXPERIMENTS.md]: ./EXPERIMENTS.md
 [3SF protocol]: https://arxiv.org/abs/2411.00558
+[technial report]: https://arxiv.org/abs/2501.07958
