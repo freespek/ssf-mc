@@ -2,7 +2,7 @@
 
 This repository contains the artifacts produced in the project
 "Exploring Automatic Model-Checking of the Ethereum specification", supported
-by Ethereum Foundation.
+by Ethereum Foundation under the 2024 Academic Grants Round.
 
 The work was done by Igor @konnov, Jure @Kukovec, Thomas Pani @thpani,
 Thanh Hai Tran @bahnday, and Roberto Saltini @saltiniroberto.
